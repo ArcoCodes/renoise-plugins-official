@@ -13,7 +13,7 @@ Official Claude Code plugins by Renoise.
 1. Add the marketplace:
 
 ```
-/plugin marketplace add renoise/renoise-plugins-official
+/plugin marketplace add ArcoCodes/renoise-plugins-official
 ```
 
 2. Install a plugin:
