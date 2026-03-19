@@ -16,11 +16,6 @@
       "name": "ecommerce",
       "source": "./plugins/ecommerce",
       "description": "E-commerce content creation: product videos, design sheets"
-    },
-    {
-      "name": "cinematic",
-      "source": "./plugins/cinematic",
-      "description": "Video analysis and reverse engineering for cinematic production"
     }
   ]
 }
