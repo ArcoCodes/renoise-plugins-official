@@ -217,4 +217,4 @@ node ${CLAUDE_SKILL_DIR}/youmeng-cli.mjs create --prompt "[0-5s] ... [5-12s] ...
 ## 参考
 
 - [Seedance 2.0 能力规格](references/seedance-capabilities.md) — 模型规格、prompt 写作详细指南、运镜速查表。写 prompt 时查阅
-- [API 端点参考](reference.md) — YOUMENG API 端点和请求/响应格式。需要直接调用 API 或排查 HTTP 错误时查阅
+- [API 端点参考](references/api-endpoints.md) — YOUMENG API 端点和请求/响应格式。需要直接调用 API 或排查 HTTP 错误时查阅
