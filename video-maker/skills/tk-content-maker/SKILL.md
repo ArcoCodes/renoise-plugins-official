@@ -1,8 +1,17 @@
 ---
-name: content-maker
-description: TikTok e-commerce short video script generator. Triggers on "电商视频", "商品视频", "content maker", "带货视频", "TikTok product video", "ecommerce video", "拍商品", "做一个商品短视频"
-categories: [product, ecommerce, tiktok]
+name: tk-content-maker
+description: >
+  TikTok e-commerce short video script generator. Analyzes product photos,
+  generates 15s video scripts with Seedance prompts and English dialogue.
+  Use when user says "TikTok product video", "ecommerce video", "电商视频",
+  "带货视频", "商品视频", "拍商品". Do NOT use for non-ecommerce videos or
+  general creative direction (use director instead).
 allowed-tools: Bash, Read
+metadata:
+  author: renoise
+  version: 0.1.0
+  category: video-production
+  tags: [product, ecommerce, tiktok]
 ---
 
 # Content Maker — 电商短视频脚本 + 视频生成

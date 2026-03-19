@@ -1,8 +1,18 @@
 ---
 name: youmeng-gen
-description: Generate AI videos with Seedance 2.0 via YOUMENG platform. Create tasks, upload materials, poll results, download videos. Supports text-to-video, image-to-video, and video-to-video. Use this skill whenever the user asks to "生成视频", "AI视频", "Seedance", "youmeng", "视频生成", "generate video", "create video", "text to video", "image to video", "做一个视频", "拍一个视频", "复刻视频", or describes any video content they want generated with AI.
-categories: [general]
+description: >
+  Seedance 2.0 video generation engine via YOUMENG API. Creates tasks,
+  uploads materials, polls results, downloads videos. Supports text-to-video,
+  image-to-video, video-to-video. Use when user says "generate video",
+  "Seedance", "youmeng", "create video task", "check video status", "视频生成".
+  Do NOT use for video downloading (use video-download) or creative direction
+  (use director).
 allowed-tools: Bash, Read
+metadata:
+  author: renoise
+  version: 0.1.0
+  category: video-production
+  tags: [general, seedance, video-generation]
 ---
 
 # Seedance 视频生成（via YOUMENG）

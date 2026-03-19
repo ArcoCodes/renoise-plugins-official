@@ -1,7 +1,16 @@
 ---
 name: scene-generate
-description: Generate realistic scene/background images using Gemini for Seedance video production. Use when you need environment backgrounds for video generation, such as American homes, workshops, outdoor scenes, etc.
-categories: [scene, background]
+description: >
+  Generates realistic scene and background images using Gemini for video
+  production. Use when user says "generate background", "create scene image",
+  "I need a background for my video", or when a video workflow needs custom
+  environment images. Do NOT use for product photos or design sheets.
+allowed-tools: Bash, Read
+metadata:
+  author: renoise
+  version: 0.1.0
+  category: video-production
+  tags: [scene, background, gemini]
 ---
 
 # Scene / Background Image Generation

@@ -1,10 +1,16 @@
 ---
 name: video-download
 description: >
-  This skill should be used when the user asks to "download a video", "save video locally",
-  "download from YouTube", "download from TikTok", "yt-dlp", or pastes a video URL
-  (youtube.com, youtu.be, tiktok.com, etc.) that needs to be saved as a local MP4 file.
-categories: [utility]
+  Downloads videos from YouTube, TikTok, and other platforms using yt-dlp.
+  Use when user says "download video", "save video", "yt-dlp", or pastes a
+  video URL (youtube.com, tiktok.com, etc). Do NOT use for AI video generation
+  or video editing.
+allowed-tools: Bash
+metadata:
+  author: renoise
+  version: 0.1.0
+  category: utility
+  tags: [download, youtube, tiktok, yt-dlp]
 ---
 
 # Video Download

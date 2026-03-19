@@ -1,7 +1,17 @@
 ---
 name: product-sheet-generate
-description: Generate a Product Design Sheet image from product photos using Gemini. Creates a multi-angle visual reference with color palette, materials, proportions, and detail callouts. Use when you have product photos and need a comprehensive visual reference for video production.
-categories: [product, design]
+description: >
+  Generates multi-angle Product Design Sheet from product photos using Gemini.
+  Shows front/back/side views, color palette, materials, and construction
+  details. Use when user says "product design sheet", "product reference image",
+  "multi-angle product view", or needs a visual reference for video production.
+  Do NOT use for scene backgrounds or video generation.
+allowed-tools: Bash, Read
+metadata:
+  author: renoise
+  version: 0.1.0
+  category: video-production
+  tags: [product, design, gemini]
 ---
 
 # Product Design Sheet Generation
