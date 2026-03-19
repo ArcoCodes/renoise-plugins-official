@@ -6,8 +6,8 @@ Official Claude Code plugins by Renoise.
 
 | Plugin | Description |
 |--------|-------------|
-| [video-maker](./plugins/video-maker) | Video production toolkit |
-| [ecommerce](./plugins/ecommerce) | E-commerce content creation: product videos, design sheets |
+| [video-maker](./video-maker) | Video production toolkit |
+| [ecommerce](./ecommerce) | E-commerce content creation: product videos, design sheets |
 
 ## Installation
 
