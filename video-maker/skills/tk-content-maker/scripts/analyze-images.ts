@@ -88,7 +88,7 @@ async function main() {
 
   const genAI = getGeminiClient()
   const model = genAI.getGenerativeModel({
-    model: process.env.GEMINI_MODEL ?? 'gemini-2.5-pro',
+    model: process.env.GEMINI_MODEL ?? 'gemini-3.1-pro',
     generationConfig: {
       temperature: 0.3,
       maxOutputTokens: 2048,

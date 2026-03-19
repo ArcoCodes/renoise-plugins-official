@@ -32,7 +32,7 @@ async function main() {
 
   const genAI = getGeminiClient()
   const model = genAI.getGenerativeModel({
-    model: process.env.GEMINI_IMAGE_MODEL ?? 'gemini-2.0-flash-exp',
+    model: process.env.GEMINI_IMAGE_MODEL ?? 'gemini-3.1-pro',
   })
 
   const prompt = BG_PROMPT_TEMPLATE.replace('{scene}', scene)
