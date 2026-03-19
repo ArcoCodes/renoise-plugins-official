@@ -1,5 +1,10 @@
 {
   "name": "ecommerce",
+  "description": "E-commerce content creation: product videos, design sheets",
   "version": "1.0.0",
-  "description": "E-commerce content creation: product videos, design sheets"
+  "skills": [
+    "../skills/tk-content-maker",
+    "../skills/product-sheet-generate",
+    "../skills/youmeng-gen"
+  ]
 }
