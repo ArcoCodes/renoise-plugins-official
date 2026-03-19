@@ -1,5 +1,5 @@
 ---
-name: tk-content-maker
+name: tiktok-content-maker
 description: >
   TikTok e-commerce short video script generator. Analyzes product photos,
   generates 15s video scripts with Seedance prompts and English dialogue.

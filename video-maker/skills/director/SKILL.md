@@ -50,7 +50,7 @@ You are a creative director for AI video production. You guide users from raw id
 
 5. **If user provided product images**, analyze them:
    ```bash
-   npx tsx ${CLAUDE_PLUGIN_ROOT}/skills/tk-content-maker/scripts/analyze-images.ts <product-image> [model-image]
+   npx tsx ${CLAUDE_PLUGIN_ROOT}/skills/tiktok-content-maker/scripts/analyze-images.ts <product-image> [model-image]
    ```
 
 6. **Present a brief summary**: "Here's what I understand: [product/story/concept]. I'll use [capabilities]. Let me suggest some creative directions."
@@ -81,7 +81,7 @@ You are a creative director for AI video production. You guide users from raw id
 
 **Match the request to a specialized skill using `metadata.tags`:**
 
-- Tags match `[product, ecommerce, tiktok]` → Read and follow `${CLAUDE_PLUGIN_ROOT}/skills/tk-content-maker/SKILL.md`
+- Tags match `[product, ecommerce, tiktok]` → Read and follow `${CLAUDE_PLUGIN_ROOT}/skills/tiktok-content-maker/SKILL.md`
 - Tags match `[scene, background]` → Use `scene-generate` as a helper
 - No specialized match → Director generates directly (most common path)
 
@@ -182,7 +182,7 @@ User: "Make another product video for my candle" (returning user)
 
 ### Skill routing confusion
 **Cause**: User intent unclear between director vs specialized skill.
-**Solution**: Default to director flow. If the user specifically mentions "TikTok" or "ecommerce", route to tk-content-maker.
+**Solution**: Default to director flow. If the user specifically mentions "TikTok" or "ecommerce", route to tiktok-content-maker.
 
 ### Video generation takes too long
 **Cause**: 15s videos typically need 5-10 minutes.
