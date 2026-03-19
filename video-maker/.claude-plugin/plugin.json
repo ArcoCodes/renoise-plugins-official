@@ -1,10 +1,5 @@
 {
   "name": "video-maker",
   "description": "Video production toolkit",
-  "version": "0.1.0",
-  "skills": [
-    "../skills/youmeng-gen",
-    "../skills/scene-generate",
-    "../skills/video-download"
-  ]
+  "version": "0.1.0"
 }
