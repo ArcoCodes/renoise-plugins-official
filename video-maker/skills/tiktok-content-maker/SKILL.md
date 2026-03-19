@@ -2,7 +2,7 @@
 name: tiktok-content-maker
 description: >
   TikTok e-commerce short video script generator. Analyzes product photos,
-  generates 15s video scripts with Seedance prompts and English dialogue.
+  generates 15s video scripts with video prompts and English dialogue.
   Use when user says "TikTok product video", "ecommerce video", "电商视频",
   "带货视频", "商品视频", "拍商品". Do NOT use for non-ecommerce videos or
   general creative direction (use director instead).
@@ -18,7 +18,7 @@ metadata:
 
 ## Overview
 
-电商短视频全流程工具：用户提供商品图（+ 可选模特图）→ 分析商品信息 → 生成 15 秒 TikTok 脚本（Seedance prompt，含英文台词嵌入）→ 提交视频生成任务。
+电商短视频全流程工具：用户提供商品图（+ 可选模特图）→ 分析商品信息 → 生成 15 秒 TikTok 脚本（视频 prompt，含英文台词嵌入）→ 提交视频生成任务。
 
 ## Workflow
 
@@ -26,7 +26,7 @@ metadata:
 
 1. **收集素材路径**：向用户索要图片
    - `商品图路径`（必需）：产品主图。**最佳：干净白底纯产品图，无文字/标注/装饰**。有营销文字覆盖的图会干扰模型。
-   - `模特图路径`（可选，仅供分析参考）：展示穿搭/使用效果的图。**注意：模特图仅用于理解产品使用方式，不上传到 YOUMENG**（Seedance 会拦截含真人面孔的图片）。
+   - `模特图路径`（可选，仅供分析参考）：展示穿搭/使用效果的图。**注意：模特图仅用于理解产品使用方式，不上传到 Renoise**（隐私检测会拦截含真人面孔的图片）。
 
 2. **分析商品信息**：
    - 如果有 Gemini API 可用，调用 Gemini 分析：
@@ -98,7 +98,7 @@ Mouth clearly visible when speaking, lip-sync aligned.
 
 **输出 3 项内容：**
 
-#### 1. Seedance Prompt（英文，含台词）
+#### 1. Video Prompt（英文，含台词）
 导演口述式段落（6-10 句，每句只做一件事），包含：
 - 产品锚定（一句话，Part A）在最开头
 - 台词以 `Spoken dialogue (say EXACTLY, word-for-word):` 格式嵌入（Part B）
@@ -130,7 +130,7 @@ Mouth clearly visible when speaking, lip-sync aligned.
 用户确认脚本后，上传商品图并提交视频生成任务。
 
 **重要规则**：
-- 只上传商品图，**不上传模特/真人图**（Seedance 隐私检测会拦截含真人面孔的图片，报错 `InputImageSensitiveContentDetected.PrivacyInformation`）
+- 只上传商品图，**不上传模特/真人图**（隐私检测会拦截含真人面孔的图片，报错 `InputImageSensitiveContentDetected.PrivacyInformation`）
 - 模特外观完全靠 prompt 文字描述控制
 - 商品图最好用干净白底纯产品图，避免有营销文字覆盖的图
 - 批量生成时：商品图只需上传一次，复用 material ID 提交多个不同场景的任务
@@ -138,6 +138,6 @@ Mouth clearly visible when speaking, lip-sync aligned.
 ## Important Notes
 
 - 图片支持 jpg/jpeg/png/webp 格式
-- Seedance prompt 必须全英文
+- 视频 prompt 必须全英文
 - 台词必须英文，嵌入 prompt（`Spoken dialogue (say EXACTLY, word-for-word): "..."`）
 - **不输出单独的字幕文案** — 台词已在 prompt 中，不需要额外字幕层
