@@ -1,6 +1,7 @@
 ---
 name: product-sheet-generate
 description: Generate a Product Design Sheet image from product photos using Gemini. Creates a multi-angle visual reference with color palette, materials, proportions, and detail callouts. Use when you have product photos and need a comprehensive visual reference for video production.
+categories: [product, design]
 ---
 
 # Product Design Sheet Generation

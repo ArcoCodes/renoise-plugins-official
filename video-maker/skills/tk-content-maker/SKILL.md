@@ -1,6 +1,7 @@
 ---
 name: content-maker
-description: 电商短视频脚本生成器。触发词："电商视频", "商品视频", "content maker", "带货视频", "product video", "ecommerce video", "拍商品", "做一个商品短视频"
+description: TikTok e-commerce short video script generator. Triggers on "电商视频", "商品视频", "content maker", "带货视频", "TikTok product video", "ecommerce video", "拍商品", "做一个商品短视频"
+categories: [product, ecommerce, tiktok]
 allowed-tools: Bash, Read
 ---
 

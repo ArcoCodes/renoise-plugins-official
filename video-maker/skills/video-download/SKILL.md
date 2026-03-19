@@ -4,6 +4,7 @@ description: >
   This skill should be used when the user asks to "download a video", "save video locally",
   "download from YouTube", "download from TikTok", "yt-dlp", or pastes a video URL
   (youtube.com, youtu.be, tiktok.com, etc.) that needs to be saved as a local MP4 file.
+categories: [utility]
 ---
 
 # Video Download
