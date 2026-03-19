@@ -117,16 +117,32 @@ Subject（外观详细描述）+ Action（多阶段动作）+ Camera（运镜变
 
 ### 运镜速查
 
-| 效果 | 英文关键词 | 适用场景 |
-|------|-----------|---------|
-| 急推 | fast snap dolly in | 细节冲击 |
-| 急拉 | quick pull back to reveal | 揭示全貌 |
-| 甩镜 | whip pan with motion blur | 节奏转场 |
-| 滑轨 | subtle slider drift | 优雅展示 |
-| 环绕 | smooth orbit | 360° 展示 |
-| 微距 | extreme macro push | 材质细节 |
-| 固定 | locked-off static | 定格/文字屏 |
-| 跟拍 | tracking shot follows subject | 动态跟随 |
+| 类别 | 效果 | 英文关键词 | 适用场景 |
+|------|------|-----------|---------|
+| **景别** | 大远景 | extreme wide shot | 环境建立 |
+| | 全景 | wide shot | 空间关系 |
+| | 中景 | medium shot | 人物互动 |
+| | 特写 | close-up | 情绪/细节 |
+| | 大特写 | extreme close-up / macro | 材质/纹理 |
+| **运镜** | 急推 | fast snap dolly in | 细节冲击 |
+| | 急拉 | quick pull back to reveal | 揭示全貌 |
+| | 甩镜 | whip pan with motion blur | 节奏转场 |
+| | 滑轨 | subtle slider drift | 优雅展示 |
+| | 环绕 | smooth orbit | 360° 展示 |
+| | 跟拍 | tracking shot follows subject | 动态跟随 |
+| | 微距 | extreme macro push | 材质细节 |
+| | 固定 | locked-off static | 定格/收尾 |
+| **角度** | 仰拍 | low angle | 权威/震撼 |
+| | 俯拍 | overhead / bird's eye | 全局/空间感 |
+| | 鱼眼 | fisheye lens | 趣味/夸张 |
+| | 主观 | first-person POV | 沉浸体验 |
+| **节奏** | 慢放 | slow motion | 强调动作 |
+| | 快切 | rapid cuts / hard cut | 紧张节奏 |
+| | 延时 | time-lapse | 时间流逝 |
+| **焦点** | 浅景深 | shallow depth of field | 主体突出 |
+| | 焦点转移 | rack focus | 视线引导 |
+| **特殊** | 希区柯克变焦 | dolly zoom / vertigo effect | 心理冲击 |
+| | 遮挡转场 | wipe transition through obstruction | 无缝场景切换 |
 
 ### 示例：15s 多分镜 prompt
 
@@ -135,3 +151,116 @@ Subject（外观详细描述）+ Action（多阶段动作）+ Camera（运镜变
 
 **差的 prompt**:
 > woman, café, coffee, sunshine, beautiful, cinematic, 4k
+
+## 高级 Prompt 技巧
+
+### 技术参数前置
+
+在 prompt 开头声明全局技术规格（画幅、帧率、色调、景深），模型会贯穿应用到整段视频：
+
+```
+2.35:1 widescreen, 24fps, warm golden palette, shallow depth of field.
+[0-5s] Close-up of hands on piano keys...
+```
+
+### 禁止项声明 (Negative Prompting)
+
+在 prompt 结尾排除不想要的元素，避免模型自动添加文字、水印等：
+
+```
+... frame holds steady. No text, subtitles, watermarks, or logos. No sudden camera shake.
+```
+
+常用禁止项：`No text / No subtitles / No watermarks / No logos / No camera shake / No jump cuts`
+
+### 风格关键词速查
+
+| 类别 | 关键词示例 |
+|------|-----------|
+| 质感 | cinematic, film grain, HDR, RAW, 8K |
+| 色调 | warm tone, cold blue, high contrast, desaturated, neon, Morandy palette |
+| 光影 | golden hour, rim light, Tyndall effect, volumetric light, natural light, side backlight |
+| 风格 | documentary, vlog, commercial, music video, Hollywood blockbuster, indie film |
+| 动画 | 3D CG animation, cel-shaded anime, ink wash painting, pixel art |
+
+## 场景类型 Prompt 侧重点
+
+| 场景 | Prompt 重点 |
+|------|------------|
+| **电商/广告** | 产品第 1 秒出现 + 材质特写 + 360° 展示 + 品牌收尾 |
+| **剧情/短剧** | 画面与台词分层写 + 标注角色情绪 + 音效单独一行 |
+| **动作/仙侠** | 特效粒子细节 + 快切节奏 + 慢放强调关键动作 |
+| **生活/Vlog** | 自然光 + 手持跟拍感 + 环境音 |
+| **MV/卡点** | 指定画幅+帧率 + 声音设计优先 + 节拍同步 |
+| **科普/教学** | 4K CGI 风格 + 半透明可视化 + 配教育旁白 |
+
+## 创作能力 Prompt 模板
+
+### 剧情补全 (Story Completion)
+
+给出关键帧或分镜描述，让模型自动补全动作和过渡：
+
+```
+A 4-panel comic strip is shown in the reference image. Animate each panel left-to-right,
+top-to-bottom, maintaining character dialogue. Add dramatic sound effects at key moments.
+Style: humorous and exaggerated.
+```
+
+### 视频延长 (Video Extension)
+
+对已生成的视频追加内容。用 `--materials "ID:ref_video"` 传入上一段视频，prompt 描述**新增部分**：
+
+```
+Continuing from the previous shot: [0-5s] The character turns and walks toward the door,
+camera tracking follows. [5-10s] She opens the door to reveal a sunlit garden, camera
+glides through the doorframe, frame holds steady.
+```
+
+> **注意**：`--duration` 设为新增部分的时长，不是总时长。
+
+### 一镜到底 (Seamless Long Take)
+
+关键词 `single continuous take, no cuts` + 用场景过渡词串联多个空间：
+
+```
+Single continuous take, no cuts. [0-5s] Camera follows a woman in a red coat through
+a crowded market, tracking shot. [5-10s] She turns a corner into a quiet alley, camera
+keeps following without cutting. [10-15s] She pushes open a wooden door and enters a
+sunlit courtyard, camera glides in behind her, frame holds steady.
+```
+
+### 声音与对白 (Sound & Dialogue)
+
+对白用 `Spoken dialogue (say EXACTLY, word-for-word): "..."` 格式嵌入对应时间段，标注情绪和口型：
+
+```
+[3-8s] Medium shot, she picks up the phone. Spoken dialogue (say EXACTLY, word-for-word):
+"I told you, it's over." Tone: cold and resolute. Mouth clearly visible, lip-sync aligned.
+```
+
+音效/BGM 单独一行写在 prompt 末尾：
+
+```
+Sound design: gentle rain on window, distant thunder, melancholic piano.
+```
+
+### 视频编辑 (Video Editing)
+
+基于参考视频做定向修改（角色替换/元素增减）。用 `--materials` 传入原视频 + 替换素材：
+
+```
+Replace the main character in the reference video with the person in the reference image.
+Keep all original camera movements and timing. Add a white cat sitting on the desk
+in the background.
+```
+
+### 音乐卡点 (Beat Sync)
+
+指定画幅+帧率，用时间戳精确对齐节拍，强调声画同步：
+
+```
+2.35:1 widescreen, 24fps. [0-2s] Beat drop — extreme close-up of hands clapping, sharp
+snap zoom. [2-5s] Wide shot, dancer spins, camera orbits in sync with bass hits.
+[5-8s] Freeze frame on peak pose, 0.5s hold, then rapid montage cuts on every snare.
+Sound design priority: footsteps, fabric rustle, and breath must align with beat.
+```
