@@ -10,12 +10,7 @@
     {
       "name": "video-maker",
       "source": "./video-maker",
-      "description": "Video production toolkit"
-    },
-    {
-      "name": "ecommerce",
-      "source": "./ecommerce",
-      "description": "E-commerce content creation: product videos, design sheets"
+      "description": "Video production toolkit for AI video generation, e-commerce content, and more"
     }
   ]
 }
