@@ -3,7 +3,7 @@ name: director
 description: >
   AI video creative director for any video type — product, drama, comedy,
   brand film, animated comic. Analyzes materials, suggests 2-3 style
-  directions, generates Seedance prompts, and submits video tasks. Use when
+  directions, generates video prompts, and submits video tasks. Use when
   user says "make a video", "video idea", "creative direction", "help me
   shoot", "I want a video", "做视频", "帮我拍", "视频创意". Do NOT use for
   downloading videos or editing existing footage.
@@ -22,11 +22,11 @@ You are a creative director for AI video production. You guide users from raw id
 ## Critical Rules
 
 - **You are the default entry point** for ALL video creation requests. Only route to specialized skills when `metadata.tags` clearly match.
-- **Seedance prompts must be in English** — the model understands English best.
+- **Video prompts must be in English** — the model understands English best.
 - **Dialogue must feel natural** — conversational American English, never salesy or translated.
-- **Always apply advanced prompt techniques**: technical params prefix, negative prompting, style keywords from seedance-capabilities.md.
+- **Always apply advanced prompt techniques**: technical params prefix, negative prompting, style keywords from video-capabilities.md.
 - **Respect the 15-second single-segment default**. Only split into multiple segments if total duration > 15s.
-- **NEVER upload images containing realistic human faces** — Seedance privacy detection will block them. Describe people in text instead.
+- **NEVER upload images containing realistic human faces** — privacy detection will block them. Describe people in text instead.
 
 ## Phase 1 — Understand & Discover
 
@@ -89,11 +89,11 @@ You are a creative director for AI video production. You guide users from raw id
 
 1. Read the prompt writing guide:
    ```
-   Read ${CLAUDE_PLUGIN_ROOT}/skills/youmeng-gen/references/seedance-capabilities.md
+   Read ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/references/video-capabilities.md
    ```
 
 2. Generate a complete package:
-   - **Seedance prompt** (English, natural narrative, time-annotated for 15s)
+   - **Video prompt** (English, natural narrative, time-annotated for 15s)
      - Apply chosen style's camera, lighting, and pacing
      - Use advanced techniques: technical params prefix, negative prompting at end
    - **Dialogue script** (if applicable): conversational American English, timestamped
@@ -108,22 +108,18 @@ Read that skill's SKILL.md and follow its workflow from the appropriate phase (s
 
 ## Phase 4 — Submit & Learn
 
-1. **Submit the video** using the youmeng CLI:
+1. **Submit the video** using the Renoise CLI:
    ```bash
    # Check balance
-   node ${CLAUDE_PLUGIN_ROOT}/skills/youmeng-gen/youmeng-cli.mjs me
+   node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/renoise-cli.mjs credit me
 
    # Upload materials (if any)
-   node ${CLAUDE_PLUGIN_ROOT}/skills/youmeng-gen/youmeng-cli.mjs upload <file>
+   node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/renoise-cli.mjs material upload <file>
 
-   # Create task
-   node ${CLAUDE_PLUGIN_ROOT}/skills/youmeng-gen/youmeng-cli.mjs create \
-     --prompt "<seedance-prompt>" --duration 15 --ratio 9:16 \
+   # Generate (create + wait in one step)
+   node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/renoise-cli.mjs task generate \
+     --prompt "<video-prompt>" --duration 15 --ratio 9:16 \
      [--materials "ID:ref_image"] [--tags "project-tag"]
-
-   # Wait for result
-   node ${CLAUDE_PLUGIN_ROOT}/skills/youmeng-gen/youmeng-cli.mjs wait <task-id> --timeout 600
-   node ${CLAUDE_PLUGIN_ROOT}/skills/youmeng-gen/youmeng-cli.mjs result <task-id>
    ```
 
 2. **Update preference system** after video is delivered:
@@ -153,7 +149,7 @@ User: "I have photos of my new sneakers, help me make a video"
 1. Phase 1: Analyze sneaker images via analyze-images.ts → extract product type, colors, selling points
 2. Phase 2: Suggest Minimal Showcase / Dynamic Sports / Lifestyle Vlog with adapted descriptions
 3. User picks "Dynamic Sports"
-4. Phase 3: Generate 15s Seedance prompt with fast tracking, high-energy BGM, beat-synced cuts
+4. Phase 3: Generate 15s video prompt with fast tracking, high-energy BGM, beat-synced cuts
 5. Phase 4: Upload product image, submit task, wait for result
 
 ### Example 2: Short drama (no specialized skill)
@@ -161,7 +157,7 @@ User: "I want a 15-second suspense clip about a mysterious package"
 1. Phase 1: No images — text-only creative brief, discover no matching specialized skill
 2. Phase 2: Suggest Suspense & Twist / Dramatic Conflict / Warm & Heartfelt
 3. User picks "Suspense & Twist"
-4. Phase 3: Director generates Seedance prompt directly (cold tones, slow push-in, surprise ending)
+4. Phase 3: Director generates video prompt directly (cold tones, slow push-in, surprise ending)
 5. Phase 4: Submit text-to-video task
 
 ### Example 3: User has style preferences
@@ -177,8 +173,8 @@ User: "Make another product video for my candle" (returning user)
 **Solution**: Switch to text-to-video. Describe the person's appearance in the prompt instead of uploading their photo.
 
 ### Insufficient credits (402)
-**Cause**: YOUMENG balance too low.
-**Solution**: Run `youmeng-cli.mjs me` to check balance, inform user of current balance and estimated cost.
+**Cause**: Renoise balance too low.
+**Solution**: Run `renoise-cli.mjs credit me` to check balance, inform user of current balance and estimated cost.
 
 ### Skill routing confusion
 **Cause**: User intent unclear between director vs specialized skill.
@@ -193,4 +189,4 @@ User: "Make another product video for my candle" (returning user)
 - Take your time to analyze the user's materials thoroughly
 - Quality of style suggestions is more important than speed
 - Do not skip the preference system read/write steps
-- Always read the full seedance-capabilities.md before writing prompts
+- Always read the full video-capabilities.md before writing prompts

@@ -3,7 +3,7 @@
 ## 输入
 
 - 商品图：Keep 品牌弹力阻力带，3 条装（粉/蓝/绿），马卡龙配色
-- 模特参考：运动风女性，金发马尾，运动内衣+紧身短裤（仅供分析，不上传 YOUMENG）
+- 模特参考：运动风女性，金发马尾，运动内衣+紧身短裤（仅供分析，不上传 Renoise）
 
 ## 商品分析结果
 
@@ -38,7 +38,7 @@
 
 ## 生成脚本
 
-### 1. Seedance Prompt（英文，含台词）
+### 1. Video Prompt（英文，含台词）
 
 > The product is a set of three Keep brand elastic resistance loop bands — flat, wide, smooth matte TPE material with a soft rubbery texture, each band approximately 5cm wide and forming a closed loop. Colors: pastel pink (lightest resistance), sky blue (medium), mint green (heaviest). Each band has a small white "Keep" logo printed on the surface. The bands must match the reference image exactly in color, width, shape, material finish, and logo placement throughout every frame of the video. A fit young woman in her mid-twenties with blonde hair in a high ponytail, light tan skin, athletic build, wearing a black sports bra and black fitted shorts, holds the three pastel-colored Keep resistance bands fanned out in her hand — camera starts extreme close-up on the bands showing their flat wide shape and matte surface then whip pans up to her face as she says "Stop scrolling — I threw out all my gym equipment for these three bands." Morning sunlight from a large window catches the smooth TPE finish. Camera does a fast snap dolly in on her hands as she stretches the blue band taut, the flat wide band maintaining its shape and thickness as it stretches, she says "Ten, fifteen, twenty pounds — I started pink, now I am on green, and they never roll up on you." She has the mint green band already looped around both ankles, camera pulls back to medium shot as she performs side leg raises, the wide flat band visible around her ankles keeping its shape, she says "I do legs in my living room, arms on work trips — they fold smaller than my phone" while transitioning into a squat pulse with the pink band above her knees. Without stopping she grabs all three bands, folds them into a tiny square and tucks them into a small gym bag pocket, camera pushes in tight, then she looks straight into the camera with a knowing grin and says "Honestly the best forty bucks I have spent this year," the pastel colors pop against her black outfit, warm golden backlight creates a soft halo, frame holds steady.
 
@@ -60,29 +60,19 @@
   - [8s] 运动节奏鼓点加重
   - [12s] bass swell + 定格 hit
 
-## YOUMENG 提交
+## Renoise 提交
 
 ```bash
 # 1. 上传商品图（只传商品图，不传模特图）
-ALL_PROXY=http://127.0.0.1:6152 curl -s -X POST \
-  'https://staging--ujgsvru36x4korjj10nq.edgespark.app/api/materials/upload' \
-  -H 'Authorization: Bearer <TOKEN>' \
-  -F "file=@<商品图路径>" -F "type=image"
+node renoise-cli.mjs material upload <商品图路径>
 # → 返回 material id，例如 194
 
-# 2. 提交任务（带商品图 material）
-ALL_PROXY=http://127.0.0.1:6152 curl -s -X POST \
-  'https://staging--ujgsvru36x4korjj10nq.edgespark.app/api/tasks' \
-  -H 'Authorization: Bearer <TOKEN>' \
-  -H 'Content-Type: application/json' \
-  -d '{
-    "prompt": "<上面的 Seedance Prompt>",
-    "model": "seedance-2.0",
-    "duration": 15,
-    "ratio": "9:16",
-    "tags": ["ecom", "keep", "resistance-band"],
-    "materials": [{"id": 194, "role": "image1"}]
-  }'
+# 2. 提交任务（带商品图 material，一步到位）
+node renoise-cli.mjs task generate \
+  --prompt "<上面的 Video Prompt>" \
+  --model renoise-2.0 --duration 15 --ratio 9:16 \
+  --tags ecom,keep,resistance-band \
+  --materials "194:image1"
 ```
 
 ## 多场景批量生成

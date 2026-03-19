@@ -1,4 +1,4 @@
-# 电商短视频 Seedance Prompt 指南
+# 电商短视频 Prompt 指南
 
 ## 15 秒电商视频 Prompt 模板
 
@@ -38,7 +38,7 @@ The product must match the reference image exactly in every frame. Do not invent
 A [age_range]-year-old [gender] with [hair description], [skin tone], [body type], wearing [outfit description]...
 ```
 
-**注意**：模特完全靠文字描述，不上传真人参考图（Seedance 会拦截含真人面孔的图片）。
+**注意**：模特完全靠文字描述，不上传真人参考图（隐私检测会拦截含真人面孔的图片）。
 
 ## 品类专用关键词
 
@@ -92,14 +92,14 @@ A [age_range]-year-old [gender] with [hair description], [skin tone], [body type
 
 ## 台词写作规范
 
-**核心原则**：台词必须是英文，嵌入 Seedance prompt 中。不单独输出字幕。
+**核心原则**：台词必须是英文，嵌入视频 prompt 中。不单独输出字幕。
 
 **嵌入格式**（强制口型同步）：
 ```
 Spoken dialogue (say EXACTLY, word-for-word): "..."
 Mouth clearly visible when speaking, lip-sync aligned.
 ```
-使用 `Spoken dialogue (say EXACTLY, word-for-word):` 而不是简单的 `says "..."`，可以显著提升 Seedance 的口型同步精度。每句台词后跟 `Mouth clearly visible when speaking, lip-sync aligned.` 确保嘴部可见。
+使用 `Spoken dialogue (say EXACTLY, word-for-word):` 而不是简单的 `says "..."`，可以显著提升口型同步精度。每句台词后跟 `Mouth clearly visible when speaking, lip-sync aligned.` 确保嘴部可见。
 
 **风格**：闺蜜聊天感 — 像在跟朋友推荐，不像在念广告词。每句话都带具体信息（数字、对比、使用场景），没有废话。
 
@@ -194,7 +194,7 @@ Mouth clearly visible when speaking, lip-sync aligned.
 
 ## BGM 音乐指令（Prompt 内指定）
 
-Seedance 2.0 可以在视频中生成背景音乐。**必须在 prompt 末尾加上 BGM 指令**：
+视频模型可以在视频中生成背景音乐。**必须在 prompt 末尾加上 BGM 指令**：
 
 ```
 Background music: [genre/mood description], [tempo], [energy level].
@@ -252,10 +252,10 @@ A woman enters carrying a pink ball while the camera pans and she says "..." as 
 - [ ] **末尾有 BGM 指令**（`Background music: [genre], [tempo], [energy]`）
 - [ ] Hook 段产品在第 1 帧出现，不铺垫
 
-## YOUMENG 提交注意事项
+## Renoise 提交注意事项
 
 - **必须上传商品图**作为 material（image1），产品还原度显著提升
-- **不上传真人模特图**，Seedance 隐私检测会拦截（报错 PrivacyInformation）
+- **不上传真人模特图**，隐私检测会拦截（报错 PrivacyInformation）
 - 模特外观完全靠 prompt 文字描述控制
 - 商品图最好用干净白底纯产品图，避免有营销文字覆盖的图
 - 批量生成时复用同一 material ID，换场景/台词即可

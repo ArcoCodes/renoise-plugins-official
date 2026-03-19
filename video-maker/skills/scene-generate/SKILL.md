@@ -15,7 +15,7 @@ metadata:
 
 # Scene / Background Image Generation
 
-Generate realistic background/scene images using Gemini image generation for use as Seedance environment references.
+Generate realistic background/scene images using Gemini image generation for use as video environment references.
 
 ## Arguments
 

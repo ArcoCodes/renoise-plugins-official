@@ -14,8 +14,8 @@ Just describe what you want — "make me a product video", "I want a short drama
 
 1. **Analyzes** your materials and creative brief
 2. **Suggests** 2-3 style directions tailored to your project
-3. **Generates** a complete Seedance prompt, dialogue, and BGM plan
-4. **Submits** to Seedance 2.0 for AI video generation
+3. **Generates** a complete video prompt, dialogue, and BGM plan
+4. **Submits** to Renoise for AI video generation
 5. **Learns** your preferences over time for better suggestions
 
 ## Skills
@@ -23,7 +23,7 @@ Just describe what you want — "make me a product video", "I want a short drama
 | Skill | Purpose |
 |-------|---------|
 | **director** | Creative director — the main entry point for all video requests |
-| youmeng-gen | Seedance 2.0 video generation engine (CLI) |
+| renoise-gen | AI video & image generation engine (CLI) |
 | content-maker | TikTok e-commerce short video specialist |
 | scene-generate | Background/environment image generation (Gemini) |
 | product-sheet-generate | Multi-angle product design sheet (Gemini) |
