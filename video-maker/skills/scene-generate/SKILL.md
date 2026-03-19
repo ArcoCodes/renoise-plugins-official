@@ -1,45 +1,52 @@
 ---
 name: scene-generate
 description: >
-  Generates realistic scene and background images using Gemini for video
-  production. Use when user says "generate background", "create scene image",
-  "I need a background for my video", or when a video workflow needs custom
-  environment images. Do NOT use for product photos or design sheets.
+  Generates realistic scene and background images using Renoise nano-banana-2
+  for video production. Use when user says "generate background", "create scene
+  image", "I need a background for my video", or when a video workflow needs
+  custom environment images. Do NOT use for product photos or design sheets.
 allowed-tools: Bash, Read
 metadata:
   author: renoise
-  version: 0.1.0
+  version: 0.2.0
   category: video-production
-  tags: [scene, background, gemini]
+  tags: [scene, background, renoise]
 ---
 
 # Scene / Background Image Generation
 
-Generate realistic background/scene images using Gemini image generation for use as video environment references.
+Generate realistic background/scene images via Renoise `nano-banana-2` model for use as video environment references.
 
 ## Arguments
 
 - First argument — Scene description in natural language (required)
-- Second argument — Output image path (required)
-
-## Prerequisites
-
-```bash
-pip install google-genai python-dotenv
-```
-
-在项目根目录 `.env` 中设置 `GEMINI_API_KEY`（从 https://aistudio.google.com/apikey 获取）。脚本会自动从根目录 `.env` 加载。
+- Second argument — Output directory (required)
 
 ## Instructions
 
-1. Run the generation script:
+1. Write an English prompt describing the scene. The prompt should specify:
+   - Environment and setting details
+   - Lighting conditions
+   - Perspective (e.g. "shot from a natural handheld perspective")
+   - "No people, no hands, no products — just the empty environment"
+   - "Photorealistic, like a real photograph. Sharp focus on the main surface area."
+
+2. Generate the image using the renoise-gen CLI:
 
 ```bash
-python skills/scene-generate/scripts/generate_scene.py \
-  "<scene_description>" \
-  "<output_path>"
+node ${CLAUDE_SKILL_DIR}/../renoise-gen/renoise-cli.mjs task generate \
+  --model nano-banana-2 \
+  --prompt "<english_prompt>" \
+  --resolution 2k \
+  --ratio 9:16
 ```
 
-2. Verify the output image was created and print file size.
+3. The command will output an `imageUrl` when complete. Download the image to the output directory:
 
-3. Show the generated image to the user for approval. If not satisfactory, adjust the description and regenerate.
+```bash
+curl -sL "<imageUrl>" -o "<output_dir>/scene.png"
+```
+
+4. Verify the file was created and print file size.
+
+5. Show the generated image to the user for approval. If not satisfactory, adjust the prompt and regenerate.
