@@ -79,6 +79,42 @@ Soft ambient glow, the frame holds steady.
 - Embed dialogue within the corresponding time segment
 - End last stage with `frame holds steady` for easy continuation
 
+### Shot Density — CRITICAL
+
+**The model can simulate multiple camera angles within a single 15s generation.** Use dense time annotations to create the feeling of edited cuts, not a single continuous take.
+
+**Minimum shot density per 15s segment:**
+
+| Scene Type | Shots per 15s | Time per Shot | Example |
+|------------|--------------|---------------|---------|
+| Action / martial arts | 5-7 | 2-3s | `[0-2s]` `[2-4s]` `[4-7s]` `[7-10s]` `[10-12s]` `[12-15s]` |
+| Drama / dialogue | 4-5 | 3-4s | `[0-3s]` `[3-6s]` `[6-9s]` `[9-12s]` `[12-15s]` |
+| Product / showcase | 3-5 | 3-5s | `[0-4s]` `[4-8s]` `[8-11s]` `[11-15s]` |
+| Atmospheric / art | 2-3 | 5-7s | `[0-5s]` `[5-10s]` `[10-15s]` |
+
+**Each time-annotated shot MUST have a different camera setup:**
+- Different shot size (close-up → medium → wide)
+- OR different angle (low angle → eye level → overhead)
+- OR different movement type (static → tracking → dolly)
+- OR hard cut keyword (`Hard cut —`, `Snap to`, `Cut to`)
+
+**BAD — one continuous take, no cuts:**
+```
+[0-15s] Camera slowly follows a cat walking through a bamboo forest.
+The cat stops and looks around. It leaps onto a rock.
+```
+
+**GOOD — 5 shots, varied angles, edited feel:**
+```
+[0-3s] Extreme wide shot — mist-filled bamboo forest at dawn. A ginger cat in silk robe stands motionless on a rock.
+[3-5s] Snap zoom to close-up of the cat's eyes narrowing. Ears flatten.
+[5-8s] Low angle — the cat launches forward, whip pan follows the leap through bamboo stalks.
+[8-12s] Hard cut — medium shot, two cats clash mid-air. Paws strike in slow motion for one beat, then speed resumes. Bamboo leaves scatter.
+[12-15s] Wide shot from above — both cats land on opposite sides of a stream. Dust settles. Camera holds.
+```
+
+**Rule**: Unless the prompt explicitly requests "single continuous take" or "long take", every 15s segment MUST contain at least 3 distinct camera setups with time annotations.
+
 ### Videos Over 15s
 
 When target duration > 15s, split into 15s segments, minimizing the number of segments:
