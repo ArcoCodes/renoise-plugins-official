@@ -82,6 +82,7 @@ You are a creative director for AI video production. You guide users from raw id
 **Match the request to a specialized skill using `metadata.tags`:**
 
 - Tags match `[product, ecommerce, tiktok]` → Read and follow `${CLAUDE_PLUGIN_ROOT}/skills/tiktok-content-maker/SKILL.md`
+- Tags match `[short-film, multi-clip, narrative, story]` → Read and follow `${CLAUDE_PLUGIN_ROOT}/skills/short-film-editor/SKILL.md`
 - Tags match `[scene, background]` → Use `scene-generate` as a helper
 - No specialized match → Director generates directly (most common path)
 

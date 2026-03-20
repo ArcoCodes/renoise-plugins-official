@@ -7,7 +7,7 @@ INPUT=$(cat)
 COMMAND=$(echo "$INPUT" | jq -r '.tool_input.command // empty')
 
 # Check if the command references any script in this plugin
-if echo "$COMMAND" | grep -qE '(renoise-cli|analyze-images)\.(ts|mjs|js)'; then
+if echo "$COMMAND" | grep -qE '(renoise-cli|generate-scene|generate-design-sheet|generate-storyboard-html|analyze-images|analyze-beats|gemini)\.(ts|mjs|js|py)'; then
   if [ -z "$RENOISE_API_KEY" ]; then
     jq -n '{
       hookSpecificOutput: {
