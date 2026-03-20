@@ -271,6 +271,38 @@ Submit all shots in parallel via `/v1/tob/diffusion`, poll for completion, downl
 **Option C — User-provided**:
 User manually places reference images in `${PROJECT_DIR}/storyboard/S1.png`, `S2.png`, etc.
 
+**Option D — Gemini Grid Storyboard (recommended for best consistency)**:
+Generate ALL shots in a single grid image so characters and style are naturally consistent across panels, then split into individual reference images.
+
+1. Generate a single N-panel grid with Gemini:
+   ```
+   Prompt: "Generate a single N-panel [manga/cinematic] storyboard grid image.
+   Layout: 2 rows x 4 columns grid with thin white borders.
+   The SAME two characters must appear consistently across all panels:
+   Character A: [verbatim from Character Bible]
+   Character B: [verbatim from Character Bible]
+   Panel 1: [S1 scene description]
+   Panel 2: [S2 scene description]
+   ...
+   16:9 aspect ratio. Consistent character design across all panels."
+   ```
+
+2. Split the grid into individual panel images:
+   ```bash
+   bash ${CLAUDE_SKILL_DIR}/scripts/split-grid.sh \
+     "${PROJECT_DIR}/storyboard/grid.png" \
+     "${PROJECT_DIR}/storyboard/" 2 4
+   ```
+   This produces `S1.png`, `S2.png`, ..., `S8.png` — all with consistent style.
+
+3. Upload each panel as material for Image-to-Video generation in Phase 5:
+   ```bash
+   node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/renoise-cli.mjs upload "${PROJECT_DIR}/storyboard/S1.png"
+   # → returns material ID
+   ```
+
+**Why this works**: All panels are generated in a single AI context, so character appearance, art style, color palette, and rendering technique are naturally unified. When used as ref_image input for Seedance, each clip inherits the visual anchor from its reference panel.
+
 Reference image prompts should include:
 - Scene environment from the shot
 - Character appearance (from Character Bible)
@@ -318,13 +350,30 @@ Once confirmed, proceed to generation.
    ```
 
 2. **Parallel submission** (recommended — much faster):
-   Submit all tasks at once, then wait for each in background:
+
+   **If using Grid Storyboard (Option D) — Image-to-Video mode**:
+   Upload each panel as material first, then create with `--materials`:
    ```bash
-   # Submit all shots (collect task IDs)
+   # Upload reference image → get material ID
+   UPLOAD=$(node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/renoise-cli.mjs upload \
+     "${PROJECT_DIR}/storyboard/${shot_id}.png")
+   MAT_ID=$(echo "$UPLOAD" | jq -r '.material.id')
+
+   # Create with ref_image for style anchoring
+   node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/renoise-cli.mjs create \
+     --prompt "<shot_prompt>" --duration <dur> --ratio <ratio> \
+     --materials "$MAT_ID:ref_image" --tags "<project>,<shot_id>"
+   ```
+   If a shot's ref_image is rejected by privacy detection → fallback to text-to-video (remove `--materials`).
+
+   **If using text-to-video only (Options A/B/C)**:
+   ```bash
    node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/renoise-cli.mjs create \
      --prompt "<shot_prompt>" --duration <dur> --ratio <ratio> --tags "<project>,<shot_id>"
+   ```
 
-   # Wait for all in background, results arrive as they complete
+   Wait for all in background:
+   ```bash
    node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/renoise-cli.mjs wait <task_id> --timeout 600
    ```
 

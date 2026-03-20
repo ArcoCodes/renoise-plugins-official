@@ -129,6 +129,35 @@ AI-generated clips will achieve ~80% visual consistency when following these tec
 - Subtle speed adjustments for timing
 - Audio continuity (shared BGM) creates perceived visual continuity
 
+## Grid Storyboard Method (宫格分镜法)
+
+### Why One Image > Many Images
+
+When generating reference images for each shot independently (even with the same prompt style), each generation starts from a different random seed. This causes:
+- Slight differences in character face shape, eye size, hair texture
+- Color palette drift between shots
+- Inconsistent rendering style (more/less detailed, different line weights)
+
+**The Grid Storyboard method solves this** by generating ALL shots in a single image. Because the AI renders all panels in one context:
+- Characters share the exact same face structure, proportions, and styling
+- Color palette is unified across all panels
+- Rendering technique (line weight, shading style, texture) is consistent
+- The AI "remembers" what it drew in Panel 1 when drawing Panel 8
+
+### Workflow
+
+1. Write a single prompt describing all panels with verbatim character descriptions
+2. Generate one grid image via Gemini (`gemini-3-pro-image-preview`)
+3. Split into individual panels: `bash split-grid.sh grid.png storyboard/ 2 4`
+4. Upload each panel as material for Image-to-Video generation
+5. Each Seedance clip now has a visual anchor from the same source
+
+### When to Use
+
+- **Always recommended** for projects with recurring characters
+- Especially important for anime/manga/stylized projects where character design must be exact
+- Less critical for pure environment/landscape shots with no characters
+
 ## Common Mistakes
 
 | Mistake | Fix |
