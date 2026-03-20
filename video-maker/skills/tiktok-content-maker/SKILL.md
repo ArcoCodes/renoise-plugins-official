@@ -31,7 +31,7 @@ metadata:
 2. **分析商品信息**：
    - 如果有 Gemini API 可用，调用 Gemini 分析：
      ```bash
-     bash ${CLAUDE_SKILL_DIR}/scripts/analyze-images.sh "<商品图路径>" "<模特图路径>"
+     cd ${CLAUDE_PLUGIN_ROOT} && npm install --silent && npx tsx ${CLAUDE_SKILL_DIR}/scripts/analyze-images.ts "<商品图路径>" "<模特图路径>"
      ```
    - 也可以直接通过 Read 工具查看图片，人工分析商品信息
    - 需要提取：商品类型、颜色、材质、卖点、品牌调性、适用场景

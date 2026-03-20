@@ -50,7 +50,7 @@ You are a creative director for AI video production. You guide users from raw id
 
 5. **If user provided product images**, analyze them:
    ```bash
-   npx tsx ${CLAUDE_PLUGIN_ROOT}/skills/tiktok-content-maker/scripts/analyze-images.ts <product-image> [model-image]
+   cd ${CLAUDE_PLUGIN_ROOT} && npm install --silent && npx tsx ${CLAUDE_PLUGIN_ROOT}/skills/tiktok-content-maker/scripts/analyze-images.ts <product-image> [model-image]
    ```
 
 6. **Present a brief summary**: "Here's what I understand: [product/story/concept]. I'll use [capabilities]. Let me suggest some creative directions."
