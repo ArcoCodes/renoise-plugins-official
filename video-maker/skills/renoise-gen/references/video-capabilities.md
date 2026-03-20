@@ -89,11 +89,102 @@ When target duration > 15s, split into 15s segments, minimizing the number of se
 60s → 4 × 15s
 ```
 
-Cross-segment consistency:
+#### Serial Chain Generation (ref_video chaining)
+
+The key to visual continuity: **generate segments sequentially, passing each completed video as `ref_video` to the next segment**. The model continues from where the previous segment ended.
+
+```
+S1: text-to-video (standalone)
+  ↓ complete → upload S1 video as material
+S2: ref_video(S1) + prompt → generates from S1's ending
+  ↓ complete → upload S2 video as material
+S3: ref_video(S2) + prompt → generates from S2's ending
+  ↓ ...
+```
+
+**S1 prompt**: Normal standalone prompt with full style/character setup.
+**S2+ prompts**: Begin with `Continuing from the previous shot:` + describe only the NEW content. Do NOT repeat the ending of the previous segment — the ref_video already provides that context.
+
+**CLI pattern:**
+```bash
+# S1
+renoise-cli.mjs task generate --prompt "<S1>" --duration 15 --ratio 16:9
+
+# Upload S1 result
+renoise-cli.mjs material upload <S1-video-url>  # → returns MATERIAL_ID
+
+# S2
+renoise-cli.mjs task generate \
+  --prompt "Continuing from the previous shot: <S2>" \
+  --duration 15 --ratio 16:9 \
+  --materials "MATERIAL_ID:ref_video"
+```
+
+**Time cost**: Each segment takes ~5-8 minutes. A 60s video (4 segments) takes ~20-30 minutes total (sequential, not parallel).
+
+#### Visual Consistency (still required even with ref_video)
+
 1. **Repeat character description** — Begin each segment's prompt with full character appearance
 2. **Unified scene/lighting keywords** — Use the same lighting, color palette across all segments
 3. **Unified style keywords** — e.g., `cinematic, shallow depth of field, warm tone`
-4. **Previous ending = next beginning** — Bridge with `Continuing from the previous shot:`
+
+These are still needed because ref_video provides visual continuity for the *transition moment*, but the model still needs style guidance for the rest of the segment.
+
+#### Narrative Continuity (across segments)
+
+4. **Energy annotation** — Each segment prompt must start with a comment declaring its narrative role and energy level:
+   ```
+   <!-- Segment 2/4 — DEVELOPMENT | Energy: 5→7→8 -->
+   ```
+5. **Energy variation** — Never write 3+ segments at the same energy level. Alternate between high-energy and breathing segments.
+6. **Drop before climax** — The segment before the climax must be lower energy (at least -2 points).
+
+#### Audio Continuity
+
+7. **With ref_video chaining**, the model may naturally extend the audio style from the previous segment, but this is not guaranteed.
+8. **For dialogue-driven videos**: audio continuity is less critical — each segment has distinct lines.
+9. **For music-driven videos**: consider stripping all audio in post and overlaying a unified BGM track:
+   ```bash
+   ffmpeg -i final.mp4 -an -c:v copy silent.mp4
+   ffmpeg -i silent.mp4 -i bgm.mp3 -c:v copy -c:a aac -shortest final-with-bgm.mp4
+   ```
+
+#### Example: 30s Product Video (2 segments with narrative arc)
+
+**Segment 1 (0-15s) — HOOK + SETUP**
+```
+<!-- Segment 1/2 — HOOK | Energy: 7→5→6 | Transition: Gaze Lead → S2 -->
+2.35:1 widescreen, warm golden palette, shallow depth of field.
+[0-3s] A pair of hands slowly unwrap a matte black box on a sunlit wooden table. Close-up, gentle dolly in, morning light catches the edge of the box. The anticipation builds.
+[3-10s] The lid lifts to reveal a sleek brass desk lamp. The hands carefully lift it out, examining the curves. Medium shot, soft natural light from a nearby window. The pace is unhurried, deliberate.
+[10-15s] The woman sets the lamp on her desk and reaches for the switch. Her eyes trace the design with quiet admiration. She looks up toward the window — the golden light outside mirrors the lamp's warm glow. Her gaze holds on the light.
+No text, subtitles, watermarks, or logos.
+```
+
+**Segment 2 (15-30s) — CLIMAX + RESOLUTION**
+```
+<!-- Segment 2/2 — CLIMAX | Energy: 8→10→4 | Transition: n/a (final) -->
+2.35:1 widescreen, warm golden palette, shallow depth of field.
+A woman with shoulder-length dark hair in a cream linen shirt sits at a minimalist wooden desk.
+[0-5s] Revealing what she was looking at: she clicks the lamp on. A pool of warm golden light floods the desk surface. Fast snap dolly in on the illuminated workspace. The light transforms the entire mood of the room.
+[5-10s] Time-lapse of the room transitioning from daylight to evening. The lamp becomes the anchor of warmth in the darkening space. Quick cuts between angles: the light on a book, on her hands writing, on a coffee cup casting a long shadow. Energy peaks.
+[10-15s] Night. The room is dark except for the lamp's glow. Wide shot, she's reading peacefully. Camera slowly pulls back through the window. The frame holds steady on the warm window in the dark facade. Silence except for distant crickets.
+No text, subtitles, watermarks, or logos.
+```
+
+**Why this works**: S1 builds curiosity without showing the product immediately (energy 7→5→6). The gaze lead at S1's end creates a natural bridge. S2 opens with the reveal (energy 8), peaks with the time-lapse montage (10), then resolves into calm (4). The energy curve `7→5→6 | 8→10→4` has clear variation, a drop before climax, and a distinct ending.
+
+#### Example: 60s Short Drama (4 segments with three-act structure)
+
+**Rhythm Blueprint:**
+```
+S1 (0-15s) — ACT I: ORDINARY WORLD | Energy: 5→4→6 | → Action Bridge
+S2 (15-30s) — ACT II-A: COMPLICATION | Energy: 7→8→9 | → Emotional Shift
+S3 (30-45s) — ACT II-B: CLIMAX | Energy: 4→8→10 | → Time Jump
+S4 (45-60s) — ACT III: RESOLUTION | Energy: 5→3→4 | → (end)
+```
+
+Note: S3 opens at energy 4 (the "drop before climax") despite S2 ending at 9. This emotional shift creates maximum impact when S3 builds to its peak at 10.
 
 ## Prompt Writing Principles
 
