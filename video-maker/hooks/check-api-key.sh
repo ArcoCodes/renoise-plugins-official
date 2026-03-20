@@ -13,7 +13,7 @@ if echo "$COMMAND" | grep -qE '(renoise-cli|analyze-images)\.(ts|mjs|js)'; then
       hookSpecificOutput: {
         hookEventName: "PreToolUse",
         permissionDecision: "deny",
-        permissionDecisionReason: "RENOISE_API_KEY is not configured. Visit https://ujgsvru36x4korjj10nq.edgespark.app/api/public/app/tasks to get your API key, then add it to ~/.claude/settings.json:\n\n{\n  \"env\": {\n    \"RENOISE_API_KEY\": \"your-api-key-here\"\n  }\n}\n\nRestart Claude Code after configuring."
+        permissionDecisionReason: "RENOISE_API_KEY is not configured. Visit https://ujgsvru36x4korjj10nq.edgespark.app/api/public/app/tasks to get your API key, then configure it:\n\nGlobal (all projects) — ~/.claude/settings.json:\n{\n  \"env\": {\n    \"RENOISE_API_KEY\": \"fk_your-api-key\"\n  }\n}\n\nProject-only — .claude/settings.local.json:\n{\n  \"env\": {\n    \"RENOISE_API_KEY\": \"fk_your-api-key\"\n  }\n}\n\nProject-level overrides global. Restart Claude Code after configuring."
       }
     }'
     exit 2
