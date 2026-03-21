@@ -190,7 +190,7 @@ These are still needed because ref_video provides visual continuity for the *tra
 **Segment 1 (0-15s) — HOOK + SETUP**
 ```
 <!-- Segment 1/2 — HOOK | Energy: 7→5→6 | Transition: Gaze Lead → S2 -->
-2.35:1 widescreen, warm golden palette, shallow depth of field.
+Warm golden palette, shallow depth of field, film grain.
 [0-3s] A pair of hands slowly unwrap a matte black box on a sunlit wooden table. Close-up, gentle dolly in, morning light catches the edge of the box. The anticipation builds.
 [3-10s] The lid lifts to reveal a sleek brass desk lamp. The hands carefully lift it out, examining the curves. Medium shot, soft natural light from a nearby window. The pace is unhurried, deliberate.
 [10-15s] The woman sets the lamp on her desk and reaches for the switch. Her eyes trace the design with quiet admiration. She looks up toward the window — the golden light outside mirrors the lamp's warm glow. Her gaze holds on the light.
@@ -200,7 +200,7 @@ No text, subtitles, watermarks, or logos.
 **Segment 2 (15-30s) — CLIMAX + RESOLUTION**
 ```
 <!-- Segment 2/2 — CLIMAX | Energy: 8→10→4 | Transition: n/a (final) -->
-2.35:1 widescreen, warm golden palette, shallow depth of field.
+Warm golden palette, shallow depth of field, film grain.
 A woman with shoulder-length dark hair in a cream linen shirt sits at a minimalist wooden desk.
 [0-5s] Revealing what she was looking at: she clicks the lamp on. A pool of warm golden light floods the desk surface. Fast snap dolly in on the illuminated workspace. The light transforms the entire mood of the room.
 [5-10s] Time-lapse of the room transitioning from daylight to evening. The lamp becomes the anchor of warmth in the darkening space. Quick cuts between angles: the light on a book, on her hands writing, on a coffee cup casting a long shadow. Energy peaks.
@@ -281,13 +281,28 @@ Subject (detailed appearance) + Action (multi-stage actions) + Camera (movement 
 
 ## Advanced Prompt Techniques
 
-### Technical Parameters Prefix
+### Technical Parameters — API vs Prompt
 
-Declare global technical specs (aspect ratio, framerate, color palette, DOF) at the prompt's start — the model applies them consistently throughout:
+**DO NOT put these in the prompt** — they are controlled by API parameters (`--ratio`, `--duration`, model config) and writing them in the prompt wastes tokens with no effect:
+
+- Aspect ratio (`2.35:1 widescreen`, `16:9`, `9:16`)
+- Frame rate (`24fps`, `30fps`)
+- Resolution (`1080p`, `4K`, `8K`)
+
+**DO put these in the prompt** — they are visual style choices the model responds to:
+
+- Color palette (`warm golden palette`, `desaturated blue-grey`, `neon pink and cyan`)
+- Depth of field (`shallow depth of field`, `deep focus`)
+- Film texture (`film grain`, `RAW`, `HDR`)
+- Visual style (`cinematic`, `documentary`, `ink wash painting`)
+- Lighting mood (`golden hour`, `rim light`, `volumetric haze`)
 
 ```
-2.35:1 widescreen, 24fps, warm golden palette, shallow depth of field.
-[0-5s] Close-up of hands on piano keys...
+Good: warm golden palette, shallow depth of field, film grain.
+      [0-5s] Close-up of hands on piano keys...
+
+Bad:  2.35:1 widescreen, 24fps, 1080p, warm golden palette...
+      (ratio/fps/resolution are wasted — use API params instead)
 ```
 
 ### Negative Prompting
@@ -383,10 +398,10 @@ in the background.
 
 ### Beat Sync
 
-Specify aspect ratio + framerate, use timestamps to precisely align with beats, emphasize audio-visual synchronization:
+Use timestamps to precisely align with beats, emphasize audio-visual synchronization (set ratio via `--ratio` API param):
 
 ```
-2.35:1 widescreen, 24fps. [0-2s] Beat drop — extreme close-up of hands clapping, sharp
+[0-2s] Beat drop — extreme close-up of hands clapping, sharp
 snap zoom. [2-5s] Wide shot, dancer spins, camera orbits in sync with bass hits.
 [5-8s] Freeze frame on peak pose, 0.5s hold, then rapid montage cuts on every snare.
 Sound design priority: footsteps, fabric rustle, and breath must align with beat.
