@@ -233,14 +233,50 @@ Note: S3 opens at energy 4 (the "drop before climax") despite S2 ending at 9. Th
 ### Prompt Structure
 
 ```
-Subject (detailed appearance) + Action (multi-stage actions) + Camera (movement changes) + Scene/Environment + Visual Style
+Subject (detailed appearance) + Action (specific body movement) + Camera (purposeful movement) + Scene/Environment + Visual Style
 ```
 
 - **Subject**: What the subject is, with detailed appearance (hairstyle, skin tone, clothing, build)
-- **Action**: What the subject is doing, described in temporal order
-- **Camera**: Camera movement changes (at least 2-3 transitions: e.g., close-up → medium → wide)
+- **Action**: What the subject is doing — see Action Writing below
+- **Camera**: Camera movement — see Camera Writing below
 - **Scene**: Environment, lighting, time of day
 - **Style**: Visual style (cinematic, documentary, animation...)
+
+### Action Writing — CRITICAL
+
+The model generates **video**, not photos. Every shot needs visible motion. Static poses = dead footage.
+
+**Level 1 (bad)**: State verbs — `stands`, `sits`, `holds`, `looks`
+**Level 2 (ok)**: Basic action — `walks forward`, `swings sword`, `picks up cup`
+**Level 3 (good)**: Action + body detail — `lunges forward, left foot planted, right arm extending the blade in a downward arc, robes trailing behind the motion`
+**Level 4 (great)**: Action + micro-movement + reaction — `lunges forward, left foot planted, right arm extending the blade. The impact sends a shockwave through his arm — fingers regrip the hilt. His hair whips forward, robes billow out then snap back.`
+
+Rules:
+- **Every shot must have at least one verb of motion** (not state). `stands motionless` is only valid for 1-2 second tension holds before action.
+- **Add micro-movements**: hair blowing, fingers tightening, fabric rippling, chest rising with breath, eyes narrowing. These make CG feel alive.
+- **Describe the arc of motion**, not just the start or end: `raises the sword from hip to overhead` not just `holds sword up`.
+- **Physical reactions**: when things collide, describe the aftermath (sparks, dust, recoil, fabric displacement, hair whip).
+
+Bad: `A warrior stands on a cliff holding a sword.`
+Good: `A warrior shifts his weight to his back foot, fingers tighten on the sword hilt. Wind catches his robes — they billow and snap. His hair whips across his face. He narrows his eyes at the valley below.`
+
+### Camera Writing — CRITICAL
+
+Camera movement is what makes the viewer *feel* the scene. Generic movement = flat footage.
+
+**Level 1 (bad)**: Label only — `tracking shot`, `push-in`, `static`
+**Level 2 (ok)**: Direction — `camera tracks right`, `slow dolly in`
+**Level 3 (good)**: Direction + speed + purpose — `camera tracks right accelerating to match the runner's pace, keeping the subject in left-third frame`
+**Level 4 (great)**: Direction + speed + reveals — `camera tracks right, initially blocked by a stone pillar — the subject emerges from behind it at full sprint, camera accelerates to keep up, the background racks out of focus`
+
+Rules:
+- **Camera and subject move together**: if the character runs left, describe camera tracking left. If they leap up, camera tilts up or cranes.
+- **Describe what the movement reveals**: `camera pulls back to reveal the entire army behind him` not just `camera pulls back`.
+- **Add camera texture**: handheld shake for action, locked-off steady for tension, gentle drift for atmosphere.
+- **Speed changes matter**: `starts slow, accelerates as the horse breaks into gallop` is more cinematic than constant-speed tracking.
+
+Bad: `Wide shot. Camera tracking.`
+Good: `Wide shot, camera tracks alongside at ground level, accelerating as the horse breaks into full gallop. Dust kicks up into the lens. The background blurs into streaks of gold and green.`
 
 ### Camera Movement Cheat Sheet
 
