@@ -475,5 +475,5 @@ Read ${CLAUDE_SKILL_DIR}/examples/mystery-package-4shot.md
 **Solution**: Switch to text-to-video. Describe people in the prompt using the Character Bible.
 
 ### Insufficient credits (402)
-**Cause**: YOUMENG balance too low for all shots.
+**Cause**: Renoise balance too low for all shots.
 **Solution**: Run `renoise-cli.mjs me` to check balance, estimate total cost, and inform user before starting batch generation.

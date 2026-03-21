@@ -42,7 +42,7 @@ if [[ ! -f "$PROMPTS_FILE" ]]; then
   exit 1
 fi
 
-# ---- Locate youmeng-cli ----
+# ---- Locate renoise-cli ----
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CLI="${SCRIPT_DIR}/../../renoise-gen/renoise-cli.mjs"
 

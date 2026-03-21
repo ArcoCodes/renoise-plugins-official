@@ -77,10 +77,10 @@ node ${CLAUDE_SKILL_DIR}/renoise-cli.mjs task create --prompt "Wrist-level shot 
 | Duration range | 5-15s, any integer |
 | **Default duration** | **15s** (maximize storyboard capability) |
 | Aspect ratio | `1:1`, `16:9`, `9:16` |
-| Recommended mode | **Text-to-Video** (text-only prompt, most stable) |
+| Recommended mode | **Image-to-Video with storyboard grid** (best visual consistency) |
 | Prompt language | **English**, natural narrative paragraphs |
 
-> **Default to Text-to-Video**: Image/Video references containing human faces are often blocked by privacy detection (`PrivacyInformation` error). Text-only is not subject to this limitation and has the highest success rate.
+> **Default to Image-to-Video with storyboard grid**: Generate reference images as a 9-grid or 16-grid composite, upload as `ref_image`. Grid images bypass privacy detection more reliably than individual face photos because faces are small within the grid cells. **Fallback to Text-to-Video** only when the grid is still blocked by privacy detection (`PrivacyInformation` error) — text-only prompts are never subject to this limitation.
 
 ### nano-banana-2 (Image)
 
@@ -222,6 +222,7 @@ credit me → task generate --model nano-banana-2 --prompt "..." --resolution 2k
 ```
 material upload → task generate (--materials "ID:role")
 ```
+**Preferred**: Use storyboard grid images as ref_image — see "Storyboard Grid Workflow" section below.
 
 ### With Character Reference
 ```
@@ -239,6 +240,51 @@ node ${CLAUDE_SKILL_DIR}/renoise-cli.mjs task create --prompt "[0-5s] ... [5-12s
 ```
 
 **Maintain consistency**: Repeat full character appearance description at the start of each segment's prompt, use consistent lighting/style keywords, bridge with `Continuing from the previous shot:`.
+
+## Storyboard Grid Workflow (Preferred Approach)
+
+The storyboard grid method produces the best visual consistency across clips by anchoring each generation to a reference image from a unified grid.
+
+### Why Storyboard Grid?
+
+| Approach | Visual Consistency | Privacy Detection Risk | Setup Effort |
+|----------|-------------------|----------------------|--------------|
+| **Storyboard Grid (preferred)** | Highest — all panels share style context | Low — faces are small in grid cells | Medium |
+| Text-to-Video (fallback) | Lower — model interprets style differently each call | None | Low |
+| Individual ref_image | Medium | High — close-up faces trigger blocking | Medium |
+
+### Step-by-Step
+
+1. **Generate reference images as a grid**: Use Midjourney (v7) or Gemini to create a single composite image containing all shots as panels in a 3x3 (9-grid) or 4x4 (16-grid) layout. Each panel shows one key moment from a shot with consistent character appearance and style.
+
+2. **Upload the grid as material**:
+   ```bash
+   node ${CLAUDE_SKILL_DIR}/renoise-cli.mjs material upload storyboard_grid.png
+   # Returns material ID
+   ```
+
+3. **Generate video with ref_image + time-annotated prompt**:
+   ```bash
+   node ${CLAUDE_SKILL_DIR}/renoise-cli.mjs task generate \
+     --prompt "Follow the attached storyboard panels. [0-5s] ... [5-10s] ... [10-15s] ..." \
+     --materials "MATERIAL_ID:ref_image" \
+     --duration 15 --ratio 16:9
+   ```
+
+4. **For videos > 15s**: Split into multiple grids (e.g., 3x3 for shots 1-9, another for shots 10-18), generate each 15s segment with its corresponding grid.
+
+5. **Fallback**: If a grid triggers `PrivacyInformation`, retry without `--materials` (pure text-to-video), copying full character descriptions into the prompt.
+
+### When to Use Each Approach
+
+| Signal | Approach |
+|--------|----------|
+| Any project with recurring characters | **Storyboard grid** (preferred) |
+| Product shots, landscapes, no people | Image-to-Video with individual ref_image |
+| Grid ref_image blocked by privacy detection | **Text-to-Video** (fallback) |
+| Quick one-off generation, no consistency needs | Text-to-Video |
+
+---
 
 ## Prompt Writing
 

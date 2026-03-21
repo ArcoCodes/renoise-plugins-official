@@ -330,6 +330,8 @@ Good: `Wide shot, camera tracks alongside at ground level, accelerating as the h
 | | Macro push | extreme macro push | Material detail |
 | | Static | locked-off static | Freeze/ending |
 | **Angle** | Low angle | low angle | Authority/impact |
+| | Worm's eye | worm's eye view, ultra-low angle | Monumental scale, hero entrance |
+| | Dutch angle | Dutch angle, tilted horizon | Tension, unease, psychological instability |
 | | Overhead | overhead / bird's eye | Overview/spatial |
 | | Fisheye | fisheye lens | Fun/exaggerated |
 | | POV | first-person POV | Immersive experience |
@@ -339,7 +341,51 @@ Good: `Wide shot, camera tracks alongside at ground level, accelerating as the h
 | **Focus** | Shallow DOF | shallow depth of field | Subject isolation |
 | | Focus pull | rack focus | Guide viewer's eye |
 | **Special** | Vertigo | dolly zoom / vertigo effect | Psychological impact |
+| | Crane up | crane shot rising | Reveal, epic scale, emotional lift |
 | | Wipe transition | wipe transition through obstruction | Seamless scene change |
+
+### Dramatic Camera Angles — Avoiding Flat Footage
+
+Default eye-level, medium-distance shots produce flat, boring footage. Deliberately choose dramatic angles to inject energy:
+
+**Low Angle / Worm's Eye View**: Camera at ground level looking up. Makes subjects feel powerful, monumental. Use for hero entrances, authority, product reveals from below.
+```
+Camera at ground level looking up at the swordsman, worm's eye view. He towers against the stormy sky, cape billowing overhead.
+```
+
+**Dutch Angle (Tilted Horizon)**: 15-degree tilt creates unease. Use for tension, villain reveals, psychological instability, chase sequences.
+```
+Dutch angle, 15-degree tilt. The corridor stretches ahead, walls leaning ominously. Subject walks toward camera, slightly off-center.
+```
+
+**Extreme Macro**: Fill the entire frame with texture detail. Use for product material, food close-ups, mechanical detail, nature textures.
+```
+Extreme macro on the watch dial, filling frame with brushed titanium texture. Slow push-in reveals the engraved serial number.
+```
+
+**Vertigo / Dolly Zoom**: Camera pulls back while lens zooms in (or vice versa). Subject stays same size but background warps. Use for revelation moments, emotional shock, character realization.
+```
+Dolly zoom — camera pulls back while lens zooms in. The subject stays the same size but the background warps and stretches. Psychological disorientation.
+```
+
+**Whip Pan Transitions**: Fast horizontal pan with motion blur connecting two scenes. Use for energy bursts, music video beat transitions, location changes.
+```
+Whip pan right with heavy motion blur — hard cut to the next scene already in motion. No pause between scenes.
+```
+
+### Shot Density Guide
+
+Higher shot density = more dynamic, engaging footage. Match density to content energy:
+
+| Content Type | Shots per 15s | Avg Shot Length | Camera Variety |
+|-------------|--------------|-----------------|----------------|
+| Action / martial arts | **5-7** | 2-3s | Every shot: different size + angle |
+| Music video / montage | **5-7** | 2-3s | Alternate: close-up ↔ wide, static ↔ motion |
+| Drama / dialogue | 4-5 | 3-4s | Shot-reverse-shot + establishing |
+| Product / showcase | 3-5 | 3-5s | Orbit + macro + wide reveal |
+| Atmospheric / art | 2-3 | 5-7s | Slow movements, held frames |
+
+**Rule of thumb**: If your 15s prompt has fewer than 3 distinct camera setups with time annotations, it is probably too flat. Add at least one dramatic angle change.
 
 ### Example: 15s Multi-Storyboard Prompt
 
