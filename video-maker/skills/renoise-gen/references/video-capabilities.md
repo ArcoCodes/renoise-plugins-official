@@ -158,13 +158,47 @@ renoise-cli.mjs task generate \
 
 **Time cost**: Each segment takes ~5-8 minutes. A 60s video (4 segments) takes ~20-30 minutes total (sequential, not parallel).
 
-#### Visual Consistency (still required even with ref_video)
+#### Visual Consistency — Visual Anchor Method
 
-1. **Repeat character description** — Begin each segment's prompt with full character appearance
-2. **Unified scene/lighting keywords** — Use the same lighting, color palette across all segments
-3. **Unified style keywords** — e.g., `cinematic, shallow depth of field, warm tone`
+Text-only prompts cannot reliably maintain visual consistency across segments. The model interprets style keywords differently each generation. **Use a reference image to anchor the visual style.**
 
-These are still needed because ref_video provides visual continuity for the *transition moment*, but the model still needs style guidance for the rest of the segment.
+**Step 1 — Generate a concept art image** before any video segments:
+```bash
+renoise-cli.mjs task generate --model nano-banana-2 --resolution 2k --ratio 16:9 \
+  --prompt "Concept art sheet for [project description]. Key visual elements:
+  [color palette], [material textures], [character appearance], [environment style],
+  [lighting mood]. Multiple vignettes showing different scenes in unified style."
+```
+
+**Step 2 — Upload as material:**
+```bash
+renoise-cli.mjs material upload concept-art.jpg  # → CONCEPT_ID
+```
+
+**Step 3 — Pass to every segment** via `--materials "CONCEPT_ID:ref_image"`:
+```bash
+renoise-cli.mjs task create \
+  --prompt "[visual anchor prefix] + [segment content]" \
+  --materials "CONCEPT_ID:ref_image" --duration 15 --ratio 16:9
+```
+
+This locks the model's interpretation of color palette, material textures, and overall aesthetic across all segments.
+
+**Visual anchor prefix** — a short block (2-3 lines) at the start of EVERY segment prompt that repeats the core visual DNA:
+```
+[Visual Anchor] Golden desert wasteland, tarnished brass with blue-green
+patina, weathered silk robes with torn edges, exposed copper wiring with
+faint blue glow. Warm gold highlights, cool blue-grey shadows, film grain.
+```
+
+**For scenes with recurring characters**, also repeat the full character description at the start of each segment where they appear.
+
+**For realistic human characters**, use `--characters "ID"` instead of ref_image. The platform has 89 preset characters with locked appearance. Use `renoise-cli.mjs character list` to browse.
+
+**Priority order for consistency:**
+1. `--characters` (strongest lock — exact face/body, but limited to preset characters)
+2. `--materials "ID:ref_image"` with concept art (strong — locks style/palette/texture)
+3. Visual anchor prefix text only (weakest — model may still drift)
 
 #### Narrative Continuity (across segments)
 

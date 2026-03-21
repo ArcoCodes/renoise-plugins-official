@@ -121,14 +121,29 @@ You are a creative director for AI video production. You guide users from raw id
 
    c. **Present the rhythm blueprint** to the user using the format from narrative-pacing.md. Wait for confirmation or adjustments before proceeding.
 
-   d. **Write segment prompts** following the approved blueprint:
-      - Each prompt starts with an energy/transition comment header
-      - S1 prompt: standalone (text-to-video or image-to-video if user has materials)
-      - S2+ prompts: begin with `Continuing from the previous shot:` — these will be generated using the previous segment's video as `ref_video`
+   d. **Generate a visual anchor** (concept art) to lock the style across all segments:
+      ```bash
+      node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/renoise-cli.mjs task generate \
+        --model nano-banana-2 --resolution 2k --ratio 16:9 \
+        --prompt "Concept art sheet for [project]. Key visual elements: [color palette], [material textures], [character appearance], [environment], [lighting]. Multiple vignettes in unified style."
+      ```
+      Upload the result as material:
+      ```bash
+      node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/renoise-cli.mjs material upload <concept-art-url>
+      ```
+      Note the material ID — this will be passed to EVERY segment as `--materials "ID:ref_image"`.
+
+      Write a **visual anchor prefix** (2-3 lines) summarizing the core visual DNA — color palette, material textures, lighting mood. This prefix goes at the start of every segment prompt.
+
+      For realistic human characters, prefer `--characters "ID"` over ref_image (use `renoise-cli.mjs character list` to browse preset characters).
+
+   e. **Write segment prompts** following the approved blueprint:
+      - Each prompt starts with the **visual anchor prefix** (same text in every segment)
+      - Each prompt includes an energy/transition comment header
+      - All segments generated **in parallel** with `--materials "CONCEPT_ID:ref_image"` for visual consistency
       - Apply the assigned camera movement and pacing for that energy level
-      - Maintain character/scene/style consistency across segments (repeat key descriptions)
+      - Repeat full character appearance description in every segment where they appear
       - Include dialogue and sound design aligned to the energy curve
-      - **Do NOT repeat the previous segment's ending in the next prompt** — the ref_video already provides visual continuity
 
    e. Generate the supporting package:
       - **Dialogue script**: timestamped across all segments, emotional arc matches energy curve
@@ -161,34 +176,25 @@ Read that skill's SKILL.md and follow its workflow from the appropriate phase (s
      [--materials "ID:ref_image"] [--tags "project-tag"]
    ```
 
-   **For multi-segment videos (> 15s) — SERIAL CHAIN GENERATION:**
+   **For multi-segment videos (> 15s) — PARALLEL with VISUAL ANCHOR:**
 
-   Generate segments one at a time. Each segment uses the previous segment's video as `ref_video` for visual continuity.
+   All segments are generated in parallel using the concept art as `ref_image` for visual consistency. This takes ~8 minutes regardless of segment count.
 
    ```bash
-   # Segment 1: text-to-video (or image-to-video with user materials)
-   node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/renoise-cli.mjs task generate \
-     --prompt "<S1-prompt>" --duration 15 --ratio 9:16 \
-     [--materials "ID:ref_image"] --tags "project-tag,s1"
-   # → Note the result video URL
+   # Submit all segments in parallel, each with the concept art ref_image
+   # (CONCEPT_ID from Phase 3 step d)
+   node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/renoise-cli.mjs task create \
+     --prompt "<S1-prompt with visual anchor prefix>" --duration 15 --ratio 16:9 \
+     --materials "CONCEPT_ID:ref_image" --tags "project-tag,s1"
 
-   # Upload S1 video as material for S2
-   node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/renoise-cli.mjs material upload <S1-video-url>
-   # → Note the material ID
+   node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/renoise-cli.mjs task create \
+     --prompt "<S2-prompt with visual anchor prefix>" --duration 15 --ratio 16:9 \
+     --materials "CONCEPT_ID:ref_image" --tags "project-tag,s2"
 
-   # Segment 2: ref_video chaining
-   node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/renoise-cli.mjs task generate \
-     --prompt "Continuing from the previous shot: <S2-prompt>" \
-     --duration 15 --ratio 9:16 \
-     --materials "MATERIAL_ID:ref_video" --tags "project-tag,s2"
-   # → Note the result video URL
-
-   # Repeat: upload S2 video → generate S3 with ref_video → upload S3 → generate S4...
+   # ... repeat for all segments
    ```
 
-   **Important**: This is sequential — each segment must complete before the next starts. Inform the user that a 60s video (4 segments) takes approximately 20-30 minutes total.
-
-   After all segments are generated, concatenate them:
+   Wait for all tasks to complete (~8 minutes), then download and concatenate:
    ```bash
    # Download all segment videos, then concatenate with ffmpeg
    ffmpeg -f concat -safe 0 -i <concat-list> -c copy final-output.mp4
