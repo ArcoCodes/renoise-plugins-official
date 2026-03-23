@@ -4,8 +4,24 @@ AI video production plugin for Claude Code. Install this plugin and get a creati
 
 ## Installation
 
+### Claude Code
+
+1. Add the marketplace:
+
 ```bash
-/plugin install video-maker@renoise-plugins-official
+claude plugin marketplace add ArcoCodes/renoise-plugins-official
+```
+
+2. Install the plugin:
+
+```bash
+claude plugin install video-maker@renoise-plugins-official
+```
+
+### OpenClaw
+
+```bash
+openclaw plugins install @renoise/video-maker
 ```
 
 ## How It Works
