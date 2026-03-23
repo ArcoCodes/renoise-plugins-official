@@ -3,7 +3,7 @@ name: video-download
 description: >
   Downloads videos from YouTube, TikTok, Douyin, Bilibili, Instagram, XiaoHongShu and 1000+ platforms.
   Primary: yt-dlp. Fallback: agent-browser + GreenVideo for Douyin/TikTok when yt-dlp fails.
-  Use when user says "download video", "save video", "下载视频", "抓取视频", "无水印下载",
+  Use when user says "download video", "save video", "grab video", "watermark-free download",
   or pastes a video URL. Do NOT use for AI video generation or video editing.
 allowed-tools: Bash
 metadata:

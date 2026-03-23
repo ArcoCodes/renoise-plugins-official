@@ -1,15 +1,17 @@
 ---
 name: short-film-editor
 description: >
-  短片剪辑师：音乐先行，按节拍卡点拆分故事为多段（5-15s不等），
-  生成HTML分镜预览供确认，维护角色/画风一致性，批量生成并输出组装指南。
-  触发词：short film, multi-clip, 短片, 1分钟视频, story video, 多段视频
+  Short film editor: music-first workflow, splits story into beat-synced segments (5-15s each),
+  generates HTML storyboard preview for confirmation, maintains character/style consistency,
+  batch generates and outputs assembly guide.
+  Use when user says "short film", "multi-clip", "story video", "multi-segment video",
+  "1-minute video".
 allowed-tools: Bash, Read
 metadata:
   author: renoise
   version: 0.1.0
   category: video-production
-  tags: [short-film, multi-clip, narrative, story, 短片]
+  tags: [short-film, multi-clip, narrative, story]
 ---
 
 # Short Film Editor
@@ -86,7 +88,7 @@ You are a short film editor specializing in multi-clip AI video production. You 
 
 **If user has or wants music**, follow Steps 1-3 below.
 
-**If user skips music** (e.g. "先不用音乐" / "no music for now"), skip to **Step 4 — Manual Rhythm**:
+**If user skips music** (e.g. "no music for now"), skip to **Step 4 — Manual Rhythm**:
 - Define segments based on narrative pacing, not equal splits.
 - Vary durations: establishing shots 7-10s, action bursts 5-6s, aftermath/resolution 5-7s.
 - Aim for 4-7 segments depending on total duration.
@@ -149,7 +151,7 @@ Output JSON:
 | Climax / collision | 6-8s | Intense, dense |
 | Aftermath / resolution | 5-7s | Slow, lingering |
 
-**In-clip cutting (镜内切换)**:
+**In-clip cutting**:
 Real films average 2-4s per camera angle (action films: 1-2s). Seedance minimum is 5s per clip, so use **time-annotated camera changes within each clip** to simulate fast cutting:
 
 ```
@@ -323,7 +325,7 @@ This generates a single self-contained HTML file with:
 - **Music timeline**: Visual bar showing sections and cut points
 - **Shot cards**: One card per shot with reference image, scene/action, dialogue/beats, continuity, and collapsible Seedance prompt
 - **Reference images**: Base64-embedded inline (single-file, shareable). Use `--skip-images` to skip Gemini generation and read existing images from `storyboard/` directory (useful when using Midjourney or user-provided images).
-- **UI language**: Matches user's language (default: Chinese). White theme, bold confident design.
+- **UI language**: English. White theme, bold confident design.
 - **Responsive**: Viewable on phone
 
 Open for preview:

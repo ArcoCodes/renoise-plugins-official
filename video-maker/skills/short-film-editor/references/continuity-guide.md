@@ -129,7 +129,7 @@ AI-generated clips will achieve ~80% visual consistency when following these tec
 - Subtle speed adjustments for timing
 - Audio continuity (shared BGM) creates perceived visual continuity
 
-## Grid Storyboard Method (宫格分镜法)
+## Grid Storyboard Method
 
 ### Why One Image > Many Images
 

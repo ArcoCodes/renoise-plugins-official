@@ -228,14 +228,14 @@ function formatTime(seconds: number): string {
 function buildShotCard(shot: Shot, imageBase64: string | null, index: number, totalShots: number): string {
   const imgHtml = imageBase64
     ? `<img src="data:image/png;base64,${imageBase64}" alt="${shot.shot_id}" class="card-img" />`
-    : `<div class="card-img-empty"><svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg><span>待生成</span></div>`
+    : `<div class="card-img-empty"><svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg><span>Pending</span></div>`
 
   const continuityIn = shot.continuity_in
-    ? `<div class="cont-in"><span class="cont-arrow">&larr;</span> <span class="cont-tag">承接</span> ${escapeHtml(shot.continuity_in)}</div>`
-    : `<div class="cont-in muted"><span class="cont-tag">起始镜头</span></div>`
+    ? `<div class="cont-in"><span class="cont-arrow">&larr;</span> <span class="cont-tag">From</span> ${escapeHtml(shot.continuity_in)}</div>`
+    : `<div class="cont-in muted"><span class="cont-tag">Opening Shot</span></div>`
 
   const continuityOut = shot.continuity_out
-    ? `<div class="cont-out"><span class="cont-tag">传递</span> <span class="cont-arrow">&rarr;</span> ${escapeHtml(shot.continuity_out)}</div>`
+    ? `<div class="cont-out"><span class="cont-tag">Into</span> <span class="cont-arrow">&rarr;</span> ${escapeHtml(shot.continuity_out)}</div>`
     : ''
 
   return `
@@ -254,25 +254,25 @@ function buildShotCard(shot: Shot, imageBase64: string | null, index: number, to
         <div class="card-visual">${imgHtml}</div>
         <div class="card-info">
           <div class="info-block">
-            <div class="info-label">场景</div>
+            <div class="info-label">Scene</div>
             <div class="info-text">${escapeHtml(shot.scene)}</div>
           </div>
           <div class="info-block">
-            <div class="info-label">动作</div>
+            <div class="info-label">Action</div>
             <div class="info-text">${escapeHtml(shot.action)}</div>
           </div>
           <div class="info-block">
-            <div class="info-label">运镜</div>
+            <div class="info-label">Camera</div>
             <div class="info-text mono">${escapeHtml(shot.camera)}</div>
           </div>
         </div>
         <div class="card-side">
           <div class="info-block">
-            <div class="info-label">音效 / 对白</div>
+            <div class="info-label">SFX / Dialogue</div>
             <div class="info-text dialogue">${escapeHtml(shot.dialogue || '—')}</div>
           </div>
           <div class="info-block">
-            <div class="info-label">节拍卡点</div>
+            <div class="info-label">Beat Sync</div>
             <div class="info-text mono">${escapeHtml(shot.beat_sync_notes || '—')}</div>
           </div>
         </div>
@@ -284,8 +284,8 @@ function buildShotCard(shot: Shot, imageBase64: string | null, index: number, to
       </div>
 
       <details class="card-prompt">
-        <summary>查看 Seedance Prompt</summary>
-        <pre class="prompt-code">${escapeHtml(shot.prompt || '尚未生成')}</pre>
+        <summary>View Seedance Prompt</summary>
+        <pre class="prompt-code">${escapeHtml(shot.prompt || 'Not yet generated')}</pre>
       </details>
     </div>`
 }
@@ -311,11 +311,11 @@ function buildHtml(project: Project, imageMap: Map<string, string | null>): stri
     .join('\n')
 
   return `<!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>${escapeHtml(meta.title)} — 分镜预览</title>
+<title>${escapeHtml(meta.title)} — Storyboard Preview</title>
 <style>
   :root {
     --bg: #ffffff;
@@ -605,43 +605,43 @@ function buildHtml(project: Project, imageMap: Map<string, string | null>): stri
 <div class="page">
   <header class="page-header">
     <h1 class="page-title">${escapeHtml(meta.title)}</h1>
-    <p class="page-subtitle">分镜预览</p>
+    <p class="page-subtitle">Storyboard Preview</p>
     <div class="stats">
-      <div class="stat">总时长 <span class="stat-val">${formatTime(meta.total_duration_s)}</span></div>
-      <div class="stat">片段 <span class="stat-val">${shots.length}</span></div>
+      <div class="stat">Duration <span class="stat-val">${formatTime(meta.total_duration_s)}</span></div>
+      <div class="stat">Clips <span class="stat-val">${shots.length}</span></div>
       ${music.bpm ? `<div class="stat">BPM <span class="stat-val">${music.bpm}</span></div>` : ''}
-      <div class="stat">比例 <span class="stat-val">${escapeHtml(meta.ratio)}</span></div>
+      <div class="stat">Ratio <span class="stat-val">${escapeHtml(meta.ratio)}</span></div>
     </div>
   </header>
 
   <details class="panel" open>
-    <summary>角色设定</summary>
+    <summary>Characters</summary>
     <div class="panel-body">
-      <div class="char-grid">${charCards || '<p style="color:var(--text-3)">暂无角色定义</p>'}</div>
+      <div class="char-grid">${charCards || '<p style="color:var(--text-3)">No characters defined</p>'}</div>
     </div>
   </details>
 
   <details class="panel">
-    <summary>风格指南</summary>
+    <summary>Style Guide</summary>
     <div class="panel-body">
       <div class="style-grid">
-        <div class="style-item"><div class="style-key">视觉风格</div><div class="style-val">${escapeHtml(style_guide.visual_style)}</div></div>
-        <div class="style-item"><div class="style-key">色彩方案</div><div class="style-val">${escapeHtml(style_guide.color_palette)}</div></div>
-        <div class="style-item"><div class="style-key">灯光</div><div class="style-val">${escapeHtml(style_guide.lighting)}</div></div>
-        <div class="style-item"><div class="style-key">镜头语言</div><div class="style-val">${escapeHtml(style_guide.camera_language)}</div></div>
-        <div class="style-item"><div class="style-key">禁止项</div><div class="style-val">${escapeHtml(style_guide.negative_prompts)}</div></div>
+        <div class="style-item"><div class="style-key">Visual Style</div><div class="style-val">${escapeHtml(style_guide.visual_style)}</div></div>
+        <div class="style-item"><div class="style-key">Color Palette</div><div class="style-val">${escapeHtml(style_guide.color_palette)}</div></div>
+        <div class="style-item"><div class="style-key">Lighting</div><div class="style-val">${escapeHtml(style_guide.lighting)}</div></div>
+        <div class="style-item"><div class="style-key">Camera Language</div><div class="style-val">${escapeHtml(style_guide.camera_language)}</div></div>
+        <div class="style-item"><div class="style-key">Negative Prompts</div><div class="style-val">${escapeHtml(style_guide.negative_prompts)}</div></div>
       </div>
     </div>
   </details>
 
   <div class="tl-wrap">
-    <div class="tl-title">时间线</div>
+    <div class="tl-title">Timeline</div>
     ${timelineHtml}
   </div>
 
   <div class="shots-header">
-    <div class="shots-title">分镜详情</div>
-    <div class="shots-count">${shots.length} 个片段 / ${meta.total_duration_s}s</div>
+    <div class="shots-title">Shot Details</div>
+    <div class="shots-count">${shots.length} clips / ${meta.total_duration_s}s</div>
   </div>
   ${shotCards}
 

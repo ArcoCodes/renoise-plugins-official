@@ -3,8 +3,8 @@ name: tiktok-content-maker
 description: >
   TikTok e-commerce short video script generator. Analyzes product photos,
   generates 15s video scripts with video prompts and English dialogue.
-  Use when user says "TikTok product video", "ecommerce video", "电商视频",
-  "带货视频", "商品视频", "拍商品". Do NOT use for non-ecommerce videos or
+  Use when user says "TikTok product video", "ecommerce video",
+  "product video", "sales video", "shoot product". Do NOT use for non-ecommerce videos or
   general creative direction (use director instead).
 allowed-tools: Bash, Read
 metadata:
@@ -14,130 +14,130 @@ metadata:
   tags: [product, ecommerce, tiktok]
 ---
 
-# Content Maker — 电商短视频脚本 + 视频生成
+# Content Maker — E-commerce Short Video Script + Generation
 
 ## Overview
 
-电商短视频全流程工具：用户提供商品图（+ 可选模特图）→ 分析商品信息 → 生成 15 秒 TikTok 脚本（视频 prompt，含英文台词嵌入）→ 提交视频生成任务。
+End-to-end e-commerce short video tool: user provides product images (+ optional model images) → analyze product info → generate 15-second TikTok script (video prompt with embedded English dialogue) → submit video generation task.
 
 ## Workflow
 
-### Phase 1: 素材收集 & 商品分析
+### Phase 1: Material Collection & Product Analysis
 
-1. **收集素材路径**：向用户索要图片
-   - `商品图路径`（必需）：产品主图。**最佳：干净白底纯产品图，无文字/标注/装饰**。有营销文字覆盖的图会干扰模型。
-   - `模特图路径`（可选，仅供分析参考）：展示穿搭/使用效果的图。**注意：模特图仅用于理解产品使用方式，不上传到 Renoise**（隐私检测会拦截含真人面孔的图片）。
+1. **Collect material paths**: Ask user for images
+   - `Product image path` (required): Product hero image. **Best: clean white-background product photo with no text/labels/decorations**. Images with marketing text overlays will interfere with the model.
+   - `Model image path` (optional, for analysis reference only): Shows how the product is worn/used. **Note: Model images are only used to understand product usage — they are NOT uploaded to Renoise** (privacy detection will block images containing realistic human faces).
 
-2. **分析商品信息**：
-   - 如果有 Gemini API 可用，调用 Gemini 分析：
+2. **Analyze product info**:
+   - If Gemini API is available, use Gemini for analysis:
      ```bash
-     cd ${CLAUDE_PLUGIN_ROOT} && npm install --silent && npx tsx ${CLAUDE_SKILL_DIR}/scripts/analyze-images.ts "<商品图路径>" "<模特图路径>"
+     cd ${CLAUDE_PLUGIN_ROOT} && npm install --silent && npx tsx ${CLAUDE_SKILL_DIR}/scripts/analyze-images.ts "<product-image-path>" "<model-image-path>"
      ```
-   - 也可以直接通过 Read 工具查看图片，人工分析商品信息
-   - 需要提取：商品类型、颜色、材质、卖点、品牌调性、适用场景
-   - **（关键）从使用场景图中理解产品的正确使用方式**：
-     - 用户的姿势是什么？（站/坐/躺/走）
-     - 产品放在身体哪个位置？（手持/地面/桌面/身体下方）
-     - 产品与身体的交互方式？（用手按压 vs 用体重压 vs 穿戴 vs 涂抹）
-     - 使用场景在哪？（健身房/办公室/家里/户外）
-   - 如果用户提供了商品链接，用 WebFetch 抓取产品详情页补充理解
+   - Alternatively, view images directly via the Read tool and analyze manually
+   - Extract: product type, color, material, selling points, brand tone, applicable scenarios
+   - **(Critical) Understand correct product usage from lifestyle images**:
+     - What is the user's posture? (standing/sitting/lying/walking)
+     - Where is the product positioned on the body? (handheld/floor/table/under body)
+     - How does the product interact with the body? (hand pressure vs body weight vs wearing vs applying)
+     - Where is the usage scenario? (gym/office/home/outdoors)
+   - If the user provides a product link, use WebFetch to scrape product detail page for additional context
 
-3. **展示分析结果**，让用户确认或补充信息。分析结果中必须包含一条明确的「**使用方式描述**」，例如：
-   > 使用方式：将花生球放在地面/瑜伽垫上，用户躺在球上方，通过自身体重施压按摩脊柱两侧肌肉。花生形凹槽避开脊柱，两侧球体作用于竖脊肌。
+3. **Present analysis results** for user to confirm or supplement. Results must include a clear "**Usage description**", e.g.:
+   > Usage: Place the peanut ball on the floor/yoga mat, user lies on top of the ball, using body weight to massage the muscles along both sides of the spine. The peanut-shaped groove avoids the spine while the two ball ends work the erector spinae muscles.
 
-### Phase 2: 15 秒脚本 + Prompt 生成
+### Phase 2: 15-Second Script + Prompt Generation
 
-基于分析结果 + 参考指南，生成完整的 15 秒视频脚本。
+Based on analysis results + reference guide, generate a complete 15-second video script.
 
-**必须参考以下指南**（先 Read 再生成）：
-- `${CLAUDE_SKILL_DIR}/references/ecom-prompt-guide.md` — 电商视频 prompt 指南
+**Must reference the following guide** (Read before generating):
+- `${CLAUDE_SKILL_DIR}/references/ecom-prompt-guide.md` — E-commerce video prompt guide
 
-**Prompt 结构（3 个必需组成部分）：**
+**Prompt structure (3 required components):**
 
-#### Part A: 产品锚定（Prompt 开头，一句话）
+#### Part A: Product Anchoring (first line of prompt)
 
-产品外观靠参考图传达，prompt 里只需**一句话**说明产品是什么 + 用途：
+Product appearance is conveyed by the reference image. The prompt only needs **one sentence** stating what the product is + its use case:
 
 ```
 The product is a [brand] [product type] for [primary use case], shown in the reference image.
 The product must match the reference image exactly in every frame. Do not invent any packaging, box, or container unless the reference image shows one.
 ```
 
-**关键**：不要在 prompt 里重复描述颜色、材质、形状、logo — 这些信息已在参考图里。把 prompt 空间留给 hook 和画面叙事。
+**Key**: Do not repeat color, material, shape, or logo descriptions in the prompt — that information is already in the reference image. Save prompt space for the hook and visual narrative.
 
-#### Part B: 台词嵌入（贯穿全段）
+#### Part B: Dialogue Embedding (throughout)
 
-台词必须是英文，以强制口型同步格式嵌入叙事段落中：
+Dialogue must be in English, embedded in the narrative using forced lip-sync format:
 ```
 Spoken dialogue (say EXACTLY, word-for-word): "..."
 Mouth clearly visible when speaking, lip-sync aligned.
 ```
 
-**台词风格要求**：
-- **闺蜜聊天感**：像在跟朋友推荐，不像在念广告词
-- **高信息密度**：每句话都带具体信息（数字、对比、使用场景），没有废话
-- **不硬推销**：结尾不用 "link below" / "点击链接" 这种生硬 CTA，用自然的个人推荐收尾（如 "Best money I have spent this year"、"Trust me just start"）
+**Dialogue style requirements**:
+- **Best-friend casual tone**: Like recommending to a friend, not reading ad copy
+- **High information density**: Every sentence includes specific details (numbers, comparisons, usage scenarios) — no filler
+- **No hard sell**: Don't end with "link below" or generic CTAs. Use natural personal recommendations (e.g., "Best money I have spent this year", "Trust me just start")
 
-**台词节奏**（4 句，对应 4 个时间段）：
+**Dialogue pacing** (4 lines, matching 4 time segments):
 ```
-[0-3s]   Hook — 一句话喊停用户（痛点/悬念/结果前置）
-[3-8s]   卖点 — 具体参数 + 使用体验
-[8-12s]  场景 — 在哪用 + 便携性/多功能
-[12-15s] 收尾 — 个人真实推荐感，不硬推销
-```
-
-#### Part C: 画面叙事（一段连续叙事）
-
-**视频结构（一个连续 15 秒视频）：**
-```
-[0-3s]   HOOK — 高冲击力开场。必须：快速运镜（whip pan / snap dolly in）+ 动态动作 + 立即开口说台词。绝对不能慢热。
-[3-8s]   SHOWCASE — 产品展示 + 模特互动。运镜变化展示材质细节。
-[8-12s]  SCENE — 生活场景使用。拉远到中景/全景。
-[12-15s] CLOSE — 模特面对镜头 + 产品在画面中 + 自然收尾。frame holds steady。
+[0-3s]   Hook — One sentence to stop the scroll (pain point / suspense / result-first)
+[3-8s]   Selling point — Specific specs + personal experience
+[8-12s]  Scene — Where to use + portability / versatility
+[12-15s] Close — Genuine personal recommendation, no hard sell
 ```
 
-**输出 3 项内容：**
+#### Part C: Visual Narrative (one continuous narrative)
 
-#### 1. Video Prompt（英文，含台词）
-导演口述式段落（6-10 句，每句只做一件事），包含：
-- 产品锚定（一句话，Part A）在最开头
-- 台词以 `Spoken dialogue (say EXACTLY, word-for-word):` 格式嵌入（Part B）
-- 每句台词后跟 `Mouth clearly visible when speaking, lip-sync aligned.`
-- Ad-6D Protocol 元素穿插
-- 模特外观一致性描述（性别、发型、肤色、体型、服装）
-- 运镜变化至少 3 次
-- 光线/氛围描述
+**Video structure (one continuous 15-second video):**
+```
+[0-3s]   HOOK — High-impact opening. Must: fast camera movement (whip pan / snap dolly in) + dynamic action + start speaking immediately. Never start slow.
+[3-8s]   SHOWCASE — Product display + model interaction. Camera transitions to reveal material details.
+[8-12s]  SCENE — Real-life usage scenario. Pull back to medium/wide shot.
+[12-15s] CLOSE — Model faces camera + product in frame + natural ending. Frame holds steady.
+```
 
-#### 2. 台词脚本（英文，标注时间段）
-单独列出 4 句台词及对应时间段，方便审阅。
+**Output 3 items:**
 
-#### 3. BGM/音效建议
-- 推荐适合产品调性的音乐风格
-- 关键节点的音效提示
+#### 1. Video Prompt (English, with dialogue)
+Director-dictation style paragraph (6-10 sentences, one thing per sentence), containing:
+- Product anchoring (one sentence, Part A) at the very beginning
+- Dialogue embedded with `Spoken dialogue (say EXACTLY, word-for-word):` format (Part B)
+- `Mouth clearly visible when speaking, lip-sync aligned.` after each dialogue line
+- Ad-6D Protocol elements interspersed
+- Model appearance consistency description (gender, hair, skin tone, body type, outfit)
+- At least 3 camera movement changes
+- Lighting/atmosphere description
 
-**参考示例**：Read `${CLAUDE_SKILL_DIR}/examples/dress-demo.md` 了解最新标准输出格式。
+#### 2. Dialogue Script (English, with timestamps)
+List the 4 dialogue lines separately with their time segments for easy review.
 
-### Phase 3: 用户确认
+#### 3. BGM / Sound Design Suggestions
+- Recommend music style matching the product tone
+- Key moment sound effect cues
 
-展示完整脚本后，询问用户：
-- 是否调整台词
-- 是否更换场景
-- 是否修改 prompt 细节
-- 确认后进入提交
+**Reference example**: Read `${CLAUDE_SKILL_DIR}/examples/dress-demo.md` for the latest standard output format.
 
-### Phase 4: 上传素材 + 提交视频生成任务
+### Phase 3: User Confirmation
 
-用户确认脚本后，上传商品图并提交视频生成任务。
+After presenting the full script, ask the user:
+- Whether to adjust dialogue
+- Whether to change the scene
+- Whether to modify prompt details
+- Proceed to submission after confirmation
 
-**重要规则**：
-- 只上传商品图，**不上传模特/真人图**（隐私检测会拦截含真人面孔的图片，报错 `InputImageSensitiveContentDetected.PrivacyInformation`）
-- 模特外观完全靠 prompt 文字描述控制
-- 商品图最好用干净白底纯产品图，避免有营销文字覆盖的图
-- 批量生成时：商品图只需上传一次，复用 material ID 提交多个不同场景的任务
+### Phase 4: Upload Materials + Submit Video Generation Task
+
+After user confirms the script, upload the product image and submit the video generation task.
+
+**Important rules**:
+- Only upload product images — **never upload model/real person photos** (privacy detection will block images containing realistic human faces, error: `InputImageSensitiveContentDetected.PrivacyInformation`)
+- Model appearance is controlled entirely by prompt text description
+- Product images should ideally be clean white-background product photos, avoid images with marketing text overlays
+- For batch generation: upload the product image once, reuse the material ID to submit multiple tasks with different scenes
 
 ## Important Notes
 
-- 图片支持 jpg/jpeg/png/webp 格式
-- 视频 prompt 必须全英文
-- 台词必须英文，嵌入 prompt（`Spoken dialogue (say EXACTLY, word-for-word): "..."`）
-- **不输出单独的字幕文案** — 台词已在 prompt 中，不需要额外字幕层
+- Images support jpg/jpeg/png/webp formats
+- Video prompts must be entirely in English
+- Dialogue must be in English, embedded in the prompt (`Spoken dialogue (say EXACTLY, word-for-word): "..."`)
+- **Do not output separate subtitle text** — dialogue is already in the prompt, no additional subtitle layer needed

@@ -1,0 +1,20 @@
+{
+  "id": "video-maker",
+  "name": "Video Maker",
+  "description": "Video production toolkit for AI video generation, e-commerce content, and more",
+  "version": "0.1.2",
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {}
+  },
+  "skills": [
+    "skills/director",
+    "skills/renoise-gen",
+    "skills/tiktok-content-maker",
+    "skills/scene-generate",
+    "skills/product-sheet-generate",
+    "skills/video-download",
+    "skills/short-film-editor"
+  ]
+}

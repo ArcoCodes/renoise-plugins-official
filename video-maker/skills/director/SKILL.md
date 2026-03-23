@@ -6,8 +6,7 @@ description: >
   directions, generates video prompts, and submits video tasks. Use when
   user says "make a video", "video idea", "creative direction", "help me
   shoot", "I want a video", "video script", "storyboard", "generate video",
-  "action sequence", "做视频", "帮我拍", "视频创意", "短视频脚本", "分镜",
-  "生成视频". Do NOT use for downloading videos or editing existing footage.
+  "action sequence", "generate video". Do NOT use for downloading videos or editing existing footage.
   This skill is the ONLY entry point for video creation in the Visiono project.
 allowed-tools: Bash, Read
 metadata:

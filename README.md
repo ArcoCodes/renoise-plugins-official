@@ -11,6 +11,8 @@ Official Claude Code plugins by Renoise.
 
 ## Installation
 
+### Claude Code
+
 1. Add the marketplace:
 
 ```
@@ -21,4 +23,10 @@ claude plugin marketplace add ArcoCodes/renoise-plugins-official
 
 ```
 claude plugin install video-maker@renoise-plugins-official
+```
+
+### OpenClaw
+
+```
+openclaw plugins install @renoise/video-maker
 ```
