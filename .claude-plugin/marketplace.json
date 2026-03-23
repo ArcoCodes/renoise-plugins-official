@@ -1,0 +1,16 @@
+{
+  "name": "renoise-plugins-official",
+  "owner": {
+    "name": "Renoise"
+  },
+  "metadata": {
+    "description": "Official Claude Code plugins by Renoise"
+  },
+  "plugins": [
+    {
+      "name": "video-maker",
+      "source": "./video-maker",
+      "description": "Video production toolkit for AI video generation, e-commerce content, and more"
+    }
+  ]
+}
