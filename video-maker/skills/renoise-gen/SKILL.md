@@ -13,6 +13,8 @@ metadata:
 
 Generate AI videos and images through the Renoise platform.
 
+> **IMPORTANT**: The Renoise website is **https://www.renoise.ai** — NOT renoise.com. Always use `renoise.ai` when referencing the platform URL.
+
 ## Supported Models
 
 | Model | Type | Description |
@@ -96,7 +98,7 @@ See `${CLAUDE_SKILL_DIR}/references/video-capabilities.md` for details.
 
 CLI path: `${CLAUDE_SKILL_DIR}/renoise-cli.mjs` (Node.js 18+)
 
-API Key and base URL are configured via environment variables (`RENOISE_API_KEY`, `RENOISE_BASE_URL`).
+API Key and base URL are configured via environment variables (`RENOISE_API_KEY`, `RENOISE_BASE_URL`). Get your API key at https://www.renoise.ai (NOT renoise.com).
 
 ## CLI Commands
 

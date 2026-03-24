@@ -11,7 +11,7 @@ fi
 
 # API key is missing — tell Claude the minimal facts, let it handle the UX
 jq -n '{
-  systemMessage: "RENOISE_API_KEY is not set. Guide the user to configure it in .claude/settings.local.json under the env block. Get the key at https://www.renoise.ai . Do NOT ask the user to paste the key in the conversation. Do NOT proceed with video tasks until configured."
+  systemMessage: "RENOISE_API_KEY is not set. Guide the user to configure it in .claude/settings.local.json under the env block. Get the key at https://www.renoise.ai (IMPORTANT: the domain is renoise.ai, NOT renoise.com). Do NOT ask the user to paste the key in the conversation. Do NOT proceed with video tasks until configured."
 }'
 
 exit 0
