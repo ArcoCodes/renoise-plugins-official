@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# PreToolUse hook: only block when RENOISE_API_KEY is missing
+# PreToolUse hook: block when neither RENOISE_API_KEY nor RENOISE_AUTH_TOKEN is set
 # and the tool invocation looks like a renoise-cli call.
 
 set -euo pipefail
@@ -16,13 +16,13 @@ if [[ "$COMMAND" != *renoise-cli* ]]; then
   exit 0
 fi
 
-# If API key is configured, allow
-if [ -n "${RENOISE_API_KEY:-}" ]; then
+# If either credential is configured, allow
+if [ -n "${RENOISE_API_KEY:-}" ] || [ -n "${RENOISE_AUTH_TOKEN:-}" ]; then
   exit 0
 fi
 
 # Block and guide user
 jq -n '{
   decision: "block",
-  reason: "RENOISE_API_KEY is not set. Add it to the env block in .claude/settings.local.json. Get your key at https://www.renoise.ai"
+  reason: "RENOISE_API_KEY or RENOISE_AUTH_TOKEN is not set. Add one to the env block in .claude/settings.local.json. Get your key at https://www.renoise.ai"
 }'
