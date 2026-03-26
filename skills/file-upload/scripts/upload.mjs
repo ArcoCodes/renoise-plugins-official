@@ -19,8 +19,8 @@ if (!RENOISE_API_KEY) {
   process.exit(1);
 }
 
-// TODO: Replace with actual Renoise gateway upload endpoint
-const UPLOAD_ENDPOINT = "https://staging--ujgsvru36x4korjj10nq.edgespark.app/api/public/llm/proxy/upload/v1beta/files";
+const UPLOAD_ENDPOINT =
+  "https://staging.renoise.ai/api/public/v1/llm/files/upload";
 
 const MIME_MAP = {
   ".jpg": "image/jpeg",
@@ -58,19 +58,21 @@ async function main() {
   const fileData = await fs.readFile(filePath);
   const fileName = path.basename(filePath);
 
-  console.error(`Uploading ${fileName} (${(stat.size / 1024 / 1024).toFixed(1)}MB, ${mimeType})...`);
+  console.error(
+    `Uploading ${fileName} (${(stat.size / 1024 / 1024).toFixed(1)}MB, ${mimeType})...`
+  );
 
-  // TODO: Implement actual upload request once endpoint is confirmed
-  // The response should contain a file URI like:
-  //   { "file": { "uri": "https://...", "name": "files/xxx", "mimeType": "...", ... } }
-  const res = await fetch(`${UPLOAD_ENDPOINT}?key=${RENOISE_API_KEY}`, {
+  // Build multipart form-data with native FormData + Blob
+  const blob = new Blob([fileData], { type: mimeType });
+  const form = new FormData();
+  form.append("file", blob, fileName);
+
+  const res = await fetch(UPLOAD_ENDPOINT, {
     method: "POST",
     headers: {
-      "X-Goog-Upload-Command": "start, upload, finalize",
-      "X-Goog-Upload-Header-Content-Type": mimeType,
-      "Content-Type": mimeType,
+      "X-API-Key": RENOISE_API_KEY,
     },
-    body: fileData,
+    body: form,
   });
 
   if (!res.ok) {
@@ -80,15 +82,19 @@ async function main() {
   }
 
   const data = await res.json();
-  const fileUri = data?.file?.uri;
 
-  if (!fileUri) {
-    console.error("No file URI in response:", JSON.stringify(data, null, 2));
+  // Response format: { previewUrl, mimeType, size, expiresAt }
+  const fileUrl = data?.previewUrl;
+
+  if (!fileUrl) {
+    console.error("No previewUrl in response:", JSON.stringify(data, null, 2));
     process.exit(1);
   }
 
-  // Print URI to stdout (stderr used for progress messages)
-  console.log(fileUri);
+  const expires = data.expiresAt ? new Date(data.expiresAt).toLocaleString() : "unknown";
+  console.error(`Uploaded: ${(data.size / 1024).toFixed(0)}KB, expires ${expires}`);
+  // Print URL to stdout (stderr used for progress messages)
+  console.log(fileUrl);
 }
 
 main().catch((err) => {

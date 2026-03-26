@@ -1,7 +1,7 @@
 ---
 name: file-upload
 description: >
-  Upload large files (images, videos) and get a file URI for use with gemini-gen.
+  Upload files (images, videos) to Renoise and get a file URI for use with gemini-gen.
   Use when a file exceeds 20MB inline base64 limit, or when you need to reuse
   the same file across multiple gemini-gen calls without re-encoding.
 allowed-tools: Bash, Read
@@ -25,25 +25,55 @@ Upload files via the Renoise gateway and get back a file URI for use with `gemin
 
 - `RENOISE_API_KEY` environment variable set
 
+## API
+
+```
+POST https://staging.renoise.ai/api/public/v1/llm/files/upload
+Header: X-API-Key: <RENOISE_API_KEY>
+Body: multipart/form-data with field "file"
+```
+
 ## CLI Script
 
 ```bash
-# Upload a file
+# Upload a file, get back a file URI
 node ${CLAUDE_SKILL_DIR}/scripts/upload.mjs <file-path>
 
-# Output: the file URI to use with gemini-gen --file-uri
+# Capture URI for use with gemini-gen
+FILE_URI=$(node ${CLAUDE_SKILL_DIR}/scripts/upload.mjs large-video.mp4)
 ```
+
+Progress messages go to stderr, the file URL goes to stdout.
+
+## Response Format
+
+```json
+{
+  "previewUrl": "https://...r2.cloudflarestorage.com/.../filename?X-Amz-...",
+  "mimeType": "image/jpeg",
+  "size": 111198,
+  "expiresAt": "2026-03-26T11:49:07.328Z"
+}
+```
+
+- `previewUrl` — Signed URL, valid for **1 hour**
+- Upload once, use the URL immediately in downstream skills
 
 ## Usage with gemini-gen
 
 ```bash
 # Step 1: Upload
-FILE_URI=$(node ${CLAUDE_PLUGIN_ROOT}/skills/file-upload/scripts/upload.mjs large-video.mp4)
+FILE_URL=$(node ${CLAUDE_PLUGIN_ROOT}/skills/file-upload/scripts/upload.mjs large-video.mp4)
 
 # Step 2: Use with gemini-gen
 node ${CLAUDE_PLUGIN_ROOT}/skills/gemini-gen/scripts/gemini.mjs \
-  --file-uri "$FILE_URI" --file-mime video/mp4 \
+  --file-uri "$FILE_URL" --file-mime video/mp4 \
   "Analyze this video"
 ```
 
-<!-- TODO: Fill in upload endpoint, response format, file expiration policy -->
+## Supported File Types
+
+Images: `.jpg`, `.jpeg`, `.png`, `.webp`, `.gif`
+Videos: `.mp4`, `.mov`, `.webm`
+Audio: `.mp3`, `.wav`
+Documents: `.pdf`
