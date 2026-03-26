@@ -249,13 +249,14 @@ Store each prompt in the shot's `prompt` field in `project.json`.
 
 ### Step 2 — Generate Reference Images
 
-Three image sources (ask user preference, or default to Gemini):
+Three image sources (ask user preference, or default to Renoise):
 
-**Option A — Gemini (default, automatic, free)**:
+**Option A — Renoise (default)**:
+Use `renoise-gen` with `nano-banana-2` model to generate a reference image. Prompt should describe the shot scene + character appearance + key action + lighting (NO camera movement). Save the result to `${PROJECT_DIR}/storyboard/${shot_id}.png`.
 ```bash
-npx tsx ${CLAUDE_PLUGIN_ROOT}/skills/scene-generate/scripts/generate-scene.ts \
-  "<shot scene + character appearance + key action + lighting — NO camera movement>" \
-  "${PROJECT_DIR}/storyboard/${shot_id}.png"
+node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/renoise-cli.mjs task generate \
+  --model nano-banana-2 --resolution 2k --ratio 16:9 \
+  --prompt "<shot scene + character appearance + key action + lighting>"
 ```
 
 **Option B — Midjourney (higher quality, recommended for stylized projects)**:
@@ -273,12 +274,14 @@ Submit all shots in parallel via `/v1/tob/diffusion`, poll for completion, downl
 **Option C — User-provided**:
 User manually places reference images in `${PROJECT_DIR}/storyboard/S1.png`, `S2.png`, etc.
 
-**Option D — Gemini Grid Storyboard (recommended for best consistency)**:
-Generate ALL shots in a single grid image so characters and style are naturally consistent across panels, then split into individual reference images.
+**Option D — Renoise Grid Storyboard (recommended for best consistency)**:
+Generate ALL shots in a single grid image via `renoise-gen` `nano-banana-2` so characters and style are naturally consistent across panels, then split into individual reference images.
 
-1. Generate a single N-panel grid with Gemini:
-   ```
-   Prompt: "Generate a single N-panel [manga/cinematic] storyboard grid image.
+1. Generate a single N-panel grid:
+   ```bash
+   node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/renoise-cli.mjs task generate \
+     --model nano-banana-2 --resolution 2k --ratio 16:9 \
+     --prompt "Generate a single N-panel [manga/cinematic] storyboard grid image.
    Layout: 2 rows x 4 columns grid with thin white borders.
    The SAME two characters must appear consistently across all panels:
    Character A: [verbatim from Character Bible]
@@ -314,13 +317,7 @@ Reference image prompts should include:
 
 ### Step 3 — Generate HTML Storyboard Preview
 
-```bash
-npx tsx ${CLAUDE_SKILL_DIR}/scripts/generate-storyboard-html.ts \
-  --project-file "${PROJECT_DIR}/project.json" \
-  --output "${PROJECT_DIR}/storyboard.html"
-```
-
-This generates a single self-contained HTML file with:
+Generate a single self-contained HTML file from `${PROJECT_DIR}/project.json` and save it to `${PROJECT_DIR}/storyboard.html`. The HTML should include:
 - **Header**: Project title, total duration, clip count, BPM, character summary, style summary
 - **Music timeline**: Visual bar showing sections and cut points
 - **Shot cards**: One card per shot with reference image, scene/action, dialogue/beats, continuity, and collapsible Seedance prompt

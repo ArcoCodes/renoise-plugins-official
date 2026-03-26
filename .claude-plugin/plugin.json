@@ -1,0 +1,20 @@
+{
+  "name": "video-maker",
+  "description": "AI video production skills — creative direction, generation, editing, and e-commerce content",
+  "version": "0.2.0",
+  "author": {
+    "name": "Renoise"
+  },
+  "homepage": "https://github.com/ArcoCodes/renoise-plugins-official",
+  "repository": "https://github.com/ArcoCodes/renoise-plugins-official",
+  "license": "Apache-2.0",
+  "keywords": [
+    "skills",
+    "video",
+    "ai-video",
+    "creative-direction",
+    "ecommerce",
+    "tiktok",
+    "renoise"
+  ]
+}

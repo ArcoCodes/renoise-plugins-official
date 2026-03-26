@@ -1,32 +1,30 @@
 # renoise-plugins-official
 
-Official Claude Code plugins by Renoise.
+AI video production skills by Renoise — creative direction, generation, editing, and e-commerce content.
 
-## Plugins
+## Skills
 
-| Plugin                       | Description                                                |
-| ---------------------------- | ---------------------------------------------------------- |
-| [video-maker](./video-maker) | Video production toolkit                                   |
-| [ecommerce](./ecommerce)     | E-commerce content creation: product videos, design sheets |
+| Skill | Description |
+|-------|-------------|
+| **director** | Creative director — main entry point for all video requests |
+| **gemini-gen** | Base skill for calling Google Gemini API via REST fetch |
+| **renoise-gen** | AI video & image generation engine (renoise-cli) |
+| **tiktok-content-maker** | TikTok & e-commerce short video specialist |
+| **scene-generate** | Background/environment image generation (Gemini) |
+| **product-sheet-generate** | Multi-angle product design sheet (Gemini) |
+| **short-film-editor** | Short film & drama editing |
+| **video-download** | Video downloader (yt-dlp) |
 
 ## Installation
 
 ### Claude Code
 
-1. Add the marketplace:
-
-```
-claude plugin marketplace add ArcoCodes/renoise-plugins-official
+```bash
+claude plugin add ArcoCodes/renoise-plugins-official
 ```
 
-2. Install a plugin:
+## Environment Variables
 
-```
-claude plugin install video-maker@renoise-plugins-official
-```
-
-### OpenClaw
-
-```
-openclaw plugins install @renoise/video-maker
-```
+| Variable | Required By | Description |
+|----------|------------|-------------|
+| `RENOISE_API_KEY` | All skills | Renoise API credential. Get one at https://www.renoise.ai |

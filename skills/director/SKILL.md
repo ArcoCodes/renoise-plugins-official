@@ -53,10 +53,7 @@ You are a creative director for AI video production. You guide users from raw id
    - What materials does the user have? (product photos, character refs, scripts, nothing)
    - What's the intended platform/audience? (TikTok, Instagram, YouTube, general)
 
-5. **If user provided product images**, analyze them:
-   ```bash
-   cd ${CLAUDE_PLUGIN_ROOT} && npm install --silent && npx tsx ${CLAUDE_PLUGIN_ROOT}/skills/tiktok-content-maker/scripts/analyze-images.ts <product-image> [model-image]
-   ```
+5. **If user provided product images**, analyze them using the `gemini-gen` skill — send product image(s) with a prompt to extract product type, colors, material, selling points, brand tone, and scene suggestions.
 
 6. **Present a brief summary**: "Here's what I understand: [product/story/concept]. I'll use [capabilities]. Let me suggest some creative directions."
 
@@ -226,7 +223,7 @@ Read that skill's SKILL.md and follow its workflow from the appropriate phase (s
 
 ### Example 1: Product video (common)
 User: "I have photos of my new sneakers, help me make a video"
-1. Phase 1: Analyze sneaker images via analyze-images.ts → extract product type, colors, selling points
+1. Phase 1: Analyze sneaker images via `gemini-gen` skill → extract product type, colors, selling points
 2. Phase 2: Suggest Minimal Showcase / Dynamic Sports / Lifestyle Vlog with adapted descriptions
 3. User picks "Dynamic Sports"
 4. Phase 3: Generate 15s video prompt with fast tracking, high-energy BGM, beat-synced cuts
