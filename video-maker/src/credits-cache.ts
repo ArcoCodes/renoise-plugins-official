@@ -1,6 +1,6 @@
 /**
  * Credits cache module.
- * Reads/writes ~/.myplatform/credits-cache.json with TTL-based expiry.
+ * Reads/writes ~/.renoise/credits-cache.json with TTL-based expiry.
  * statusLine calls this every ~300ms — must be fast (local file only).
  */
 
@@ -8,7 +8,7 @@ import fs from 'fs'
 import path from 'path'
 import os from 'os'
 
-const CACHE_DIR = path.join(os.homedir(), '.myplatform')
+const CACHE_DIR = path.join(os.homedir(), '.renoise')
 const CACHE_FILE = path.join(CACHE_DIR, 'credits-cache.json')
 const DEFAULT_TTL_MS = 30_000 // 30 seconds
 
