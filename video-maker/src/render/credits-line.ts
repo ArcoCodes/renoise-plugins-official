@@ -30,9 +30,9 @@ function formatCredits(n: number): string {
 // ── Main Renderer ───────────────────────────────────────────────────────
 
 export interface RenderOptions {
-  /** Slash command name for recharge. Default: /myplatform:recharge */
+  /** Slash command name for recharge. Default: /renoise:recharge */
   rechargeCmd?: string
-  /** Slash command name for login. Default: /myplatform:login */
+  /** Slash command name for login. Default: /renoise:login */
   loginCmd?: string
 }
 
@@ -44,8 +44,8 @@ export function renderCreditsLine(
   data: CreditsData | null,
   opts: RenderOptions = {},
 ): string {
-  const rechargeCmd = opts.rechargeCmd ?? '/myplatform:recharge'
-  const loginCmd = opts.loginCmd ?? '/myplatform:login'
+  const rechargeCmd = opts.rechargeCmd ?? '/renoise:recharge'
+  const loginCmd = opts.loginCmd ?? '/renoise:login'
 
   // No cache / not logged in
   if (!data) {
@@ -57,17 +57,17 @@ export function renderCreditsLine(
 
   // No credits
   if (credits <= 0) {
-    return colorize(`❌ No credits — ${rechargeCmd}`, RED)
+    return colorize(`❌ Renoise Credits: 0 — ${rechargeCmd}`, RED)
   }
 
   // Critical: < 10
   if (credits < THRESHOLD_CRITICAL) {
-    return colorize(`🔴 Credits: ${formatted} — ${rechargeCmd}`, RED)
+    return colorize(`🔴 Renoise Credits: ${formatted} — ${rechargeCmd}`, RED)
   }
 
   // Low: 10-100
   if (credits < THRESHOLD_LOW) {
-    return colorize(`⚠️  Credits: ${formatted} — running low`, YELLOW)
+    return colorize(`⚠️  Renoise Credits: ${formatted} — running low`, YELLOW)
   }
 
   // Normal: > 100
