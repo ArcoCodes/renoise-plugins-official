@@ -32,7 +32,7 @@ function formatCredits(n: number): string {
 export interface RenderOptions {
   /** Slash command name for recharge. Default: /video-maker:recharge */
   rechargeCmd?: string
-  /** Slash command name for login. Default: /video-maker:setup */
+  /** Slash command name for login. Default: /video-maker:login */
   loginCmd?: string
 }
 
@@ -45,7 +45,7 @@ export function renderCreditsLine(
   opts: RenderOptions = {},
 ): string {
   const rechargeCmd = opts.rechargeCmd ?? '/video-maker:recharge'
-  const loginCmd = opts.loginCmd ?? '/video-maker:setup'
+  const loginCmd = opts.loginCmd ?? '/video-maker:login'
 
   // No cache / not logged in
   if (!data) {
