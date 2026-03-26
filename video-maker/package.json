@@ -18,6 +18,8 @@
     "index.mjs",
     "hooks/",
     "lib/",
+    "src/",
+    "commands/",
     "skills/",
     "README.md"
   ],
