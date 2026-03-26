@@ -49,7 +49,7 @@ export function renderCreditsLine(
 
   // No cache / not logged in
   if (!data) {
-    return colorize(`🎬 Renoise — Not logged in — ${loginCmd}`, GRAY)
+    return colorize(`🎬 Renoise — Not logged in — type ${loginCmd} to configure`, GRAY)
   }
 
   const { credits } = data
@@ -57,12 +57,12 @@ export function renderCreditsLine(
 
   // No credits
   if (credits <= 0) {
-    return colorize(`❌ Renoise Credits: 0 — ${rechargeCmd}`, RED)
+    return colorize(`❌ Renoise Credits: 0 — type ${rechargeCmd} to top up`, RED)
   }
 
   // Critical: ≤100 — show recharge command
   if (credits <= THRESHOLD_CRITICAL) {
-    return colorize(`🔴 Renoise Credits: ${formatted} — ${rechargeCmd}`, RED)
+    return colorize(`🔴 Renoise Credits: ${formatted} — type ${rechargeCmd} to top up`, RED)
   }
 
   // Low: ≤500 — warning
