@@ -26,7 +26,7 @@ fi
 # Case 1: New user — no API key
 if [ "$HAS_KEY" = false ]; then
   # stdout goes to Claude as context — Claude will relay the message to the user
-  echo '[Renoise Video Maker] New install detected — API key not configured. Tell the user: type /video-maker:setup to connect your Renoise account. One sentence only.'
+  echo '[Renoise Video Maker] Plugin installed successfully, but Renoise account is not connected yet. Tell the user: type /video-maker:setup to connect your account. One sentence only.'
   exit 0
 fi
 
