@@ -15,8 +15,8 @@ const YELLOW = '\x1b[33m'
 const GRAY = '\x1b[90m'
 
 // ── Thresholds ──────────────────────────────────────────────────────────
-const THRESHOLD_LOW = 100
-const THRESHOLD_CRITICAL = 10
+const THRESHOLD_LOW = 500
+const THRESHOLD_CRITICAL = 100
 
 // ── Helpers ─────────────────────────────────────────────────────────────
 function colorize(text: string, color: string): string {
@@ -60,13 +60,13 @@ export function renderCreditsLine(
     return colorize(`❌ Renoise Credits: 0 — ${rechargeCmd}`, RED)
   }
 
-  // Critical: < 10
-  if (credits < THRESHOLD_CRITICAL) {
+  // Critical: ≤100 — show recharge command
+  if (credits <= THRESHOLD_CRITICAL) {
     return colorize(`🔴 Renoise Credits: ${formatted} — ${rechargeCmd}`, RED)
   }
 
-  // Low: 10-100
-  if (credits < THRESHOLD_LOW) {
+  // Low: ≤500 — warning
+  if (credits <= THRESHOLD_LOW) {
     return colorize(`⚠️  Renoise Credits: ${formatted} — running low`, YELLOW)
   }
 
@@ -85,7 +85,7 @@ export function renderCreditsBadge(data: CreditsData | null): string {
   const formatted = formatCredits(credits)
 
   if (credits <= 0) return colorize(`[0 cr]`, RED)
-  if (credits < THRESHOLD_CRITICAL) return colorize(`[${formatted} cr]`, RED)
-  if (credits < THRESHOLD_LOW) return colorize(`[${formatted} cr]`, YELLOW)
+  if (credits <= THRESHOLD_CRITICAL) return colorize(`[${formatted} cr]`, RED)
+  if (credits <= THRESHOLD_LOW) return colorize(`[${formatted} cr]`, YELLOW)
   return colorize(`[${formatted} cr]`, GREEN)
 }
