@@ -180,7 +180,7 @@ async function main() {
   const parts = await buildParts(opts);
 
   const body = {
-    contents: [{ parts }],
+    contents: [{ role: "user", parts }],
     generationConfig: {
       temperature: opts.temperature,
       maxOutputTokens: opts.maxTokens,

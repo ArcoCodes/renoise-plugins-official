@@ -25,11 +25,12 @@ Default model: `gemini-3.1-pro`
 {
   "contents": [
     {
+      "role": "user",
       "parts": [{ "text": "your prompt here" }]
     }
   ],
   "generationConfig": {
-    "temperature": 0.7,
+    "temperature": 1.0,
     "maxOutputTokens": 8192
   }
 }
