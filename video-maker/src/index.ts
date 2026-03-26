@@ -10,7 +10,7 @@
  */
 
 import { execSync } from 'child_process'
-import { getCredits } from './credits-cache.js'
+import { getCredits, refreshFromApi } from './credits-cache.js'
 import { renderCreditsLine } from './render/credits-line.js'
 
 // ── Stdin reading ───────────────────────────────────────────────────────
@@ -84,7 +84,13 @@ async function main() {
   const hudOutput = runClaudeHud(stdinData)
 
   // Get credits from local cache (fast, no network)
-  const { data } = getCredits()
+  const { data, fresh } = getCredits()
+
+  // If cache is stale or empty, fire async refresh (non-blocking)
+  if (!fresh) {
+    refreshFromApi().catch(() => {})
+  }
+
   const creditsLine = renderCreditsLine(data)
 
   // Merge: claude-hud output first, then credits line
