@@ -25,13 +25,14 @@ fi
 
 # Case 1: New user — no API key
 if [ "$HAS_KEY" = false ]; then
-  echo '🎬 Welcome to Renoise Video Maker! Type /video-maker:setup to login and get started.'
+  # stdout goes to Claude as context — Claude will relay the message to the user
+  echo '[Renoise Video Maker] User has not configured their Renoise API key yet. Please greet them and suggest they type /video-maker:setup to login and get started. Keep it brief — one short sentence.'
   exit 0
 fi
 
 # Case 2: Existing user updated plugin — has key but no statusLine
 if [ "$HAS_STATUSLINE" = false ]; then
-  echo '🎬 Renoise Credits display is now available! Type /video-maker:setup to enable it in your status bar.'
+  echo '[Renoise Video Maker] User has a Renoise API key but has not enabled the Credits status bar display yet. Briefly let them know they can type /video-maker:setup to enable real-time credit balance in the status bar.'
   exit 0
 fi
 
