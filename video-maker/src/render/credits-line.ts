@@ -32,8 +32,8 @@ function formatCredits(n: number): string {
 export interface RenderOptions {
   /** Slash command name for recharge. Default: /video-maker:recharge */
   rechargeCmd?: string
-  /** Slash command name for login. Default: /video-maker:login */
-  loginCmd?: string
+  /** Slash command name for setup. Default: /video-maker:setup */
+  setupCmd?: string
 }
 
 /**
@@ -45,11 +45,11 @@ export function renderCreditsLine(
   opts: RenderOptions = {},
 ): string {
   const rechargeCmd = opts.rechargeCmd ?? '/video-maker:recharge'
-  const loginCmd = opts.loginCmd ?? '/video-maker:login'
+  const setupCmd = opts.setupCmd ?? '/video-maker:setup'
 
   // No cache / not logged in
   if (!data) {
-    return colorize(`🎬 Renoise Video Maker — type ${loginCmd} to complete setup`, GRAY)
+    return colorize(`🎬 Renoise Video Maker — type ${setupCmd} to complete setup`, GRAY)
   }
 
   const { credits } = data

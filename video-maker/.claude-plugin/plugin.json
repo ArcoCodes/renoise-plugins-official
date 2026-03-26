@@ -4,7 +4,6 @@
   "version": "0.1.0",
   "commands": [
     "./commands/setup.md",
-    "./commands/recharge.md",
-    "./commands/login.md"
+    "./commands/recharge.md"
   ]
 }
