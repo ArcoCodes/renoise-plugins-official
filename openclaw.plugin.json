@@ -1,0 +1,22 @@
+{
+  "id": "video-maker",
+  "name": "Video Maker",
+  "description": "AI video production skills — creative direction, generation, editing, and e-commerce content",
+  "version": "0.2.0",
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {}
+  },
+  "skills": [
+    "skills/director",
+    "skills/gemini-gen",
+    "skills/renoise-gen",
+    "skills/tiktok-content-maker",
+    "skills/scene-generate",
+    "skills/product-sheet-generate",
+    "skills/short-film-editor",
+    "skills/video-download",
+    "skills/file-upload"
+  ]
+}

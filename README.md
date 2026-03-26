@@ -7,20 +7,35 @@ AI video production skills by Renoise — creative direction, generation, editin
 | Skill | Description |
 |-------|-------------|
 | **director** | Creative director — main entry point for all video requests |
-| **gemini-gen** | Base skill for calling Google Gemini API via REST fetch |
+| **gemini-gen** | Visual understanding & multimodal analysis via Gemini 3.1 Pro |
 | **renoise-gen** | AI video & image generation engine (renoise-cli) |
 | **tiktok-content-maker** | TikTok & e-commerce short video specialist |
-| **scene-generate** | Background/environment image generation (Gemini) |
-| **product-sheet-generate** | Multi-angle product design sheet (Gemini) |
+| **scene-generate** | Background/environment image generation |
+| **product-sheet-generate** | Multi-angle product design sheet |
 | **short-film-editor** | Short film & drama editing |
 | **video-download** | Video downloader (yt-dlp) |
+| **file-upload** | Upload files to Renoise for use with gemini-gen |
 
 ## Installation
 
 ### Claude Code
 
+1. Add the marketplace:
+
 ```bash
-claude plugin add ArcoCodes/renoise-plugins-official
+claude plugin marketplace add ArcoCodes/renoise-plugins-official
+```
+
+2. Install the plugin:
+
+```bash
+claude plugin install video-maker@renoise-plugins-official
+```
+
+### OpenClaw
+
+```bash
+openclaw plugins install @renoise/video-maker
 ```
 
 ## Environment Variables
