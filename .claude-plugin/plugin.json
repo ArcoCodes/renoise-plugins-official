@@ -15,5 +15,9 @@
     "ecommerce",
     "tiktok",
     "renoise"
+  ],
+  "commands": [
+    "./commands/setup.md",
+    "./commands/add-credits.md"
   ]
 }

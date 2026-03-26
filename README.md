@@ -38,6 +38,14 @@ claude plugin install video-maker@renoise-plugins-official
 openclaw plugins install @renoise/video-maker
 ```
 
+3. Launch Claude Code and run the setup command to connect your Renoise account:
+
+```
+/video-maker:setup
+```
+
+This will guide you through connecting your API key and enabling the real-time credit balance display in the status bar.
+
 ## Environment Variables
 
 | Variable | Required By | Description |
