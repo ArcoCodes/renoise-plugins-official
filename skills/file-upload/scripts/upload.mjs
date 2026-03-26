@@ -20,7 +20,7 @@ if (!RENOISE_API_KEY) {
 }
 
 const UPLOAD_ENDPOINT =
-  "https://staging.renoise.ai/api/public/v1/llm/files/upload";
+  "https://renoise.ai/api/public/v1/llm/files/upload";
 
 const MIME_MAP = {
   ".jpg": "image/jpeg",

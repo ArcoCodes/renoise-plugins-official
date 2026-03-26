@@ -175,7 +175,7 @@ async function main() {
     process.exit(1);
   }
 
-  const endpoint = `https://staging--ujgsvru36x4korjj10nq.edgespark.app/api/public/llm/proxy/v1beta/models/${opts.model}:generateContent?key=${RENOISE_API_KEY}`;
+  const endpoint = `https://renoise.ai/api/public/llm/proxy/v1beta/models/${opts.model}:generateContent?key=${RENOISE_API_KEY}`;
 
   const parts = await buildParts(opts);
 

@@ -28,7 +28,7 @@ Upload files via the Renoise gateway and get back a file URI for use with `gemin
 ## API
 
 ```
-POST https://staging.renoise.ai/api/public/v1/llm/files/upload
+POST https://renoise.ai/api/public/v1/llm/files/upload
 Header: X-API-Key: <RENOISE_API_KEY>
 Body: multipart/form-data with field "file"
 ```

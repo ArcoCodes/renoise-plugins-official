@@ -21,16 +21,16 @@ Gemini 3.1 Pro via Renoise gateway. Zero npm dependencies, native `fetch` only.
 
 ## When to Use
 
-| Scenario | Example |
-|----------|---------|
-| **Analyze product photos** | Extract type, color, material, selling points, brand tone from product images |
-| **Understand video content** | "What happens in this video?", summarize scenes, identify actions and objects |
-| **Extract scripts from video** | Watch a reference video → output timestamped dialogue, scene descriptions, camera movements |
-| **Replicate a video style** | Analyze a reference clip → extract visual style, pacing, transitions, color grading for recreation |
-| **Compare visual assets** | Side-by-side analysis of two product photos, before/after comparison |
-| **OCR / text extraction** | Read text from screenshots, packaging, signage in images |
-| **Describe scenes for prompts** | Look at a reference image → write a detailed prompt for `renoise-gen` to recreate the style |
-| **Content review** | Check if generated output matches the creative brief |
+| Scenario                        | Example                                                                                            |
+| ------------------------------- | -------------------------------------------------------------------------------------------------- |
+| **Analyze product photos**      | Extract type, color, material, selling points, brand tone from product images                      |
+| **Understand video content**    | "What happens in this video?", summarize scenes, identify actions and objects                      |
+| **Extract scripts from video**  | Watch a reference video → output timestamped dialogue, scene descriptions, camera movements        |
+| **Replicate a video style**     | Analyze a reference clip → extract visual style, pacing, transitions, color grading for recreation |
+| **Compare visual assets**       | Side-by-side analysis of two product photos, before/after comparison                               |
+| **OCR / text extraction**       | Read text from screenshots, packaging, signage in images                                           |
+| **Describe scenes for prompts** | Look at a reference image → write a detailed prompt for `renoise-gen` to recreate the style        |
+| **Content review**              | Check if generated output matches the creative brief                                               |
 
 ## When NOT to Use
 
@@ -45,7 +45,7 @@ Use environment variable `RENOISE_API_KEY`. Get one at: https://www.renoise.ai
 ## API Endpoint
 
 ```
-POST https://staging--ujgsvru36x4korjj10nq.edgespark.app/api/public/llm/proxy/v1beta/models/{model}:generateContent?key={RENOISE_API_KEY}
+POST https://renoise.ai/api/public/llm/proxy/v1beta/models/{model}:generateContent?key={RENOISE_API_KEY}
 ```
 
 Default model: `gemini-3.1-pro`
@@ -94,12 +94,12 @@ Gemini supports images and videos as inline base64 parts alongside text. Multipl
 
 `mediaResolution` controls token allocation per image/frame:
 
-| Level | Image Tokens | Video Frame Tokens |
-|-------|-------------|-------------------|
-| `media_resolution_low` | 280 | 70 |
-| `media_resolution_medium` | 560 | 140 |
-| `media_resolution_high` | 840 | 210 |
-| `media_resolution_ultra_high` | 1120 | 280 |
+| Level                         | Image Tokens | Video Frame Tokens |
+| ----------------------------- | ------------ | ------------------ |
+| `media_resolution_low`        | 280          | 70                 |
+| `media_resolution_medium`     | 560          | 140                |
+| `media_resolution_high`       | 840          | 210                |
+| `media_resolution_ultra_high` | 1120         | 280                |
 
 Default: `media_resolution_medium`. Use `high` or `ultra_high` for detail-critical analysis (product photos, fine text). Use `low` for bulk/batch processing.
 
@@ -137,8 +137,12 @@ Send multiple images/videos in one request by adding more `inlineData` parts:
   "contents": [
     {
       "parts": [
-        { "inlineData": { "mimeType": "image/jpeg", "data": "<base64-image-1>" } },
-        { "inlineData": { "mimeType": "image/png", "data": "<base64-image-2>" } },
+        {
+          "inlineData": { "mimeType": "image/jpeg", "data": "<base64-image-1>" }
+        },
+        {
+          "inlineData": { "mimeType": "image/png", "data": "<base64-image-2>" }
+        },
         { "text": "Compare these two product photos" }
       ]
     }
@@ -220,13 +224,13 @@ node ${CLAUDE_SKILL_DIR}/scripts/gemini.mjs --json "Return a JSON object with na
 
 ### Options
 
-| Flag | Default | Description |
-|------|---------|-------------|
-| `--file <path>` | — | Attach local file (repeatable) |
-| `--file-uri <uri>` | — | Attach uploaded file by URI (requires `--file-mime`) |
-| `--file-mime <mime>` | — | MIME type for `--file-uri` |
-| `--resolution <level>` | `medium` | `low` / `medium` / `high` / `ultra_high` |
-| `--model <name>` | `gemini-3.1-pro` | Model name |
-| `--temperature <n>` | `1.0` | Temperature |
-| `--max-tokens <n>` | `8192` | Max output tokens |
-| `--json` | off | Request JSON response format |
+| Flag                   | Default          | Description                                          |
+| ---------------------- | ---------------- | ---------------------------------------------------- |
+| `--file <path>`        | —                | Attach local file (repeatable)                       |
+| `--file-uri <uri>`     | —                | Attach uploaded file by URI (requires `--file-mime`) |
+| `--file-mime <mime>`   | —                | MIME type for `--file-uri`                           |
+| `--resolution <level>` | `medium`         | `low` / `medium` / `high` / `ultra_high`             |
+| `--model <name>`       | `gemini-3.1-pro` | Model name                                           |
+| `--temperature <n>`    | `1.0`            | Temperature                                          |
+| `--max-tokens <n>`     | `8192`           | Max output tokens                                    |
+| `--json`               | off              | Request JSON response format                         |
