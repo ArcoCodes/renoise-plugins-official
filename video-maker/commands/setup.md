@@ -102,10 +102,9 @@ If a `statusLine` already exists, warn the user it will be replaced (they may ha
 
 After writing, tell the user:
 
-> ✅ Setup complete! **Restart Claude Code** to see the Renoise Credits display in your status bar.
+> ✅ Login successful! Your Renoise account is now connected.
 >
-> Features:
-> - 🎬 Real-time credit balance with color indicators (green/yellow/red)
-> - Automatic balance refresh every 30 seconds
-> - Merges with claude-hud if installed (HUD lines + credits)
-> - Run `/video-maker:setup` again after plugin updates
+> **Restart Claude Code** to activate. After restart you'll see:
+> - Your real-time credit balance in the status bar
+> - Low balance warnings when credits are running out
+> - Type `/video-maker:recharge` anytime to top up
