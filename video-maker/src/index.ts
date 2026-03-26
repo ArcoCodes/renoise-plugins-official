@@ -1,17 +1,22 @@
 /**
  * StatusLine entry point for video-maker plugin.
- * Merges claude-hud output with credits display.
+ * If user had a previous statusLine command (e.g. claude-hud), runs it and
+ * merges its output with the credits display.
  *
- * Flow: read stdin → fork stdin to claude-hud subprocess → collect its output
- *       → append credits line → print everything to stdout.
+ * Previous statusLine is saved to ~/.renoise/previous-statusline.json during setup.
  *
  * Manual test:
  *   echo '{}' | npx tsx src/index.ts
  */
 
+import fs from 'fs'
+import path from 'path'
+import os from 'os'
 import { execSync } from 'child_process'
 import { getCredits, refreshFromApi } from './credits-cache.js'
 import { renderCreditsLine } from './render/credits-line.js'
+
+const PREVIOUS_STATUSLINE_FILE = path.join(os.homedir(), '.renoise/previous-statusline.json')
 
 // ── Stdin reading ───────────────────────────────────────────────────────
 async function readStdinRaw(): Promise<string> {
@@ -29,47 +34,19 @@ async function readStdinRaw(): Promise<string> {
   return chunks.join('')
 }
 
-// ── claude-hud integration ──────────────────────────────────────────────
-function findClaudeHudEntry(): string | null {
-  const configDir = process.env.CLAUDE_CONFIG_DIR || `${process.env.HOME}/.claude`
+// ── Previous statusLine integration ─────────────────────────────────────
+function runPreviousStatusLine(stdinData: string): string {
   try {
-    // Find latest installed claude-hud version directory
-    const dirs = execSync(
-      `ls -d "${configDir}/plugins/cache/claude-hud/claude-hud/"*/ 2>/dev/null`,
-      { encoding: 'utf8', timeout: 2000 },
-    ).trim()
-    if (!dirs) return null
-    // Take the last (latest) version
-    const lines = dirs.split('\n').filter(Boolean)
-    return `${lines[lines.length - 1]}src/index.ts`
-  } catch {
-    return null
-  }
-}
+    const raw = fs.readFileSync(PREVIOUS_STATUSLINE_FILE, 'utf-8')
+    const config = JSON.parse(raw) as { command?: string }
+    if (!config.command) return ''
 
-function runClaudeHud(stdinData: string): string {
-  const entry = findClaudeHudEntry()
-  if (!entry) return ''
-
-  // Detect runtime: prefer bun if available, fallback to node via npx tsx
-  const runtime = (() => {
-    try {
-      return execSync('which bun', { encoding: 'utf8', timeout: 1000 }).trim()
-    } catch {
-      return null
-    }
-  })()
-
-  try {
-    const cmd = runtime
-      ? `"${runtime}" --env-file /dev/null "${entry}"`
-      : `npx tsx "${entry}"`
-
-    return execSync(cmd, {
+    return execSync(config.command, {
       input: stdinData,
       encoding: 'utf8',
       timeout: 5000,
       env: { ...process.env },
+      shell: '/bin/bash',
     }).trimEnd()
   } catch {
     return ''
@@ -80,8 +57,8 @@ function runClaudeHud(stdinData: string): string {
 async function main() {
   const stdinData = await readStdinRaw()
 
-  // Run claude-hud with the same stdin data
-  const hudOutput = runClaudeHud(stdinData)
+  // Run previous statusLine command if configured (e.g. claude-hud)
+  const previousOutput = runPreviousStatusLine(stdinData)
 
   // Get credits from local cache (fast, no network)
   const { data, fresh } = getCredits()
@@ -93,9 +70,9 @@ async function main() {
 
   const creditsLine = renderCreditsLine(data)
 
-  // Merge: claude-hud output first, then credits line
-  if (hudOutput) {
-    console.log(hudOutput)
+  // Merge: previous statusLine output first, then credits line
+  if (previousOutput) {
+    console.log(previousOutput)
   }
   console.log(creditsLine)
 }

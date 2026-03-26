@@ -87,7 +87,17 @@ If not set, guide the user through login:
 
 ## Step 5: Apply StatusLine Config
 
-Read `${CLAUDE_CONFIG_DIR:-$HOME/.claude}/settings.json` and merge in the statusLine config, preserving all existing settings:
+Read `${CLAUDE_CONFIG_DIR:-$HOME/.claude}/settings.json`.
+
+**If a `statusLine` already exists** and its command does NOT contain "video-maker":
+1. Save the existing statusLine command to `~/.renoise/previous-statusline.json`:
+   ```json
+   { "command": "<existing statusLine command>" }
+   ```
+   Create the `~/.renoise/` directory if needed.
+2. Tell the user: "Your existing statusLine (e.g. claude-hud) will be preserved and merged with the credits display."
+
+**Then** merge in our statusLine config, preserving all other existing settings:
 
 ```json
 {
@@ -97,8 +107,6 @@ Read `${CLAUDE_CONFIG_DIR:-$HOME/.claude}/settings.json` and merge in the status
   }
 }
 ```
-
-If a `statusLine` already exists, warn the user it will be replaced (they may have claude-hud configured directly). Our script already integrates claude-hud internally, so this is safe.
 
 After writing, tell the user:
 
