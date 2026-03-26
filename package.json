@@ -1,6 +1,6 @@
 {
   "name": "@renoise/video-maker",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "license": "Apache-2.0",
   "type": "module",
   "description": "AI video production skills — creative direction, generation, editing, and e-commerce content",
