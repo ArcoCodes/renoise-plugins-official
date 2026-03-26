@@ -56,17 +56,34 @@ Check if `RENOISE_API_KEY` is already set:
 echo "${RENOISE_API_KEY:+SET}"
 ```
 
-If not set, ask the user for their Renoise API key (get one at https://www.renoise.ai). Then add it to `~/.claude/settings.json` under the `env` key:
+If already set, skip to Step 5.
 
-```json
-{
-  "env": {
-    "RENOISE_API_KEY": "<user's key>"
-  }
-}
-```
+If not set, guide the user through login:
 
-Merge with existing env values — do not overwrite other keys.
+1. Open the Renoise developer page:
+   ```bash
+   open "https://renoise.ai/developer"
+   ```
+
+2. Tell the user:
+   > 🎬 Renoise developer page opened. Please create an API key there (starts with `fk_`), then paste it here.
+
+3. Use AskUserQuestion to ask for the API key.
+
+4. Save to `~/.claude/settings.json` under the `env` block. Merge with existing values — do not overwrite other keys:
+   ```json
+   {
+     "env": {
+       "RENOISE_API_KEY": "<user's key>"
+     }
+   }
+   ```
+
+5. Verify the key works:
+   ```bash
+   cd ${CLAUDE_PLUGIN_ROOT} && RENOISE_API_KEY="<user's key>" node skills/renoise-gen/renoise-cli.mjs credit me
+   ```
+   If verification fails, tell the user the key may be invalid and ask to try again.
 
 ## Step 5: Apply StatusLine Config
 
