@@ -1,0 +1,22 @@
+{
+  "name": "@renoise/video-maker",
+  "version": "0.2.0",
+  "license": "Apache-2.0",
+  "type": "module",
+  "description": "AI video production skills — creative direction, generation, editing, and e-commerce content",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ArcoCodes/renoise-plugins-official.git"
+  },
+  "openclaw": {
+    "extensions": ["./index.mjs"]
+  },
+  "files": [
+    ".claude-plugin/",
+    "openclaw.plugin.json",
+    "index.mjs",
+    "hooks/",
+    "skills/",
+    "README.md"
+  ]
+}
