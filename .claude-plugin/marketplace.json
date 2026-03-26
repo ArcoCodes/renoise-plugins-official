@@ -3,14 +3,13 @@
   "owner": {
     "name": "Renoise"
   },
-  "metadata": {
-    "description": "Official Claude Code plugins by Renoise"
-  },
+  "description": "Official Claude Code plugins by Renoise",
   "plugins": [
     {
       "name": "video-maker",
-      "source": "./video-maker",
-      "description": "Video production toolkit for AI video generation, e-commerce content, and more"
+      "version": "0.2.0",
+      "source": "./",
+      "description": "AI video production skills — creative direction, generation, editing, and e-commerce content"
     }
   ]
 }

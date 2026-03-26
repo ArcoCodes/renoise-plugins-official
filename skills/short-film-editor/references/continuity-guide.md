@@ -147,7 +147,7 @@ When generating reference images for each shot independently (even with the same
 ### Workflow
 
 1. Write a single prompt describing all panels with verbatim character descriptions
-2. Generate one grid image via Gemini (`gemini-3-pro-image-preview`)
+2. Generate one grid image via `renoise-gen` (`nano-banana-2`)
 3. Split into individual panels: `bash split-grid.sh grid.png storyboard/ 2 4`
 4. Upload each panel as material for Image-to-Video generation
 5. Each Seedance clip now has a visual anchor from the same source

@@ -29,10 +29,7 @@ End-to-end e-commerce short video tool: user provides product images (+ optional
    - `Model image path` (optional, for analysis reference only): Shows how the product is worn/used. **Note: Model images are only used to understand product usage — they are NOT uploaded to Renoise** (privacy detection will block images containing realistic human faces).
 
 2. **Analyze product info**:
-   - If Gemini API is available, use Gemini for analysis:
-     ```bash
-     cd ${CLAUDE_PLUGIN_ROOT} && npm install --silent && npx tsx ${CLAUDE_SKILL_DIR}/scripts/analyze-images.ts "<product-image-path>" "<model-image-path>"
-     ```
+   - Use the `gemini-gen` skill to analyze product images — send the image(s) with a prompt requesting product analysis (type, color, material, selling points, brand tone, scene suggestions)
    - Alternatively, view images directly via the Read tool and analyze manually
    - Extract: product type, color, material, selling points, brand tone, applicable scenarios
    - **(Critical) Understand correct product usage from lifestyle images**:
