@@ -115,4 +115,4 @@ After writing, tell the user:
 > **Restart Claude Code** to activate. After restart you'll see:
 > - Your real-time credit balance in the status bar
 > - Low balance warnings when credits are running out
-> - Type `/video-maker:recharge` anytime to top up
+> - Type `/video-maker:add-credits` anytime to top up

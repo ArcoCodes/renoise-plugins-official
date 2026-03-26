@@ -1,9 +1,9 @@
 ---
-description: Open Renoise pricing page to recharge credits
+description: Open Renoise pricing page to add credits
 allowed-tools: Bash
 ---
 
-Open the Renoise pricing page for the user to recharge credits:
+Open the Renoise pricing page for the user to add credits:
 
 ```bash
 open "https://renoise.ai/pricing"

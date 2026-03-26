@@ -30,8 +30,8 @@ function formatCredits(n: number): string {
 // ── Main Renderer ───────────────────────────────────────────────────────
 
 export interface RenderOptions {
-  /** Slash command name for recharge. Default: /video-maker:recharge */
-  rechargeCmd?: string
+  /** Slash command name for add-credits. Default: /video-maker:add-credits */
+  addCreditsCmd?: string
   /** Slash command name for setup. Default: /video-maker:setup */
   setupCmd?: string
 }
@@ -44,7 +44,7 @@ export function renderCreditsLine(
   data: CreditsData | null,
   opts: RenderOptions = {},
 ): string {
-  const rechargeCmd = opts.rechargeCmd ?? '/video-maker:recharge'
+  const addCreditsCmd = opts.addCreditsCmd ?? '/video-maker:add-credits'
   const setupCmd = opts.setupCmd ?? '/video-maker:setup'
 
   // No cache / not logged in
@@ -57,12 +57,12 @@ export function renderCreditsLine(
 
   // No credits
   if (credits <= 0) {
-    return colorize(`❌ Renoise Credits: 0 — type ${rechargeCmd} to top up`, RED)
+    return colorize(`❌ Renoise Credits: 0 — type ${addCreditsCmd} to top up`, RED)
   }
 
-  // Critical: ≤100 — show recharge command
+  // Critical: ≤100 — show add-credits command
   if (credits <= THRESHOLD_CRITICAL) {
-    return colorize(`🔴 Renoise Credits: ${formatted} — type ${rechargeCmd} to top up`, RED)
+    return colorize(`🔴 Renoise Credits: ${formatted} — type ${addCreditsCmd} to top up`, RED)
   }
 
   // Low: ≤500 — warning
