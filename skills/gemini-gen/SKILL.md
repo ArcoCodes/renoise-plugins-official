@@ -1,11 +1,42 @@
 ---
 name: gemini-gen
-description: "Base skill for calling Google Gemini API via REST fetch. Other skills that need Gemini capabilities should reference this skill for the standard calling convention."
+description: >
+  Visual understanding and multimodal analysis via Gemini 3.1 Pro.
+  Use when you need to understand, analyze, or extract information from images or videos:
+  analyze product photos, extract video scripts/dialogue, understand video content for replication,
+  compare visual assets, OCR/text extraction from images, describe scenes for prompt writing,
+  extract style/color/composition from reference footage.
+  Do NOT use for generating images or videos — use renoise-gen instead.
+allowed-tools: Bash, Read
+metadata:
+  author: renoise
+  version: 0.2.0
+  category: ai-foundation
+  tags: [vision, analysis, multimodal, gemini]
 ---
 
-# Gemini Gen
+# Gemini Gen — Visual Understanding & Multimodal Analysis
 
-Standard convention for calling Google Gemini models via native `fetch`. No SDK dependencies.
+Gemini 3.1 Pro via Renoise gateway. Zero npm dependencies, native `fetch` only.
+
+## When to Use
+
+| Scenario | Example |
+|----------|---------|
+| **Analyze product photos** | Extract type, color, material, selling points, brand tone from product images |
+| **Understand video content** | "What happens in this video?", summarize scenes, identify actions and objects |
+| **Extract scripts from video** | Watch a reference video → output timestamped dialogue, scene descriptions, camera movements |
+| **Replicate a video style** | Analyze a reference clip → extract visual style, pacing, transitions, color grading for recreation |
+| **Compare visual assets** | Side-by-side analysis of two product photos, before/after comparison |
+| **OCR / text extraction** | Read text from screenshots, packaging, signage in images |
+| **Describe scenes for prompts** | Look at a reference image → write a detailed prompt for `renoise-gen` to recreate the style |
+| **Content review** | Check if generated output matches the creative brief |
+
+## When NOT to Use
+
+- **Generating images** → use `renoise-gen` with `nano-banana-2`
+- **Generating videos** → use `renoise-gen` with `renoise-2.0`
+- **Uploading large files** → use `file-upload` first, then pass the URL here
 
 ## Authentication
 
