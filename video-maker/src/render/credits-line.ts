@@ -49,7 +49,7 @@ export function renderCreditsLine(
 
   // No cache / not logged in
   if (!data) {
-    return colorize(`🎬 Not logged in — ${loginCmd}`, GRAY)
+    return colorize(`🎬 Renoise — Not logged in — ${loginCmd}`, GRAY)
   }
 
   const { credits } = data
@@ -71,7 +71,7 @@ export function renderCreditsLine(
   }
 
   // Normal: > 100
-  return colorize(`🎬 Credits: ${formatted}`, GREEN)
+  return colorize(`🎬 Renoise Credits: ${formatted}`, GREEN)
 }
 
 /**
