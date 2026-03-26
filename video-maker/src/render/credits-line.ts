@@ -49,7 +49,7 @@ export function renderCreditsLine(
 
   // No cache / not logged in
   if (!data) {
-    return colorize(`🎬 Renoise — Not logged in — type ${loginCmd} to configure`, GRAY)
+    return colorize(`🎬 Renoise Video Maker — type ${loginCmd} to complete setup`, GRAY)
   }
 
   const { credits } = data
