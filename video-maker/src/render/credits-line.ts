@@ -30,9 +30,9 @@ function formatCredits(n: number): string {
 // ── Main Renderer ───────────────────────────────────────────────────────
 
 export interface RenderOptions {
-  /** Slash command name for recharge. Default: /renoise:recharge */
+  /** Slash command name for recharge. Default: /video-maker:recharge */
   rechargeCmd?: string
-  /** Slash command name for login. Default: /renoise:login */
+  /** Slash command name for login. Default: /video-maker:setup */
   loginCmd?: string
 }
 
@@ -44,8 +44,8 @@ export function renderCreditsLine(
   data: CreditsData | null,
   opts: RenderOptions = {},
 ): string {
-  const rechargeCmd = opts.rechargeCmd ?? '/renoise:recharge'
-  const loginCmd = opts.loginCmd ?? '/renoise:login'
+  const rechargeCmd = opts.rechargeCmd ?? '/video-maker:recharge'
+  const loginCmd = opts.loginCmd ?? '/video-maker:setup'
 
   // No cache / not logged in
   if (!data) {
