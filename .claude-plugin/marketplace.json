@@ -8,8 +8,8 @@
   },
   "plugins": [
     {
-      "name": "video-maker",
-      "source": "./video-maker",
+      "name": "renoise",
+      "source": "./renoise",
       "description": "Video production toolkit for AI video generation, e-commerce content, and more"
     }
   ]
