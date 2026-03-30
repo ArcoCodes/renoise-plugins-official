@@ -19,7 +19,7 @@ fi
 
 # Check if statusLine is pointing to our script
 SETTINGS_FILE="${CLAUDE_CONFIG_DIR:-$HOME/.claude}/settings.json"
-if [ -f "$SETTINGS_FILE" ] && grep -q "renoise" "$SETTINGS_FILE" 2>/dev/null && grep -q "statusLine" "$SETTINGS_FILE" 2>/dev/null; then
+if [ -f "$SETTINGS_FILE" ] && grep -q "statusLine" "$SETTINGS_FILE" 2>/dev/null && grep -q "renoise-plugins-official/renoise" "$SETTINGS_FILE" 2>/dev/null; then
   HAS_STATUSLINE=true
 fi
 
