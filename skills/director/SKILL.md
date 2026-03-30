@@ -39,7 +39,7 @@ You are a creative director for AI video production. You guide users from raw id
 
 2. **Load preferences** (if file exists):
    ```
-   Read ~/.claude/video-maker/preferences.json
+   Read ~/.claude/renoise/preferences.json
    ```
 
 3. **Discover available skills** by scanning frontmatter:
@@ -65,7 +65,7 @@ You are a creative director for AI video production. You guide users from raw id
    ```
    If preferences exist, also load the relevant category section:
    ```
-   Read ~/.claude/video-maker/style-profile.md
+   Read ~/.claude/renoise/style-profile.md
    ```
 
 2. **Propose 2-3 style directions** adapted to the specific project. For each:
@@ -201,22 +201,22 @@ Read that skill's SKILL.md and follow its workflow from the appropriate phase (s
 
 2. **Update preference system** after video is delivered:
 
-   **Layer 1 — Core preferences** (`~/.claude/video-maker/preferences.json`):
+   **Layer 1 — Core preferences** (`~/.claude/renoise/preferences.json`):
    Update preferred_styles (frequency-sorted), ratio, dialogue_tone, avoid list, session count.
    Write the entire JSON file (overwrite, not append).
 
-   **Layer 2 — Style profile** (`~/.claude/video-maker/style-profile.md`):
+   **Layer 2 — Style profile** (`~/.claude/renoise/style-profile.md`):
    If the user expressed a new preference or custom style blend, update the relevant category section.
    Only write extracted insights, not raw conversation.
 
-   **Layer 3 — History** (`~/.claude/video-maker/history/YYYY-MM.md`):
+   **Layer 3 — History** (`~/.claude/renoise/history/YYYY-MM.md`):
    Append a brief entry (5 lines max): date, project name, category, style chosen, result.
 
    **Initialize preference files** if they don't exist:
    ```bash
-   mkdir -p ~/.claude/video-maker/history
-   [ -f ~/.claude/video-maker/preferences.json ] || echo '{}' > ~/.claude/video-maker/preferences.json
-   [ -f ~/.claude/video-maker/style-profile.md ] || echo '# Style Profile' > ~/.claude/video-maker/style-profile.md
+   mkdir -p ~/.claude/renoise/history
+   [ -f ~/.claude/renoise/preferences.json ] || echo '{}' > ~/.claude/renoise/preferences.json
+   [ -f ~/.claude/renoise/style-profile.md ] || echo '# Style Profile' > ~/.claude/renoise/style-profile.md
    ```
 
 ## Examples

@@ -3,7 +3,7 @@ description: Configure Renoise Credits statusLine display
 allowed-tools: Bash, Read, Edit, Write, AskUserQuestion
 ---
 
-# Video Maker StatusLine Setup
+# Renoise StatusLine Setup
 
 Set up the Renoise Credits display in Claude Code's status bar. Merges with claude-hud if installed.
 
@@ -15,7 +15,7 @@ Find a JavaScript runtime (prefer bun for performance):
 command -v bun 2>/dev/null || command -v node 2>/dev/null
 ```
 
-If empty, tell the user to install bun (https://bun.sh) or Node.js (https://nodejs.org), then re-run `/video-maker:setup`.
+If empty, tell the user to install bun (https://bun.sh) or Node.js (https://nodejs.org), then re-run `/renoise:setup`.
 
 Save the runtime absolute path as `{RUNTIME_PATH}`.
 
@@ -23,7 +23,7 @@ Save the runtime absolute path as `{RUNTIME_PATH}`.
 
 ```bash
 CLAUDE_DIR="${CLAUDE_CONFIG_DIR:-$HOME/.claude}"
-ls -d "$CLAUDE_DIR"/plugins/cache/renoise-plugins-official/video-maker/*/ 2>/dev/null | awk -F/ '{ print $(NF-1) "\t" $(0) }' | sort -t. -k1,1n -k2,2n -k3,3n -k4,4n | tail -1 | cut -f2-
+ls -d "$CLAUDE_DIR"/plugins/cache/renoise-plugins-official/renoise/*/ 2>/dev/null | awk -F/ '{ print $(NF-1) "\t" $(0) }' | sort -t. -k1,1n -k2,2n -k3,3n -k4,4n | tail -1 | cut -f2-
 ```
 
 Save as `{PLUGIN_DIR}`. If empty, the plugin may not be installed via marketplace. Ask user to verify installation.
@@ -34,12 +34,12 @@ Generate the statusLine command:
 
 **If runtime is bun:**
 ```
-bash -c 'plugin_dir=$(ls -d "${CLAUDE_CONFIG_DIR:-$HOME/.claude}"/plugins/cache/renoise-plugins-official/video-maker/*/ 2>/dev/null | awk -F/ '"'"'{ print $(NF-1) "\t" $(0) }'"'"' | sort -t. -k1,1n -k2,2n -k3,3n -k4,4n | tail -1 | cut -f2-); exec "{RUNTIME_PATH}" --env-file /dev/null "${plugin_dir}src/index.ts"'
+bash -c 'plugin_dir=$(ls -d "${CLAUDE_CONFIG_DIR:-$HOME/.claude}"/plugins/cache/renoise-plugins-official/renoise/*/ 2>/dev/null | awk -F/ '"'"'{ print $(NF-1) "\t" $(0) }'"'"' | sort -t. -k1,1n -k2,2n -k3,3n -k4,4n | tail -1 | cut -f2-); exec "{RUNTIME_PATH}" --env-file /dev/null "${plugin_dir}src/index.ts"'
 ```
 
 **If runtime is node:**
 ```
-bash -c 'plugin_dir=$(ls -d "${CLAUDE_CONFIG_DIR:-$HOME/.claude}"/plugins/cache/renoise-plugins-official/video-maker/*/ 2>/dev/null | awk -F/ '"'"'{ print $(NF-1) "\t" $(0) }'"'"' | sort -t. -k1,1n -k2,2n -k3,3n -k4,4n | tail -1 | cut -f2-); exec npx tsx "${plugin_dir}src/index.ts"'
+bash -c 'plugin_dir=$(ls -d "${CLAUDE_CONFIG_DIR:-$HOME/.claude}"/plugins/cache/renoise-plugins-official/renoise/*/ 2>/dev/null | awk -F/ '"'"'{ print $(NF-1) "\t" $(0) }'"'"' | sort -t. -k1,1n -k2,2n -k3,3n -k4,4n | tail -1 | cut -f2-); exec npx tsx "${plugin_dir}src/index.ts"'
 ```
 
 Test the command:
@@ -89,7 +89,7 @@ If not set, guide the user through login:
 
 Read `${CLAUDE_CONFIG_DIR:-$HOME/.claude}/settings.json`.
 
-**If a `statusLine` already exists** and its command does NOT contain "video-maker":
+**If a `statusLine` already exists** and its command does NOT contain "renoise":
 1. Save the existing statusLine command to `~/.renoise/previous-statusline.json`:
    ```json
    { "command": "<existing statusLine command>" }
@@ -115,4 +115,4 @@ After writing, tell the user:
 > **Restart Claude Code** to activate. After restart you'll see:
 > - Your real-time credit balance in the status bar
 > - Low balance warnings when credits are running out
-> - Type `/video-maker:add-credits` anytime to top up
+> - Type `/renoise:add-credits` anytime to top up
