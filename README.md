@@ -35,7 +35,7 @@ claude plugin install renoise@renoise-plugins-official
 ### OpenClaw
 
 ```bash
-openclaw plugins install @renoise/renoise
+openclaw plugins install @renoise/plugin
 ```
 
 3. Launch Claude Code and run the setup command to connect your Renoise account:
