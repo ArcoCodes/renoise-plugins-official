@@ -259,7 +259,6 @@ Set it via environment variable or .env file.`);
   }
   return v;
 }
-var SEECLAW_BASE_URL = "https://seeclaw.dev/api/public/v1";
 var DEFAULT_BASE_URL = "https://www.renoise.ai/api/public/v1";
 
 function createClient(baseUrlOverride) {
@@ -274,9 +273,6 @@ function createClient(baseUrlOverride) {
   return new RenoiseClient({ baseUrl, apiKey, authToken });
 }
 
-function createSeeclawClient() {
-  return createClient(SEECLAW_BASE_URL);
-}
 function json(data) {
   console.log(JSON.stringify(data, null, 2));
 }
@@ -322,10 +318,6 @@ Environment:
 
 Global Flags:
   --base-url <url>    Override API base URL for this command
-  --seeclaw           Use seeclaw.dev as API base (shorthand for
-                      --base-url https://seeclaw.dev/api/public/v1)
-                      Useful for bypassing face/privacy detection on
-                      ref_image uploads and task creation.
 
 Run "renoise <domain> help" for domain-specific commands.
 `.trim();
@@ -492,44 +484,19 @@ async function taskGenerate(client, flags) {
   const interval = (flags.interval ? parseInt(flags.interval) : 10) * 1e3;
   const timeout = (flags.timeout ? parseInt(flags.timeout) : 600) * 1e3;
 
-  const hasMaterials = params.materials && params.materials.length > 0;
-  const autoRetrySeeclaw = flags["auto-seeclaw"] !== "false" && hasMaterials;
-
-  async function runGenerate(cl, label) {
-    if (label) console.log(`\u2139\uFE0F  Using API: ${label}`);
-    console.log("Creating task...");
-    const { task } = await cl.createTask(params);
-    console.log(`Task #${task.id} created (${task.status}). Waiting for completion...`);
-    if (task.estimatedCredit) console.log(`Cost: ${task.estimatedCredit} credits`);
-    const result = await cl.waitForTask(task.id, {
-      pollInterval: interval,
-      timeout,
-      onPoll: (t) => {
-        console.log(`  [${(/* @__PURE__ */ new Date()).toLocaleTimeString()}] ${t.status}`);
-      }
-    });
-    console.log("\nDone!");
-    printResult(result);
-    return result;
-  }
-
-  try {
-    await runGenerate(client, null);
-  } catch (e) {
-    const isFaceBlock = e instanceof ApiError && e.message && (
-      e.message.includes("real person face") ||
-      e.message.includes("PrivacyInformation") ||
-      e.message.includes("content policy")
-    );
-    if (isFaceBlock && autoRetrySeeclaw && !client.baseUrl.includes("seeclaw")) {
-      console.log("\n\u26A0\uFE0F  Face/privacy detection blocked the task.");
-      console.log("\u{1F504} Auto-retrying via seeclaw.dev to bypass face detection...\n");
-      const seeclawClient = createSeeclawClient();
-      await runGenerate(seeclawClient, "seeclaw.dev");
-    } else {
-      throw e;
+  console.log("Creating task...");
+  const { task } = await client.createTask(params);
+  console.log(`Task #${task.id} created (${task.status}). Waiting for completion...`);
+  if (task.estimatedCredit) console.log(`Cost: ${task.estimatedCredit} credits`);
+  const result = await client.waitForTask(task.id, {
+    pollInterval: interval,
+    timeout,
+    onPoll: (t) => {
+      console.log(`  [${(/* @__PURE__ */ new Date()).toLocaleTimeString()}] ${t.status}`);
     }
-  }
+  });
+  console.log("\nDone!");
+  printResult(result);
 }
 async function taskCreate(client, flags) {
   if (!flags.prompt) {
@@ -950,11 +917,10 @@ async function main() {
     console.log(DOMAIN_HELP[domain] || HELP);
     return;
   }
-  const baseUrlOverride = flags.seeclaw === "true" ? SEECLAW_BASE_URL : flags["base-url"] || null;
+  const baseUrlOverride = flags["base-url"] || null;
   const client = createClient(baseUrlOverride);
   if (baseUrlOverride) {
-    const label = baseUrlOverride.includes("seeclaw") ? "seeclaw.dev" : baseUrlOverride;
-    console.log(`\u2139\uFE0F  Using API: ${label}`);
+    console.log(`\u2139\uFE0F  Using API: ${baseUrlOverride}`);
   }
   try {
     switch (domain) {

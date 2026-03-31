@@ -584,7 +584,7 @@ The Renoise platform has a **Character Library** for managing human face/body re
 
 ### Why Character Library?
 
-**Do NOT pass images containing human faces as `ref_image`** — the privacy detection system will block them. Even `seeclaw.dev` is unreliable for this. The correct workflow is:
+**Do NOT pass images containing human faces as `ref_image`** — the privacy detection system will block them. The correct workflow is:
 
 1. **Create characters** on the Renoise platform (https://www.renoise.ai) by uploading face/body reference photos
 2. **Browse characters** via the CLI to find their IDs
@@ -630,24 +630,7 @@ When using `--characters`, the CLI sends `{ "character_id": ID, "role": "referen
 ### What NOT to Do
 
 - ❌ Upload face photos as materials and use `--materials "ID:ref_image"` — will be blocked
-- ❌ Rely on `--seeclaw` to bypass face detection — unreliable, fails intermittently
 - ❌ Put storyboard grids with close-up faces as `ref_image` — will be blocked
-
----
-
-## Seeclaw.dev — Legacy Fallback (Unreliable)
-
-> **⚠️ WARNING**: seeclaw.dev is an alternative API endpoint that attempts to bypass face detection, but it is **unreliable** — it still blocks faces intermittently. Use the **Character Library** as the primary approach. seeclaw.dev should only be used as a last-resort fallback.
-
-When `task generate` hits a face/privacy block AND the task uses materials, it **automatically retries via seeclaw.dev** (can be disabled with `--auto-seeclaw false`).
-
-Manual usage:
-```bash
-node ${CLAUDE_SKILL_DIR}/renoise-cli.mjs task generate \
-  --prompt "..." --materials "42:ref_image" --duration 15 --ratio 16:9 --seeclaw
-```
-
-> **Note**: seeclaw.dev shares the same account system as renoise.ai. Materials uploaded via either endpoint are accessible from both.
 
 ---
 
@@ -655,7 +638,7 @@ node ${CLAUDE_SKILL_DIR}/renoise-cli.mjs task generate \
 
 | Error | Cause | Solution |
 |-------|-------|----------|
-| `PrivacyInformation` | Reference image/video with human faces blocked by privacy detection | **Primary fix**: use Character Library (`--characters "ID"`) — faces registered in the library bypass detection. **Fallback**: switch to Text-to-Video and describe appearance in text. `--seeclaw` is unreliable. |
+| `PrivacyInformation` | Reference image/video with human faces blocked by privacy detection | **Primary fix**: use Character Library (`--characters "ID"`) or User Assets (`asset register`) — both bypass detection. **Fallback**: switch to Text-to-Video and describe appearance in text. |
 | `Insufficient credits` (402) | Balance too low | Inform user of current balance and required cost, suggest top-up at https://www.renoise.ai |
 | Task `failed` | Generation failed | Use `task get <id>` to check error. Common causes: prompt violation, server timeout. Adjust and retry |
 | `Auth Error` (401) | Invalid API Key | Check that `RENOISE_API_KEY` environment variable is set correctly |

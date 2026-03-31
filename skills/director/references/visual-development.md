@@ -265,7 +265,6 @@ Face Reference Registry:
   1. **Best**: Register the image as a User Asset → `asset register <material_id>` → use `asset:ID:reference_image`
   2. **Alternative**: Use Character Library → `--characters "ID"` (if the character exists there)
   3. **Fallback**: Drop the image entirely, use text-only with full Character Bible
-  4. Do NOT rely on `--seeclaw` (unreliable)
 - **Real photographs of human faces** — must go through User Asset registration or Character Library. Never use as raw `ref_image`.
 
 ---

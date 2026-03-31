@@ -64,7 +64,7 @@ Default to **Text-to-Video** and describe character appearance entirely in text.
 - Pure product photos (white background, no faces) → `ref_image`
 - Abstract/landscape references → `ref_image`
 - Precise motion replication (no faces) → `ref_video`
-- **Human faces → use the Character Library** (`--characters "ID"`). Create characters on https://www.renoise.ai first, then reference them by ID. **Do NOT** pass face images as `ref_image` — privacy detection will block them. `--seeclaw` is unreliable and should not be relied upon.
+- **Human faces → use the Character Library** (`--characters "ID"`) or **User Assets** (`asset register`). Create characters on https://www.renoise.ai or register AI-generated character sheets as assets. **Do NOT** pass face images as `ref_image` — privacy detection will block them.
 
 ## Duration Strategy
 
