@@ -1,5 +1,5 @@
 /**
- * StatusLine entry point for video-maker plugin.
+ * StatusLine entry point for renoise plugin.
  * If user had a previous statusLine command (e.g. claude-hud), runs it and
  * merges its output with the credits display.
  *
