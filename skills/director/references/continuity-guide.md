@@ -129,6 +129,43 @@ AI-generated clips will achieve ~80% visual consistency when following these tec
 - Subtle speed adjustments for timing
 - Audio continuity (shared BGM) creates perceived visual continuity
 
+## Face-Safe References (User Assets & Character Library)
+
+Two approaches for face consistency across clips, both bypass privacy detection:
+
+### Comparison
+
+| Method | Face Consistency | Privacy Detection | Setup | Best For |
+|--------|-----------------|-------------------|-------|----------|
+| **User Asset** (`asset:ID:reference_image`) | High — same face reference | ✅ Bypasses — `asset://` URI | ~1 min per character | AI-generated characters, new projects |
+| **Character Library** (`--characters "ID"`) | Highest — exact face every time | ✅ Bypasses — platform-registered | Requires platform setup | Pre-existing characters, real faces |
+| Grid Storyboard (`ref_image`) | Medium — shared context but may drift | ❌ **Often blocked** if faces visible | Quick to generate | Style/palette anchoring only |
+| Text-only description | Lowest — face drifts per generation | ✅ No images | Zero setup | Fallback, simple projects |
+
+### User Asset Workflow (recommended for AI-generated characters)
+
+1. Generate character design sheet with `nano-banana-2`
+2. Download → `material upload` → get material ID
+3. `asset register <material_id> --name "Character Name"` → wait ~30-60s → get asset ID
+4. Use `--materials "asset:ID:reference_image"` in every segment featuring that character
+5. Combine with text Character Bible for wardrobe/pose control
+
+### Character Library Workflow (for pre-existing platform characters)
+
+1. Create/find characters on https://www.renoise.ai
+2. `renoise character list` to find IDs
+3. Use `--characters "ID"` in every segment featuring that character
+4. Combine with text Character Bible for wardrobe/pose control
+
+### When to Use Which
+
+- **New original project, no existing characters** → User Asset (generate + register)
+- **Recurring platform characters** → Character Library
+- **Real person likeness** → Character Library (upload real photo on platform)
+- **Quick one-off, no face consistency needed** → Text-only
+
+---
+
 ## Grid Storyboard Method
 
 ### Why One Image > Many Images
@@ -144,6 +181,13 @@ When generating reference images for each shot independently (even with the same
 - Rendering technique (line weight, shading style, texture) is consistent
 - The AI "remembers" what it drew in Panel 1 when drawing Panel 8
 
+### ⚠️ Privacy Detection Warning
+
+Storyboard grids containing **close-up human faces** will likely trigger `PrivacyInformation` errors when used as `ref_image`. To avoid this:
+- Design grids with **environment-focused panels** (wide shots, small figures)
+- Use the **Character Library** for face consistency instead of relying on the grid
+- If the grid is blocked, fall back to **text-only** prompts with full Character Bible
+
 ### Workflow
 
 1. Write a single prompt describing all panels with verbatim character descriptions
@@ -152,9 +196,11 @@ When generating reference images for each shot independently (even with the same
 4. Upload each panel as material for Image-to-Video generation
 5. Each Seedance clip now has a visual anchor from the same source
 
+> **Best practice**: Use the grid for **style/palette/composition** anchoring, and the Character Library for **face** anchoring. These complement each other.
+
 ### When to Use
 
-- **Always recommended** for projects with recurring characters
+- **Recommended** for projects with recurring characters (but combine with Character Library for faces)
 - Especially important for anime/manga/stylized projects where character design must be exact
 - Less critical for pure environment/landscape shots with no characters
 

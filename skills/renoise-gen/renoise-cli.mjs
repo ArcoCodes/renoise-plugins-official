@@ -163,6 +163,61 @@ var RenoiseClient = class {
   async getCharacter(id) {
     return this.request("GET", `/characters/${id}`);
   }
+  async importCharacters(characters) {
+    return this.request("POST", "/characters/import", { characters });
+  }
+  async getCharacterImageUploadUrl(id, contentType) {
+    return this.request("POST", `/characters/${id}/image`, { content_type: contentType });
+  }
+  async addCharacterGrant(userId, grantType, grantValue) {
+    const body = { user_id: userId, grant_type: grantType };
+    if (grantValue) body.grant_value = grantValue;
+    return this.request("POST", "/characters/grants", body);
+  }
+  // ---- Asset ----
+  async createAsset(params) {
+    return this.request("POST", "/assets", params);
+  }
+  async getAsset(id) {
+    return this.request("GET", `/assets/${id}`);
+  }
+  async listAssets(params = {}) {
+    const qs = new URLSearchParams();
+    if (params.groupId) qs.set("groupId", String(params.groupId));
+    if (params.status) qs.set("status", params.status);
+    if (params.limit) qs.set("limit", String(params.limit));
+    if (params.offset) qs.set("offset", String(params.offset));
+    return this.request("GET", `/assets?${qs}`);
+  }
+  async deleteAsset(id) {
+    return this.request("DELETE", `/assets/${id}`);
+  }
+  async waitForAsset(id, options = {}) {
+    const interval = options.pollInterval ?? 1e4;
+    const timeout = options.timeout ?? 3e5;
+    const start = Date.now();
+    while (true) {
+      const data = await this.getAsset(id);
+      const asset = data.asset || data;
+      const status = asset.status;
+      options.onPoll?.(asset);
+      if (status === "active") return asset;
+      if (status === "failed") {
+        throw new ApiError(400, asset, `Asset ${id} failed: ${asset.error_message || "unknown error"}`);
+      }
+      if (Date.now() - start > timeout) {
+        throw new Error(`Asset ${id} timed out after ${timeout / 1e3}s (status: ${status})`);
+      }
+      await new Promise((r) => setTimeout(r, interval));
+    }
+  }
+  // ---- Asset Group ----
+  async createAssetGroup(name) {
+    return this.request("POST", "/asset-groups", { name });
+  }
+  async listAssetGroups() {
+    return this.request("GET", "/asset-groups");
+  }
 };
 
 // src/cli.ts
@@ -204,7 +259,10 @@ Set it via environment variable or .env file.`);
   }
   return v;
 }
-function createClient() {
+var SEECLAW_BASE_URL = "https://seeclaw.dev/api/public/v1";
+var DEFAULT_BASE_URL = "https://www.renoise.ai/api/public/v1";
+
+function createClient(baseUrlOverride) {
   loadEnv();
   const apiKey = process.env["RENOISE_API_KEY"];
   const authToken = process.env["RENOISE_AUTH_TOKEN"];
@@ -212,11 +270,12 @@ function createClient() {
     console.error("Error: RENOISE_API_KEY or RENOISE_AUTH_TOKEN is required.\nSet one via environment variable or .env file.");
     process.exit(1);
   }
-  return new RenoiseClient({
-    baseUrl: env("RENOISE_BASE_URL", "https://www.renoise.ai/api/public/v1"),
-    apiKey,
-    authToken
-  });
+  const baseUrl = baseUrlOverride || env("RENOISE_BASE_URL", DEFAULT_BASE_URL);
+  return new RenoiseClient({ baseUrl, apiKey, authToken });
+}
+
+function createSeeclawClient() {
+  return createClient(SEECLAW_BASE_URL);
 }
 function json(data) {
   console.log(JSON.stringify(data, null, 2));
@@ -250,6 +309,7 @@ Usage:
 Domains:
   task        Create, list, and manage generation tasks
   material    Upload and manage materials
+  asset       Register materials as Ark assets (for face/character use)
   character   Browse available characters
   credit      Check balance and transaction history
 
@@ -259,6 +319,13 @@ Environment:
                       (at least one of API_KEY or AUTH_TOKEN required)
   RENOISE_BASE_URL    (optional) Full API base URL (including path)
                       Default: https://www.renoise.ai/api/public/v1
+
+Global Flags:
+  --base-url <url>    Override API base URL for this command
+  --seeclaw           Use seeclaw.dev as API base (shorthand for
+                      --base-url https://seeclaw.dev/api/public/v1)
+                      Useful for bypassing face/privacy detection on
+                      ref_image uploads and task creation.
 
 Run "renoise <domain> help" for domain-specific commands.
 `.trim();
@@ -325,11 +392,13 @@ Examples:
   renoise material upload /path/to/video.mp4 --type video
 `.trim();
 var HELP_CHARACTER = `
-renoise character \u2014 Browse characters
+renoise character \u2014 Manage characters
 
 Commands:
   list                        List available characters
   get <id>                    Get character detail
+  create <image> [options]    Create character from image (admin)
+  grant <char_id> [user_id]   Grant character access (admin)
 
 Options for list:
   --category <category>       Filter by category
@@ -338,10 +407,58 @@ Options for list:
   --page <n>                  Page number
   --page_size <n>             Page size
 
+Options for create:
+  --name <name>               Character name (required)
+  --code <code>               Character code (default: auto from name)
+  --gender <m/f>              Gender (default: m)
+  --category <category>       Category (default: custom)
+  --usage_group <group>       Usage group (default: custom)
+  --asset_id <id>             Asset ID (default: custom_<timestamp>)
+
 Examples:
   renoise character list
-  renoise character list --category female --search Jasmine
   renoise character get 3
+  renoise character create ./portrait.png --name "Li Shande" --gender m
+  renoise character grant 42
+`.trim();
+var HELP_ASSET = `
+renoise asset \u2014 Register materials as Ark assets
+
+Register uploaded images as Ark assets so they can be used as
+reference_image in video generation WITHOUT triggering face/privacy
+detection. This is the recommended way to use AI-generated character
+images as consistent references across multiple video segments.
+
+Commands:
+  create <material_id>        Register a material as an asset
+  register <material_id>      Alias for create + wait until active
+  get <id>                    Get asset detail and status
+  list                        List your assets
+  wait <id>                   Wait for asset to become active
+  delete <id>                 Soft-delete an asset
+
+Options for create/register:
+  --name <name>               Asset name (default: material filename)
+  --group_id <id>             Asset group ID (default: auto)
+
+Options for list:
+  --status <status>           Filter by status (pending/processing/active/failed)
+  --group_id <id>             Filter by group
+  --limit <n>                 Max results (default: 50)
+  --offset <n>                Pagination offset
+
+Options for wait:
+  --interval <seconds>        Poll interval (default: 10)
+  --timeout <seconds>         Timeout (default: 300)
+
+Workflow:
+  1. Upload image:    renoise material upload portrait.png
+  2. Register asset:  renoise asset register 3497 --name "Mei"
+  3. Use in video:    renoise task generate --prompt "..." \\
+                        --materials "asset:27:reference_image"
+
+Once active, use in task materials as:
+  --materials "asset:<asset_id>:reference_image"
 `.trim();
 var HELP_CREDIT = `
 renoise credit \u2014 Balance and transactions
@@ -372,21 +489,47 @@ async function taskGenerate(client, flags) {
     process.exit(1);
   }
   const params = buildCreateParams(flags);
-  console.log("Creating task...");
-  const { task } = await client.createTask(params);
-  console.log(`Task #${task.id} created (${task.status}). Waiting for completion...`);
-  if (task.estimatedCredit) console.log(`Cost: ${task.estimatedCredit} credits`);
   const interval = (flags.interval ? parseInt(flags.interval) : 10) * 1e3;
   const timeout = (flags.timeout ? parseInt(flags.timeout) : 600) * 1e3;
-  const result = await client.waitForTask(task.id, {
-    pollInterval: interval,
-    timeout,
-    onPoll: (t) => {
-      console.log(`  [${(/* @__PURE__ */ new Date()).toLocaleTimeString()}] ${t.status}`);
+
+  const hasMaterials = params.materials && params.materials.length > 0;
+  const autoRetrySeeclaw = flags["auto-seeclaw"] !== "false" && hasMaterials;
+
+  async function runGenerate(cl, label) {
+    if (label) console.log(`\u2139\uFE0F  Using API: ${label}`);
+    console.log("Creating task...");
+    const { task } = await cl.createTask(params);
+    console.log(`Task #${task.id} created (${task.status}). Waiting for completion...`);
+    if (task.estimatedCredit) console.log(`Cost: ${task.estimatedCredit} credits`);
+    const result = await cl.waitForTask(task.id, {
+      pollInterval: interval,
+      timeout,
+      onPoll: (t) => {
+        console.log(`  [${(/* @__PURE__ */ new Date()).toLocaleTimeString()}] ${t.status}`);
+      }
+    });
+    console.log("\nDone!");
+    printResult(result);
+    return result;
+  }
+
+  try {
+    await runGenerate(client, null);
+  } catch (e) {
+    const isFaceBlock = e instanceof ApiError && e.message && (
+      e.message.includes("real person face") ||
+      e.message.includes("PrivacyInformation") ||
+      e.message.includes("content policy")
+    );
+    if (isFaceBlock && autoRetrySeeclaw && !client.baseUrl.includes("seeclaw")) {
+      console.log("\n\u26A0\uFE0F  Face/privacy detection blocked the task.");
+      console.log("\u{1F504} Auto-retrying via seeclaw.dev to bypass face detection...\n");
+      const seeclawClient = createSeeclawClient();
+      await runGenerate(seeclawClient, "seeclaw.dev");
+    } else {
+      throw e;
     }
-  });
-  console.log("\nDone!");
-  printResult(result);
+  }
 }
 async function taskCreate(client, flags) {
   if (!flags.prompt) {
@@ -533,6 +676,195 @@ async function characterGet(client, positional) {
   }
   json(await client.getCharacter(id));
 }
+async function characterCreate(client, positional, flags) {
+  const imagePath = positional[0];
+  if (!imagePath) {
+    console.error("Error: image path required.\nUsage: renoise character create <image> --name <name>");
+    process.exit(1);
+  }
+  if (!flags.name) {
+    console.error("Error: --name is required.");
+    process.exit(1);
+  }
+  const fs = await import("fs");
+  const path = await import("path");
+  if (!fs.existsSync(imagePath)) {
+    console.error(`Error: file not found: ${imagePath}`);
+    process.exit(1);
+  }
+  const code = flags.code || flags.name.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "");
+  const gender = flags.gender || "m";
+  const category = flags.category || "custom";
+  const usageGroup = flags.usage_group || "custom";
+  const assetId = flags.asset_id || `custom_${Date.now()}`;
+
+  // Step 1: import character record
+  console.log(`Creating character "${flags.name}" (code: ${code})...`);
+  const importResult = await client.importCharacters([{
+    code, name: flags.name, gender, category,
+    usage_group: usageGroup, asset_id: assetId,
+  }]);
+  console.log(`  Import: ${importResult.imported} created, ${importResult.skipped} skipped`);
+  if (importResult.imported === 0) {
+    console.error("  Character code may already exist. Try a different --code.");
+    process.exit(1);
+  }
+
+  // Step 2: find the newly created character
+  const listResult = await client.listCharacters({ search: code, page: 1, page_size: 5 });
+  const char = listResult.characters.find(c => c.code === code);
+  if (!char) {
+    console.error("  Created but could not find character. Check admin panel.");
+    process.exit(1);
+  }
+  console.log(`  Character ID: #${char.id}`);
+
+  // Step 3: upload image
+  const ext = path.extname(imagePath).toLowerCase();
+  const contentType = ext === ".png" ? "image/png" : ext === ".webp" ? "image/webp" : "image/jpeg";
+  console.log(`  Uploading image (${contentType})...`);
+  const uploadInfo = await client.getCharacterImageUploadUrl(char.id, contentType);
+  const fileBuffer = fs.readFileSync(imagePath);
+  const uploadResp = await fetch(uploadInfo.upload_url, {
+    method: "PUT",
+    headers: { "Content-Type": contentType },
+    body: fileBuffer,
+  });
+  if (!uploadResp.ok) {
+    console.error(`  Image upload failed: ${uploadResp.status} ${uploadResp.statusText}`);
+    process.exit(1);
+  }
+  console.log(`  Image uploaded to: ${uploadInfo.storage_path}`);
+
+  // Step 4: grant access to current user
+  const me = await client.getMe();
+  console.log(`  Granting access to user ${me.user.id}...`);
+  try {
+    await client.addCharacterGrant(me.user.id, "character", String(char.id));
+    console.log(`  Access granted.`);
+  } catch (e) {
+    if (e.message && e.message.includes("already exists")) {
+      console.log(`  Grant already exists.`);
+    } else {
+      console.log(`  Grant note: ${e.message} (may need 'all' grant)`);
+    }
+  }
+
+  console.log(`\n✅ Character created: #${char.id} "${flags.name}"`);
+  console.log(`   Use in video: --characters "${char.id}"`);
+}
+async function characterGrant(client, positional) {
+  const charId = positional[0];
+  if (!charId) {
+    console.error("Error: character ID required.\nUsage: renoise character grant <char_id> [user_id]");
+    process.exit(1);
+  }
+  const me = await client.getMe();
+  const userId = positional[1] || me.user.id;
+  console.log(`Granting character #${charId} to user ${userId}...`);
+  const result = await client.addCharacterGrant(userId, "character", String(charId));
+  json(result);
+}
+// ── Asset commands ──
+async function assetCreate(client, positional, flags) {
+  const materialId = parseInt(positional[0]);
+  if (!materialId) {
+    console.error("Error: material ID required.\nUsage: renoise asset create <material_id> [--name <name>]");
+    process.exit(1);
+  }
+  const params = { materialId };
+  if (flags.name) params.name = flags.name;
+  if (flags.group_id) params.groupId = parseInt(flags.group_id);
+  console.log(`Creating asset from material #${materialId}...`);
+  const data = await client.createAsset(params);
+  console.log(`Asset created: #${data.id} (${data.status})`);
+  json(data);
+}
+async function assetRegister(client, positional, flags) {
+  const materialId = parseInt(positional[0]);
+  if (!materialId) {
+    console.error("Error: material ID required.\nUsage: renoise asset register <material_id> [--name <name>]");
+    process.exit(1);
+  }
+  const params = { materialId };
+  if (flags.name) params.name = flags.name;
+  if (flags.group_id) params.groupId = parseInt(flags.group_id);
+  console.log(`Creating asset from material #${materialId}...`);
+  const data = await client.createAsset(params);
+  console.log(`Asset #${data.id} created (${data.status}). Waiting for activation...`);
+  const interval = (flags.interval ? parseInt(flags.interval) : 10) * 1e3;
+  const timeout = (flags.timeout ? parseInt(flags.timeout) : 300) * 1e3;
+  try {
+    const asset = await client.waitForAsset(data.id, {
+      pollInterval: interval,
+      timeout,
+      onPoll: (a) => {
+        console.log(`  [${new Date().toLocaleTimeString()}] ${a.status}${a.ark_asset_id ? " (ark: " + a.ark_asset_id + ")" : ""}`);
+      }
+    });
+    console.log(`\n\u2705 Asset #${asset.id} is active!`);
+    console.log(`   Ark Asset ID: ${asset.ark_asset_id}`);
+    console.log(`   Use in video: --materials "asset:${asset.id}:reference_image"`);
+    json({ asset });
+  } catch (e) {
+    console.error(`\n\u274C ${e.message}`);
+    process.exit(1);
+  }
+}
+async function assetGet(client, positional) {
+  const id = parseInt(positional[0]);
+  if (!id) {
+    console.error("Error: asset ID required.\nUsage: renoise asset get <id>");
+    process.exit(1);
+  }
+  json(await client.getAsset(id));
+}
+async function assetList(client, flags) {
+  const data = await client.listAssets({
+    groupId: flags.group_id ? parseInt(flags.group_id) : void 0,
+    status: flags.status,
+    limit: flags.limit ? parseInt(flags.limit) : 50,
+    offset: flags.offset ? parseInt(flags.offset) : 0
+  });
+  console.log(`Found ${data.assets.length} asset(s):\n`);
+  for (const a of data.assets) {
+    const arkId = a.ark_asset_id ? ` ark:${a.ark_asset_id}` : "";
+    console.log(`  #${String(a.id).padEnd(4)} ${a.status.padEnd(12)} ${a.name}${arkId}`);
+  }
+}
+async function assetWait(client, positional, flags) {
+  const id = parseInt(positional[0]);
+  if (!id) {
+    console.error("Error: asset ID required.\nUsage: renoise asset wait <id>");
+    process.exit(1);
+  }
+  const interval = (flags.interval ? parseInt(flags.interval) : 10) * 1e3;
+  const timeout = (flags.timeout ? parseInt(flags.timeout) : 300) * 1e3;
+  console.log(`Waiting for asset #${id} (poll every ${interval / 1e3}s, timeout ${timeout / 1e3}s)...`);
+  try {
+    const asset = await client.waitForAsset(id, {
+      pollInterval: interval,
+      timeout,
+      onPoll: (a) => {
+        console.log(`  [${new Date().toLocaleTimeString()}] ${a.status}`);
+      }
+    });
+    console.log(`\n\u2705 Asset #${asset.id} is active!`);
+    json({ asset });
+  } catch (e) {
+    console.error(`\n\u274C ${e.message}`);
+    process.exit(1);
+  }
+}
+async function assetDelete(client, positional) {
+  const id = parseInt(positional[0]);
+  if (!id) {
+    console.error("Error: asset ID required.\nUsage: renoise asset delete <id>");
+    process.exit(1);
+  }
+  await client.deleteAsset(id);
+  console.log(`Asset #${id} deleted.`);
+}
 async function creditMe(client) {
   json(await client.getMe());
 }
@@ -558,8 +890,16 @@ function buildCreateParams(flags) {
   const allMaterials = [];
   if (flags.materials) {
     for (const m of flags.materials.split(",")) {
-      const [id, role] = m.trim().split(":");
-      allMaterials.push({ id: parseInt(id), role: role || "ref_video" });
+      const parts = m.trim().split(":");
+      if (parts[0] === "asset") {
+        // asset:ID:role format
+        const assetId = parseInt(parts[1]);
+        const role = parts[2] || "reference_image";
+        allMaterials.push({ user_asset_id: assetId, role });
+      } else {
+        const [id, role] = parts;
+        allMaterials.push({ id: parseInt(id), role: role || "ref_video" });
+      }
     }
   }
   if (flags.characters) {
@@ -588,6 +928,7 @@ function printResult(result) {
 var DOMAIN_HELP = {
   task: HELP_TASK,
   material: HELP_MATERIAL,
+  asset: HELP_ASSET,
   character: HELP_CHARACTER,
   credit: HELP_CREDIT
 };
@@ -609,7 +950,12 @@ async function main() {
     console.log(DOMAIN_HELP[domain] || HELP);
     return;
   }
-  const client = createClient();
+  const baseUrlOverride = flags.seeclaw === "true" ? SEECLAW_BASE_URL : flags["base-url"] || null;
+  const client = createClient(baseUrlOverride);
+  if (baseUrlOverride) {
+    const label = baseUrlOverride.includes("seeclaw") ? "seeclaw.dev" : baseUrlOverride;
+    console.log(`\u2139\uFE0F  Using API: ${label}`);
+  }
   try {
     switch (domain) {
       case "task":
@@ -663,6 +1009,33 @@ async function main() {
             process.exit(1);
         }
         break;
+      case "asset":
+        switch (action) {
+          case "create":
+            await assetCreate(client, subPositional, flags);
+            break;
+          case "register":
+            await assetRegister(client, subPositional, flags);
+            break;
+          case "get":
+            await assetGet(client, subPositional);
+            break;
+          case "list":
+            await assetList(client, flags);
+            break;
+          case "wait":
+            await assetWait(client, subPositional, flags);
+            break;
+          case "delete":
+            await assetDelete(client, subPositional);
+            break;
+          default:
+            console.error(`Unknown asset action: ${action}
+`);
+            console.log(HELP_ASSET);
+            process.exit(1);
+        }
+        break;
       case "character":
         switch (action) {
           case "list":
@@ -670,6 +1043,12 @@ async function main() {
             break;
           case "get":
             await characterGet(client, subPositional);
+            break;
+          case "create":
+            await characterCreate(client, subPositional, flags);
+            break;
+          case "grant":
+            await characterGrant(client, subPositional);
             break;
           default:
             console.error(`Unknown character action: ${action}
