@@ -24,19 +24,19 @@ claude plugin marketplace add ArcoCodes/renoise-plugins-official
 2. Install the plugin:
 
 ```bash
-claude plugin install video-maker@renoise-plugins-official
+claude plugin install renoise@renoise-plugins-official
 ```
 
 ### OpenClaw
 
 ```bash
-openclaw plugins install @renoise/video-maker
+openclaw plugins install @renoise/plugin
 ```
 
 3. Launch Claude Code and run the setup command to connect your Renoise account:
 
 ```
-/video-maker:setup
+/renoise:setup
 ```
 
 This will guide you through connecting your API key and enabling the real-time credit balance display in the status bar.

@@ -1,6 +1,6 @@
 {
-  "id": "video-maker",
-  "name": "Video Maker",
+  "id": "renoise",
+  "name": "Renoise",
   "description": "AI video production skills — creative direction, generation, analysis, and download",
   "version": "0.3.0",
   "configSchema": {

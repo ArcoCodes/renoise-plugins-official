@@ -19,20 +19,20 @@ fi
 
 # Check if statusLine is pointing to our script
 SETTINGS_FILE="${CLAUDE_CONFIG_DIR:-$HOME/.claude}/settings.json"
-if [ -f "$SETTINGS_FILE" ] && grep -q "video-maker" "$SETTINGS_FILE" 2>/dev/null && grep -q "statusLine" "$SETTINGS_FILE" 2>/dev/null; then
+if [ -f "$SETTINGS_FILE" ] && grep -q "statusLine" "$SETTINGS_FILE" 2>/dev/null && grep -q "renoise-plugins-official/renoise" "$SETTINGS_FILE" 2>/dev/null; then
   HAS_STATUSLINE=true
 fi
 
 # Case 1: New user — no API key
 if [ "$HAS_KEY" = false ]; then
   # stdout goes to Claude as context — Claude will relay the message to the user
-  echo '[Renoise Video Maker] Plugin installed successfully, but Renoise account is not connected yet. Tell the user: type /video-maker:setup to connect your account. One sentence only.'
+  echo '[Renoise] Plugin installed successfully, but Renoise account is not connected yet. Tell the user: type /renoise:setup to connect your account. One sentence only.'
   exit 0
 fi
 
 # Case 2: Existing user updated plugin — has key but no statusLine
 if [ "$HAS_STATUSLINE" = false ]; then
-  echo '[Renoise Video Maker] Plugin updated — new feature: real-time credit balance in status bar. Tell the user: type /video-maker:setup to activate. One sentence only.'
+  echo '[Renoise] Plugin updated — new feature: real-time credit balance in status bar. Tell the user: type /renoise:setup to activate. One sentence only.'
   exit 0
 fi
 
