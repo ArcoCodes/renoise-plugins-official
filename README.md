@@ -1,6 +1,6 @@
 # renoise-plugins-official
 
-AI video production skills by Renoise — creative direction, generation, analysis, and download.
+AI video production skills by Renoise — creative direction, generation, analysis, e-commerce content, and download.
 
 ## Skills
 

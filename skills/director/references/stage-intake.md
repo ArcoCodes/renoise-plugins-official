@@ -63,7 +63,7 @@ Estimate cost: ~300 credits per 15s video clip, ~50 credits per nano-banana-2 im
 | Complete brief provided | 3 | Minimal confirmations, fast-track to generation |
 
 ```bash
-cat ~/.claude/video-maker/preferences.json 2>/dev/null
+cat ~/.claude/renoise/preferences.json 2>/dev/null
 ```
 
 ## Project Initialization (Multi-Clip Modes C/D/E)

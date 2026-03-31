@@ -97,7 +97,7 @@ ffmpeg -i silent.mp4 -i bgm.mp3 -c:v copy -c:a aac -shortest final-with-bgm.mp4
 
 After delivery, update preferences:
 ```bash
-cat > ~/.claude/video-maker/preferences.json << 'EOF'
+cat > ~/.claude/renoise/preferences.json << 'EOF'
 {
   "preferred_styles": ["..."],
   "avoid": ["..."],

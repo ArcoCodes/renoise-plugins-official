@@ -14,7 +14,7 @@ description: >
 allowed-tools: Bash, Read
 metadata:
   author: renoise
-  version: 0.6.0
+  version: 0.2.0
   category: video-production
   tags: [director, creative, video, product, ecommerce, tiktok, short-film, multi-clip, narrative, story, adaptation, montage]
 ---

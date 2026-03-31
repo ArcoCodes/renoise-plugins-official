@@ -1,7 +1,7 @@
 {
   "id": "renoise",
   "name": "Renoise",
-  "description": "AI video production skills — creative direction, generation, analysis, and download",
+  "description": "AI video production skills — creative direction, generation, analysis, e-commerce content, and download",
   "version": "0.3.0",
   "configSchema": {
     "type": "object",
