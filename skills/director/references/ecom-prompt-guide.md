@@ -260,7 +260,7 @@ A woman enters carrying a pink ball while the camera pans and she says "..." as 
 ## Renoise Submission Notes
 
 - **Must upload product image** as material (image1) — product accuracy improves significantly
-- **Never upload real person/model images** — privacy detection will block them (error: PrivacyInformation)
-- Model appearance is controlled entirely by prompt text description
+- **Never upload real person/model images as `ref_image`** — privacy detection will block them (error: PrivacyInformation). Instead, use the **Character Library** (`--characters "ID"`) for model consistency, or describe model appearance entirely in prompt text.
+- If using the Character Library: create the model character on https://www.renoise.ai first, then reference via `--characters`
 - Product images should ideally be clean white-background product photos, avoid images with marketing text overlays
 - For batch generation: upload the product image once, reuse the material ID and swap scenes/dialogue

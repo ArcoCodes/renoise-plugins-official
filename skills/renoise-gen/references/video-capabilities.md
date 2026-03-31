@@ -11,6 +11,32 @@
 | Resolution | Up to 1080p |
 | Aspect ratio | `1:1`, `16:9`, `9:16` |
 
+## Model Reality Check
+
+**The model generates continuous video — it is NOT a video editor.** Understanding what it can and cannot do prevents wasted generations.
+
+### What the model does well
+- Smooth continuous camera movements (push in, pull back, orbit, track)
+- Gradual transitions within a single shot (close-up drifting to medium)
+- Consistent character appearance within one 15s generation
+- Lip-sync dialogue in multiple languages when using the exact embedding format
+- Atmospheric scenes with clear mood (one mood per segment)
+- Simple cause-and-effect actions (hand picks up cup, person walks forward)
+
+### What the model does poorly or cannot do
+- **Hard cuts / jump cuts** — it generates continuous flow, not edited footage
+- **Shot-reverse-shot** — camera cannot teleport to a new angle mid-generation
+- **Dolly zoom / vertigo effect** — too complex, produces artifacts
+- **Whip pan with motion blur** — unpredictable results
+- **Rapid montage of 5+ setups** — becomes incoherent mush
+- **Precise slow-motion timing** — approximate at best
+- **Complex multi-character choreography** — characters may merge or disappear
+- **Reading/displaying text or characters on screen** — unreliable
+- **Maintaining exact face identity across separate generations** — always drifts
+
+### The golden rule
+**One mood, one scene, one continuous camera flow per 15s segment.** If you want a mood shift (warm→cold), a location change, or a camera angle that requires teleportation — that's a new segment.
+
 ## Input Types
 
 ### Text-to-Video — Recommended Default Mode
@@ -38,487 +64,565 @@ Default to **Text-to-Video** and describe character appearance entirely in text.
 - Pure product photos (white background, no faces) → `ref_image`
 - Abstract/landscape references → `ref_image`
 - Precise motion replication (no faces) → `ref_video`
+- **Human faces → use the Character Library** (`--characters "ID"`) or **User Assets** (`asset register`). Create characters on https://www.renoise.ai or register AI-generated character sheets as assets. **Do NOT** pass face images as `ref_image` — privacy detection will block them.
 
 ## Duration Strategy
 
-### Core Principle: Prefer Single 15s Segment, Avoid Multi-Segment Stitching
+### Every segment is 15s
 
-The model can **naturally include multiple storyboard transitions** within a single 15s generation. A single 15s generation has major advantages over stitching shorter clips:
+All video generations use `--duration 15`. This is the fixed unit. A 3-minute film = 12 × 15s segments. Do not use shorter durations for "faster" clips — the model produces better results at 15s.
 
-| | Single 15s | Stitched 5×3s |
+### Single 15s vs Multi-Segment
+
+| | Single 15s | Stitched segments |
 |---|---------|----------|
-| Music/SFX | Natural, coherent flow | Fragmented, inconsistent rhythm |
-| Character consistency | Naturally consistent within segment | Prone to drift/face changes across segments |
-| Camera fluidity | Complex continuous movements possible | Each segment independent, no continuity |
-| Cost | 1 API call | 5 API calls |
+| Music/SFX | Natural, coherent flow | Fragmented, may need post-production BGM |
+| Character consistency | Naturally consistent | Drifts between segments |
+| Camera fluidity | Continuous movements | Each segment independent |
+| Cost | 1 API call (300 credits) | N API calls |
 
-**Conclusion**: Default to 15s. Only use multiple segments when target duration > 15s.
+**Conclusion**: Use a single 15s for self-contained scenes. Use multiple segments only when the story exceeds 15s.
 
-### 15s Multi-Storyboard Prompt Writing
+### Prompt Structure for 15s
 
-Describe multiple storyboard stages in one prompt, using time beats to guide internal transitions:
+Two valid approaches. Choose based on content type.
 
-```
-[Opening 0-3s] Close-up of hands unboxing a sleek black device on a white desk.
-Camera snaps dolly in to reveal the logo.
+#### Approach A: Timestamp-Based (best for dialogue, drama, product)
 
-[Middle 3-10s] The woman picks it up, examines it from different angles.
-Medium shot, smooth orbit around the product in her hands.
-Spoken dialogue (say EXACTLY, word-for-word): "I've been waiting for this."
-Mouth clearly visible, lip-sync aligned.
-
-[Closing 10-15s] She places the device on a wireless charger, LED glows blue.
-Pull back to wide shot of the full minimalist workspace.
-Soft ambient glow, the frame holds steady.
-```
-
-**Key techniques**:
-- Use `[Opening/Middle/Closing]` + time segment annotations for storyboard beats
-- 2-3 sentences per stage, high information density
-- Natural camera transitions (e.g., close-up → medium → wide)
-- Embed dialogue within the corresponding time segment
-- End last stage with `frame holds steady` for easy continuation
-
-### Shot Density — CRITICAL
-
-**The model can simulate multiple camera angles within a single 15s generation.** Use dense time annotations to create the feeling of edited cuts, not a single continuous take.
-
-**Minimum shot density per 15s segment:**
-
-| Scene Type | Shots per 15s | Time per Shot | Example |
-|------------|--------------|---------------|---------|
-| Action / martial arts | 5-7 | 2-3s | `[0-2s]` `[2-4s]` `[4-7s]` `[7-10s]` `[10-12s]` `[12-15s]` |
-| Drama / dialogue | 4-5 | 3-4s | `[0-3s]` `[3-6s]` `[6-9s]` `[9-12s]` `[12-15s]` |
-| Product / showcase | 3-5 | 3-5s | `[0-4s]` `[4-8s]` `[8-11s]` `[11-15s]` |
-| Atmospheric / art | 2-3 | 5-7s | `[0-5s]` `[5-10s]` `[10-15s]` |
-
-**Each time-annotated shot MUST have a different camera setup:**
-- Different shot size (close-up → medium → wide)
-- OR different angle (low angle → eye level → overhead)
-- OR different movement type (static → tracking → dolly)
-- OR hard cut keyword (`Hard cut —`, `Snap to`, `Cut to`)
-
-**BAD — one continuous take, no cuts:**
-```
-[0-15s] Camera slowly follows a cat walking through a bamboo forest.
-The cat stops and looks around. It leaps onto a rock.
-```
-
-**GOOD — 5 shots, varied angles, edited feel:**
-```
-[0-3s] Extreme wide shot — mist-filled bamboo forest at dawn. A ginger cat in silk robe stands motionless on a rock.
-[3-5s] Snap zoom to close-up of the cat's eyes narrowing. Ears flatten.
-[5-8s] Low angle — the cat launches forward, whip pan follows the leap through bamboo stalks.
-[8-12s] Hard cut — medium shot, two cats clash mid-air. Paws strike in slow motion for one beat, then speed resumes. Bamboo leaves scatter.
-[12-15s] Wide shot from above — both cats land on opposite sides of a stream. Dust settles. Camera holds.
-```
-
-**Rule**: Unless the prompt explicitly requests "single continuous take" or "long take", every 15s segment MUST contain at least 3 distinct camera setups with time annotations.
-
-### Videos Over 15s
-
-When target duration > 15s, split into 15s segments, minimizing the number of segments:
+Describe what happens in each time window. Best when pacing and dialogue timing matter.
 
 ```
-30s → 2 × 15s
-45s → 3 × 15s
-60s → 4 × 15s
+[Style line — 1 line, persistent across all segments]
+
+[Character description — full Bible entry, if character appears]
+
+[0-5s] Stage 1 — action beats + camera movement.
+[Optional dialogue]
+
+[5-10s] Stage 2 — escalation beats + camera transition.
+[Optional dialogue]
+
+[10-15s] Stage 3 — payoff beats + camera settles.
+[Optional dialogue]
+
+Sound design: [ambient, SFX] or audio style reference (e.g. "noir jazz score").
+No text, subtitles, watermarks, or logos. [additional negative constraints]
 ```
 
-#### Serial Chain Generation (ref_video chaining)
+#### Approach B: Role-Based (best for action, complex scenes, multi-character)
 
-The key to visual continuity: **generate segments sequentially, passing each completed video as `ref_video` to the next segment**. The model continues from where the previous segment ended.
+Describe the scene by category — location, action choreography, cinematography, technical quality. Let the model handle timing. Best when the action is complex and continuous.
 
 ```
-S1: text-to-video (standalone)
-  ↓ complete → upload S1 video as material
-S2: ref_video(S1) + prompt → generates from S1's ending
-  ↓ complete → upload S2 video as material
-S3: ref_video(S2) + prompt → generates from S2's ending
-  ↓ ...
+[Setting]
+  Location and environment details. Visual textures and architectural elements.
+
+[Characters]
+  Full appearance descriptions for each participant.
+
+[Action]
+  Opening: [what happens first — who initiates, how]
+  Climax: [escalation — counters, reversals, interactions]
+  Finisher: [resolution — decisive moment, outcome]
+
+[Cinematography]
+  Camera: [persistent camera behavior — e.g. "orbiting tracking shots"]
+  Lighting: [reactive lighting — e.g. "shifts with intensity of the action"]
+  Visual style: [overall look — e.g. "cinematic photorealism, film grain"]
+
+[Audio]
+  Style reference: [genre/cultural reference — e.g. "80s synth thriller score"]
+
+[Technical]
+  Quality: [what to aim for — e.g. "natural motion, photorealistic skin"]
+  Avoid: [specific AI artifacts — e.g. "no deformed limbs, no extra fingers, no blurring"]
 ```
 
-**S1 prompt**: Normal standalone prompt with full style/character setup.
-**S2+ prompts**: Begin with `Continuing from the previous shot:` + describe only the NEW content. Do NOT repeat the ending of the previous segment — the ref_video already provides that context.
+**When to use which:**
+
+| Content | Approach | Why |
+|---------|----------|-----|
+| Dialogue scene with specific timing | A (timestamp) | Dialogue needs precise placement |
+| Fight / dance / complex action | B (role-based) | Action phases > timestamp micromanagement |
+| Product showcase | A (timestamp) | Controlled reveal pacing |
+| Multi-character interaction | B (role-based) | Easier to describe each participant's role |
+| Atmospheric / montage | Either | Simple enough for both |
+
+You can also **hybrid** — use role-based structure but add loose time hints:
+
+```
+[Action]
+  Opening (first few seconds): She enters the room, sees the evidence.
+  Climax (mid-segment): Confrontation — he tries to explain, she cuts him off.
+  Finisher (final seconds): She walks out. Door slams. Silence.
+```
+
+### Shot Density & Pacing
+
+**The model generates continuous video.** Camera transitions must be smooth and continuous. But within each camera stage, you can pack dense story action.
+
+**Key distinction: camera stages vs story beats.**
+- **Camera stages** (2-3 per 15s): Smooth camera transitions the model can physically execute
+- **Story beats** (3-8 per 15s): Actions, reactions, dialogue, reveals packed within those camera stages
+
+A single camera push-in can cover: a character reading a letter, reacting with shock, looking up at someone, and speaking a line — that's 4 story beats in 1 camera stage.
+
+**Recommended density per 15s:**
+
+| Scene Type | Camera Stages | Story Beats | Camera Strategy |
+|------------|---------------|-------------|-----------------|
+| Drama / dialogue | 2-3 | 4-6 | Push in → hold → pull back |
+| Action | 3 | 5-8 | Track → tilt → wide reveal |
+| Product / showcase | 2-3 | 3-5 | Orbit → macro → wide |
+| Atmospheric / art | 1-2 | 2-3 | Single slow movement |
+| Montage (travel, time) | 3-4 | 5-8 | Scene dissolves, rapid action |
+
+**Camera transitions must be smooth and continuous:**
+- Scale shift: close-up → pulls out to medium → continues to wide
+- Movement chain: static hold → slow dolly in → orbit
+- Subject shift: hands → tilt up to face → continues to full body
+
+**Pack story beats densely — don't waste time lingering:**
+```
+BAD (too slow — 3 camera stages but only 3 story beats, nothing happens):
+[0-5s] Close-up of her face in morning light. She stares out the window.
+[5-10s] She picks up a cup. She takes a sip.
+[10-15s] She puts the cup down. Camera holds.
+
+GOOD (fast-paced — 3 camera stages, 8+ story beats):
+[0-5s] Close-up — her eyes scan a letter, expression shifts from curiosity
+to shock. She crumples it, stands abruptly — chair scrapes the floor.
+Camera pulls back as she reaches for her coat.
+[5-10s] Medium shot — she yanks the door open, nearly collides with a man
+standing outside. Both freeze. Camera holds on the two of them.
+Spoken dialogue (say EXACTLY, word-for-word): "You knew about this."
+Tone: cold accusation. Mouth clearly visible when speaking, lip-sync aligned.
+[10-15s] He steps back, hands raised. She pushes past him and strides down
+the hallway. Camera tracks alongside her. Fist clenching the crumpled letter.
+(3 camera stages, 8+ beats: reads, reacts, stands, grabs coat, opens door,
+confrontation, dialogue, storms off)
+```
+
+**Do NOT write disconnected jump cuts:**
+```
+BAD: [0-3s] Close-up of face. [3-6s] Hard cut — wide shot from behind.
+     [6-9s] Snap to overhead. [9-12s] POV shot. [12-15s] Dutch angle.
+     (5 disconnected angles — model produces incoherent mush)
+```
+
+## Videos Over 15s — Parallel vs Serial
+
+When total duration > 15s, you must split into 15s segments. The critical decision is **parallel vs serial generation**.
+
+### Decision Framework
+
+| Condition | Strategy | Why |
+|-----------|----------|-----|
+| Same character continues across segments | **Serial** (ref_video chain) | Face/body must match |
+| Same location, continuous action | **Serial** | Visual environment must match |
+| Different locations, different characters | **Parallel** | No visual dependency |
+| Montage of independent scenes | **Parallel** | Each scene is self-contained |
+| Mix of both | **Hybrid** | Group continuous sequences serial, independent scenes parallel |
+
+### Parallel Generation
+
+Submit all segments simultaneously. Fastest option (~8 min total regardless of segment count). Best for:
+- Independent scenes at different locations
+- Different characters who never appear together
+- Montage sequences where each shot is a different place/time
+
+**Trade-off**: No visual continuity between segments. Each segment starts from scratch. Concatenation will have visible "jumps" between clips.
+
+**Mitigation**: Use the same style line and concept art ref_image across all segments to maintain palette/texture consistency. Accept that faces and details will drift.
+
+### Serial Chain Generation (ref_video)
+
+Generate sequentially, passing each completed video as `ref_video` to the next. Slowest option (~8 min × N segments). Best for:
+- Continuous narrative with the same character
+- Scenes where the ending of one shot must visually match the start of the next
+- Any sequence where the viewer would notice a visual "jump"
+
+```
+S1: text-to-video → complete → download → upload as material
+S2: ref_video(S1) + prompt → complete → download → upload as material
+S3: ref_video(S2) + prompt → ...
+```
+
+**S1 prompt**: Full standalone prompt with style + character + scene.
+**S2+ prompts**: `Continuing from the previous shot:` + describe only the NEW content. The ref_video provides the visual context.
 
 **CLI pattern:**
 ```bash
 # S1
 renoise-cli.mjs task generate --prompt "<S1>" --duration 15 --ratio 16:9
-
-# Upload S1 result
-renoise-cli.mjs material upload <S1-video-url>  # → returns MATERIAL_ID
-
+# Download S1 result, upload as material
+renoise-cli.mjs material upload S1.mp4  # → MATERIAL_ID_1
 # S2
 renoise-cli.mjs task generate \
-  --prompt "Continuing from the previous shot: <S2>" \
-  --duration 15 --ratio 16:9 \
-  --materials "MATERIAL_ID:ref_video"
+  --prompt "Continuing from the previous shot: <S2 new content>" \
+  --duration 15 --ratio 16:9 --materials "MATERIAL_ID_1:ref_video"
 ```
 
-**Time cost**: Each segment takes ~5-8 minutes. A 60s video (4 segments) takes ~20-30 minutes total (sequential, not parallel).
+### Hybrid Strategy (Recommended for most short films)
 
-#### Visual Consistency — Visual Anchor Method
+Group your shots into **continuity blocks**. Within each block, use serial. Between blocks, use parallel.
 
-Text-only prompts cannot reliably maintain visual consistency across segments. The model interprets style keywords differently each generation. **Use a reference image to anchor the visual style.**
+```
+Block A (S1→S2→S3): Same character at home — SERIAL
+Block B (S4→S5): Travel montage, different locations — PARALLEL (independent)
+Block C (S6→S7→S8): Same character at new destination — SERIAL
 
-**Step 1 — Generate a concept art image** before any video segments:
+Timeline: [Block A serial] + [Block B parallel] + [Block C serial]
+Total time: ~24min (A) + ~8min (B, parallel) + ~24min (C) = ~56min
+vs full serial: ~64min
+vs full parallel: ~8min but no continuity
+```
+
+## Visual Consistency
+
+### Visual Anchor — Style vs Mood
+
+The visual anchor locks persistent style DNA across all segments. **It must NOT contain scene-specific mood or contradictory instructions.**
+
+**What goes in the anchor (same for every segment):**
+- Film texture: `cinematic, shallow depth of field, film grain`
+- Art style: `historical period drama` or `3D CG animation`
+- Persistent environmental texture: `ancient Chinese architecture, wooden beams`
+
+**What does NOT go in the anchor:**
+- Color mood that changes between scenes (warm/cold)
+- Emotional tone (tense, joyful, tragic)
+- Weather or time of day
+- Scene-specific details
+
+```
+GOOD anchor: Cinematic period drama, shallow depth of field, film grain.
+
+BAD anchor:  Warm amber tones shifting to cold blue-grey, cinematic, tense atmosphere.
+             (Contradictory — model doesn't know which color to use)
+```
+
+**Scene-specific mood goes in the time segments:**
+```
+Cinematic period drama, shallow depth of field, film grain.
+
+[0-5s] Golden afternoon light fills the room. She smiles, looking at the letter...
+[10-15s] The light fades to cold grey. Her expression hardens...
+```
+
+### Concept Art as ref_image
+
+Generate a concept art sheet before any video segments:
 ```bash
 renoise-cli.mjs task generate --model nano-banana-2 --resolution 2k --ratio 16:9 \
-  --prompt "Concept art sheet for [project description]. Key visual elements:
-  [color palette], [material textures], [character appearance], [environment style],
-  [lighting mood]. Multiple vignettes showing different scenes in unified style."
+  --prompt "Concept art sheet for [project]. Key visual elements: [list]."
 ```
 
-**Step 2 — Upload as material:**
-```bash
-renoise-cli.mjs material upload concept-art.jpg  # → CONCEPT_ID
+Upload and pass to every segment via `--materials "CONCEPT_ID:ref_image"`.
+
+**When using ref_image, keep the text anchor minimal** — the image already provides style context. A verbose text anchor on top of ref_image creates redundancy and potential contradictions.
+
+```
+With ref_image:    "Cinematic period drama, film grain."  (short — image does the rest)
+Without ref_image: "Cinematic period drama, warm golden palette,
+                    vintage architecture, earth-toned clothing, shallow DOF, film grain."
+                    (longer — text must carry all style information)
 ```
 
-**Step 3 — Pass to every segment** via `--materials "CONCEPT_ID:ref_image"`:
-```bash
-renoise-cli.mjs task create \
-  --prompt "[visual anchor prefix] + [segment content]" \
-  --materials "CONCEPT_ID:ref_image" --duration 15 --ratio 16:9
-```
+### Priority order for consistency
+1. `--characters "ID"` (strongest — exact face/body from Character Library; no privacy detection issues)
+2. `--materials "ID:ref_video"` (strong — continues from previous segment visually)
+3. `--materials "ID:ref_image"` with concept art (medium — locks style/palette; **must NOT contain human faces**)
+4. Text-only anchor (weakest — model may drift, but safest for any content)
 
-This locks the model's interpretation of color palette, material textures, and overall aesthetic across all segments.
+> **Key insight**: `ref_image` and `ref_video` trigger privacy detection if they contain human faces. The Character Library exists precisely to solve this — once a face is registered there, it can be referenced safely via `--characters`.
 
-**Visual anchor prefix** — a short block (2-3 lines) at the start of EVERY segment prompt that repeats the core visual DNA:
-```
-[Visual Anchor] Golden desert wasteland, tarnished brass with blue-green
-patina, weathered silk robes with torn edges, exposed copper wiring with
-faint blue glow. Warm gold highlights, cool blue-grey shadows, film grain.
-```
+## Narrative Continuity
 
-**For scenes with recurring characters**, also repeat the full character description at the start of each segment where they appear.
+### Energy Planning
 
-**For realistic human characters**, use `--characters "ID"` instead of ref_image. The platform has 89 preset characters with locked appearance. Use `renoise-cli.mjs character list` to browse.
+Plan energy levels in the **project JSON**, NOT in the prompt. HTML comments like `<!-- Energy: 5→7→8 -->` are ignored by the model and waste tokens.
 
-**Priority order for consistency:**
-1. `--characters` (strongest lock — exact face/body, but limited to preset characters)
-2. `--materials "ID:ref_image"` with concept art (strong — locks style/palette/texture)
-3. Visual anchor prefix text only (weakest — model may still drift)
+Express energy through actual scene content:
+- **High energy**: fast action verbs, rapid camera movement, bright/harsh lighting
+- **Low energy**: slow movements, held shots, soft lighting, silence
 
-#### Narrative Continuity (across segments)
+### Rules
+- Never write 3+ segments at the same energy level
+- Drop energy at least 2 points before the climax segment
+- After any high-energy segment, the next should open calmer
 
-4. **Energy annotation** — Each segment prompt must start with a comment declaring its narrative role and energy level:
-   ```
-   <!-- Segment 2/4 — DEVELOPMENT | Energy: 5→7→8 -->
-   ```
-5. **Energy variation** — Never write 3+ segments at the same energy level. Alternate between high-energy and breathing segments.
-6. **Drop before climax** — The segment before the climax must be lower energy (at least -2 points).
+### Segment Endings
 
-#### Audio Continuity
-
-7. **With ref_video chaining**, the model may naturally extend the audio style from the previous segment, but this is not guaranteed.
-8. **For dialogue-driven videos**: audio continuity is less critical — each segment has distinct lines.
-9. **For music-driven videos**: consider stripping all audio in post and overlaying a unified BGM track:
-   ```bash
-   ffmpeg -i final.mp4 -an -c:v copy silent.mp4
-   ffmpeg -i silent.mp4 -i bgm.mp3 -c:v copy -c:a aac -shortest final-with-bgm.mp4
-   ```
-
-#### Example: 30s Product Video (2 segments with narrative arc)
-
-**Segment 1 (0-15s) — HOOK + SETUP**
-```
-<!-- Segment 1/2 — HOOK | Energy: 7→5→6 | Transition: Gaze Lead → S2 -->
-Warm golden palette, shallow depth of field, film grain.
-[0-3s] A pair of hands slowly unwrap a matte black box on a sunlit wooden table. Close-up, gentle dolly in, morning light catches the edge of the box. The anticipation builds.
-[3-10s] The lid lifts to reveal a sleek brass desk lamp. The hands carefully lift it out, examining the curves. Medium shot, soft natural light from a nearby window. The pace is unhurried, deliberate.
-[10-15s] The woman sets the lamp on her desk and reaches for the switch. Her eyes trace the design with quiet admiration. She looks up toward the window — the golden light outside mirrors the lamp's warm glow. Her gaze holds on the light.
-No text, subtitles, watermarks, or logos.
-```
-
-**Segment 2 (15-30s) — CLIMAX + RESOLUTION**
-```
-<!-- Segment 2/2 — CLIMAX | Energy: 8→10→4 | Transition: n/a (final) -->
-Warm golden palette, shallow depth of field, film grain.
-A woman with shoulder-length dark hair in a cream linen shirt sits at a minimalist wooden desk.
-[0-5s] Revealing what she was looking at: she clicks the lamp on. A pool of warm golden light floods the desk surface. Fast snap dolly in on the illuminated workspace. The light transforms the entire mood of the room.
-[5-10s] Time-lapse of the room transitioning from daylight to evening. The lamp becomes the anchor of warmth in the darkening space. Quick cuts between angles: the light on a book, on her hands writing, on a coffee cup casting a long shadow. Energy peaks.
-[10-15s] Night. The room is dark except for the lamp's glow. Wide shot, she's reading peacefully. Camera slowly pulls back through the window. The frame holds steady on the warm window in the dark facade. Silence except for distant crickets.
-No text, subtitles, watermarks, or logos.
-```
-
-**Why this works**: S1 builds curiosity without showing the product immediately (energy 7→5→6). The gaze lead at S1's end creates a natural bridge. S2 opens with the reveal (energy 8), peaks with the time-lapse montage (10), then resolves into calm (4). The energy curve `7→5→6 | 8→10→4` has clear variation, a drop before climax, and a distinct ending.
-
-#### Example: 60s Short Drama (4 segments with three-act structure)
-
-**Rhythm Blueprint:**
-```
-S1 (0-15s) — ACT I: ORDINARY WORLD | Energy: 5→4→6 | → Action Bridge
-S2 (15-30s) — ACT II-A: COMPLICATION | Energy: 7→8→9 | → Emotional Shift
-S3 (30-45s) — ACT II-B: CLIMAX | Energy: 4→8→10 | → Time Jump
-S4 (45-60s) — ACT III: RESOLUTION | Energy: 5→3→4 | → (end)
-```
-
-Note: S3 opens at energy 4 (the "drop before climax") despite S2 ending at 9. This emotional shift creates maximum impact when S3 builds to its peak at 10.
+- **Last segment of the film**: End with `frame holds steady` for a clean ending
+- **Mid-film segments**: End with motion or a gaze direction that leads naturally to the next segment. Do NOT end every segment with `frame holds steady` — this creates jarring freeze-then-new-scene cuts when concatenated
 
 ## Prompt Writing Principles
 
 ### Basic Rules
-1. **Must be English** — The model understands English prompts best
-2. **Natural narrative** — Use coherent descriptive paragraphs, not comma-separated tag lists
+1. **Scene descriptions must be in English** — the model understands English scene/camera/action prompts best. Dialogue lines can be in any language (see Sound & Dialogue section)
+2. **Natural narrative** — coherent descriptive paragraphs, not comma-separated tag lists
 3. **Specific > Abstract** — `a golden retriever running through shallow ocean waves at sunset` beats `a dog on a beach`
-4. **High information density** — 15s prompts should include details for multiple storyboard stages, don't waste space on repetition
+4. **One mood per segment** — do not ask for contradictory tones in the same prompt
+5. **Every token must earn its place** — no meta-commentary, no HTML comments, no instructions the model ignores
 
 ### Prompt Structure
 
 ```
-Subject (detailed appearance) + Action (specific body movement) + Camera (purposeful movement) + Scene/Environment + Visual Style
+Style (1 line) + Character (full Bible, if present) + Time Segments (2-3) + Sound Design + Negative
 ```
 
-- **Subject**: What the subject is, with detailed appearance (hairstyle, skin tone, clothing, build)
-- **Action**: What the subject is doing — see Action Writing below
-- **Camera**: Camera movement — see Camera Writing below
-- **Scene**: Environment, lighting, time of day
-- **Style**: Visual style (cinematic, documentary, animation...)
+- **Style**: Persistent visual DNA only (see Visual Anchor section)
+- **Character**: Full appearance + wardrobe verbatim from Bible. Never abbreviate.
+- **Time Segments**: 2-3 stages with smooth camera flow
+- **Sound Design**: One line at the end for ambient/SFX
+- **Negative**: `No text, subtitles, watermarks, or logos.`
 
 ### Action Writing — CRITICAL
 
-The model generates **video**, not photos. Every shot needs visible motion. Static poses = dead footage.
+The model generates **video**, not photos. Every shot needs visible motion.
 
 **Level 1 (bad)**: State verbs — `stands`, `sits`, `holds`, `looks`
-**Level 2 (ok)**: Basic action — `walks forward`, `swings sword`, `picks up cup`
-**Level 3 (good)**: Action + body detail — `lunges forward, left foot planted, right arm extending the blade in a downward arc, robes trailing behind the motion`
-**Level 4 (great)**: Action + micro-movement + reaction — `lunges forward, left foot planted, right arm extending the blade. The impact sends a shockwave through his arm — fingers regrip the hilt. His hair whips forward, robes billow out then snap back.`
+**Level 2 (ok)**: Basic action — `walks forward`, `picks up cup`
+**Level 3 (good)**: Action + body detail — `reaches up to touch the branch, fingers brushing the bark, sleeve falling back to reveal his wrist`
+**Level 4 (great)**: Action + micro-movement — `reaches up to touch the branch. Wind catches his robe — it billows. His fingers brush the bark gently. A petal detaches and drifts past his face.`
 
 Rules:
-- **Every shot must have at least one verb of motion** (not state). `stands motionless` is only valid for 1-2 second tension holds before action.
-- **Add micro-movements**: hair blowing, fingers tightening, fabric rippling, chest rising with breath, eyes narrowing. These make CG feel alive.
-- **Describe the arc of motion**, not just the start or end: `raises the sword from hip to overhead` not just `holds sword up`.
-- **Physical reactions**: when things collide, describe the aftermath (sparks, dust, recoil, fabric displacement, hair whip).
-
-Bad: `A warrior stands on a cliff holding a sword.`
-Good: `A warrior shifts his weight to his back foot, fingers tighten on the sword hilt. Wind catches his robes — they billow and snap. His hair whips across his face. He narrows his eyes at the valley below.`
+- Every shot must have at least one verb of motion
+- Add micro-movements: hair blowing, fingers tightening, fabric rippling, chest rising with breath
+- Describe the arc of motion: `raises the sword from hip to overhead` not `holds sword up`
+- Physical reactions: when things collide, describe aftermath (dust, recoil, fabric displacement)
 
 ### Camera Writing — CRITICAL
 
-Camera movement is what makes the viewer *feel* the scene. Generic movement = flat footage.
+Camera movement is what makes the viewer *feel* the scene.
 
-**Level 1 (bad)**: Label only — `tracking shot`, `push-in`, `static`
+**Level 1 (bad)**: Label only — `tracking shot`, `push-in`
 **Level 2 (ok)**: Direction — `camera tracks right`, `slow dolly in`
-**Level 3 (good)**: Direction + speed + purpose — `camera tracks right accelerating to match the runner's pace, keeping the subject in left-third frame`
-**Level 4 (great)**: Direction + speed + reveals — `camera tracks right, initially blocked by a stone pillar — the subject emerges from behind it at full sprint, camera accelerates to keep up, the background racks out of focus`
+**Level 3 (good)**: Direction + speed + purpose — `camera slowly pushes in toward his face, narrowing the frame as his expression darkens`
+**Level 4 (great)**: Direction + speed + reveal — `camera pulls back from his face, revealing the vast empty corridor behind him — he is completely alone`
 
 Rules:
-- **Camera and subject move together**: if the character runs left, describe camera tracking left. If they leap up, camera tilts up or cranes.
-- **Describe what the movement reveals**: `camera pulls back to reveal the entire army behind him` not just `camera pulls back`.
-- **Add camera texture**: handheld shake for action, locked-off steady for tension, gentle drift for atmosphere.
-- **Speed changes matter**: `starts slow, accelerates as the horse breaks into gallop` is more cinematic than constant-speed tracking.
+- Camera and subject move together
+- Describe what the movement reveals
+- Speed changes matter: `starts slow, accelerates as the horse gallops`
+- Stick to movements the model can execute (see Model Reality Check)
 
-Bad: `Wide shot. Camera tracking.`
-Good: `Wide shot, camera tracks alongside at ground level, accelerating as the horse breaks into full gallop. Dust kicks up into the lens. The background blurs into streaks of gold and green.`
+### Camera Movement Reliability Guide
 
-### Camera Movement Cheat Sheet
+| Movement | Reliability | Notes |
+|----------|-------------|-------|
+| Slow push in / dolly in | ★★★ | Most reliable. Use as default for emotional scenes |
+| Pull back / reveal | ★★★ | Great for establishing shots and reveals |
+| Smooth orbit | ★★★ | Excellent for product showcase and character intro |
+| Tracking alongside subject | ★★★ | Works well when subject has clear linear motion |
+| Tilt up / tilt down | ★★★ | Simple and effective for reveals |
+| Static / locked-off | ★★★ | Reliable for held emotional moments |
+| Crane up (rising) | ★★☆ | Usually works, sometimes jerky |
+| Handheld feel | ★★☆ | Adds texture but can be excessive |
+| Slow motion | ★★☆ | Approximate, not frame-accurate |
+| Low angle / worm's eye | ★★☆ | Works for static setups, less reliable with motion |
+| Overhead / bird's eye | ★★☆ | Works for static scenes, less reliable with action |
+| Whip pan | ★☆☆ | Unpredictable, often doesn't look right |
+| Dolly zoom / vertigo | ★☆☆ | Rarely executes correctly, avoid |
+| Rack focus | ★☆☆ | Model doesn't reliably control focus plane |
+| Dutch angle | ★☆☆ | Sometimes works, often ignored |
 
-| Category | Effect | Keywords | Use Case |
-|----------|--------|----------|----------|
-| **Shot Size** | Extreme wide | extreme wide shot | Establish environment |
-| | Full shot | wide shot | Spatial relationships |
-| | Medium | medium shot | Character interaction |
-| | Close-up | close-up | Emotion/detail |
-| | Extreme close-up | extreme close-up / macro | Texture/material |
-| **Movement** | Push in | fast snap dolly in | Detail impact |
-| | Pull back | quick pull back to reveal | Reveal full scene |
-| | Whip pan | whip pan with motion blur | Rhythmic transition |
-| | Slider | subtle slider drift | Elegant showcase |
-| | Orbit | smooth orbit | 360° showcase |
-| | Tracking | tracking shot follows subject | Dynamic following |
-| | Macro push | extreme macro push | Material detail |
-| | Static | locked-off static | Freeze/ending |
-| **Angle** | Low angle | low angle | Authority/impact |
-| | Worm's eye | worm's eye view, ultra-low angle | Monumental scale, hero entrance |
-| | Dutch angle | Dutch angle, tilted horizon | Tension, unease, psychological instability |
-| | Overhead | overhead / bird's eye | Overview/spatial |
-| | Fisheye | fisheye lens | Fun/exaggerated |
-| | POV | first-person POV | Immersive experience |
-| **Pacing** | Slow motion | slow motion | Emphasize action |
-| | Quick cuts | rapid cuts / hard cut | Tension/rhythm |
-| | Time-lapse | time-lapse | Passage of time |
-| **Focus** | Shallow DOF | shallow depth of field | Subject isolation |
-| | Focus pull | rack focus | Guide viewer's eye |
-| **Special** | Vertigo | dolly zoom / vertigo effect | Psychological impact |
-| | Crane up | crane shot rising | Reveal, epic scale, emotional lift |
-| | Wipe transition | wipe transition through obstruction | Seamless scene change |
+**Stick to ★★★ and ★★☆ movements.** Only use ★☆☆ if you're willing to re-generate on failure.
 
-### Dramatic Camera Angles — Avoiding Flat Footage
+### Lighting — Persistent vs Reactive
 
-Default eye-level, medium-distance shots produce flat, boring footage. Deliberately choose dramatic angles to inject energy:
+Two ways to describe lighting in prompts:
 
-**Low Angle / Worm's Eye View**: Camera at ground level looking up. Makes subjects feel powerful, monumental. Use for hero entrances, authority, product reveals from below.
+**Persistent lighting** — fixed throughout the segment:
 ```
-Camera at ground level looking up at the swordsman, worm's eye view. He towers against the stormy sky, cape billowing overhead.
+Warm golden hour side-lighting through tall windows.
 ```
 
-**Dutch Angle (Tilted Horizon)**: 15-degree tilt creates unease. Use for tension, villain reveals, psychological instability, chase sequences.
+**Reactive lighting** — changes in response to the action (more dynamic, works well for action/drama):
 ```
-Dutch angle, 15-degree tilt. The corridor stretches ahead, walls leaning ominously. Subject walks toward camera, slightly off-center.
-```
-
-**Extreme Macro**: Fill the entire frame with texture detail. Use for product material, food close-ups, mechanical detail, nature textures.
-```
-Extreme macro on the watch dial, filling frame with brushed titanium texture. Slow push-in reveals the engraved serial number.
+Lighting shifts with the intensity of the confrontation — warm when calm, harsh when voices rise.
+Dynamic lighting synced with combat intensity — dim during stalking, bright flashes on each strike.
 ```
 
-**Vertigo / Dolly Zoom**: Camera pulls back while lens zooms in (or vice versa). Subject stays same size but background warps. Use for revelation moments, emotional shock, character realization.
+Reactive lighting gives the model creative freedom to match mood to action. Use it for action, horror, thriller, and emotional drama. Use persistent lighting for product, lifestyle, and atmospheric scenes.
+
+### Camera as Persistent Style vs Per-Stage Instructions
+
+Two valid approaches for camera direction:
+
+**Per-stage** (Approach A prompts): Specify camera movement in each time segment.
 ```
-Dolly zoom — camera pulls back while lens zooms in. The subject stays the same size but the background warps and stretches. Psychological disorientation.
+[0-5s] Camera slowly pushes in... [5-10s] Camera orbits... [10-15s] Camera pulls back...
 ```
 
-**Whip Pan Transitions**: Fast horizontal pan with motion blur connecting two scenes. Use for energy bursts, music video beat transitions, location changes.
+**Persistent style** (Approach B prompts): Describe the overall camera behavior once, let the model execute.
 ```
-Whip pan right with heavy motion blur — hard cut to the next scene already in motion. No pause between scenes.
+Camera: 360-degree orbital tracking shots, capturing every angle of the interaction.
+Camera: Handheld documentary-style, following the subject through the crowd.
+Camera: Locked-off wide shot, observing from a distance like a surveillance camera.
 ```
 
-### Shot Density Guide
+Persistent style works especially well for:
+- Action/fight scenes (complex choreography, camera needs to react)
+- Continuous movement scenes (walking, dancing, chasing)
+- Any scene where prescribing exact per-second camera feels forced
 
-Higher shot density = more dynamic, engaging footage. Match density to content energy:
+### Sound & Dialogue — CRITICAL
 
-| Content Type | Shots per 15s | Avg Shot Length | Camera Variety |
-|-------------|--------------|-----------------|----------------|
-| Action / martial arts | **5-7** | 2-3s | Every shot: different size + angle |
-| Music video / montage | **5-7** | 2-3s | Alternate: close-up ↔ wide, static ↔ motion |
-| Drama / dialogue | 4-5 | 3-4s | Shot-reverse-shot + establishing |
-| Product / showcase | 3-5 | 3-5s | Orbit + macro + wide reveal |
-| Atmospheric / art | 2-3 | 5-7s | Slow movements, held frames |
+The model CAN generate spoken dialogue with lip-sync, but ONLY with the exact embedding format.
 
-**Rule of thumb**: If your 15s prompt has fewer than 3 distinct camera setups with time annotations, it is probably too flat. Add at least one dramatic angle change.
+#### Dialogue Embedding Format (Mandatory)
 
-### Example: 15s Multi-Storyboard Prompt
+```
+Spoken dialogue (say EXACTLY, word-for-word): "[line in user's language]"
+Tone: [emotion]. Mouth clearly visible when speaking, lip-sync aligned.
+```
 
-**Good prompt**:
-> A young woman with shoulder-length dark hair and a cream knit sweater sits at a sunlit café table. [0-4s] Close-up of her hands wrapping around a steaming ceramic mug, camera gently pushes in, morning light catches the steam rising. [4-10s] She takes a sip, looks up and smiles, medium shot as camera slowly drifts to a side angle revealing the quiet café interior — wooden shelves, hanging plants, soft jazz playing. Spoken dialogue (say EXACTLY, word-for-word): "This is my favorite place in the city." Mouth clearly visible, lip-sync aligned. [10-15s] She sets the mug down and opens a worn leather journal, begins writing. Camera pulls back to a wide shot through the café window, the frame holds steady. Cinematic, warm golden tones, shallow depth of field, film grain.
+All three parts required: prefix, quoted line, suffix.
 
-**Bad prompt**:
-> woman, café, coffee, sunshine, beautiful, cinematic, 4k
+#### Rules
+1. **Dialogue language matches the user's language** — if the user speaks Chinese, dialogue should be Chinese. If English, use English. The model supports multilingual lip-sync.
+2. **One line per time segment** — don't cram multiple lines
+3. **Place AFTER visual/action description** in each segment
+4. **Keep lines short** — 5-15 words. Long sentences degrade lip-sync
+5. **Always include `Tone:`** — emotional direction improves delivery
+6. **No dialogue?** — add `No spoken dialogue.` at end, use `Sound design:` instead
 
-## Advanced Prompt Techniques
+#### Example — Drama with Dialogue
+```
+Cinematic drama, shallow depth of field, film grain.
+
+A woman, late 30s, dark curly hair pulled back, sharp eyes, grey blazer over white shirt.
+
+[0-5s] Medium shot — the woman sits at a cluttered office desk, flipping through
+a thick folder. She pauses on one page, taps it with her finger. Camera slowly pushes in.
+Spoken dialogue (say EXACTLY, word-for-word): "These numbers don't add up."
+Tone: calm but firm. Mouth clearly visible when speaking, lip-sync aligned.
+
+[5-10s] A nervous young man in a wrinkled shirt stands across the desk, shifting
+his weight from foot to foot. Camera holds in medium two-shot.
+Spoken dialogue (say EXACTLY, word-for-word): "There might be a typo in the report."
+Tone: nervous, apologetic. Mouth clearly visible when speaking, lip-sync aligned.
+
+[10-15s] The woman closes the folder and leans back in her chair. A faint smile
+crosses her face. Camera slowly pushes in to close-up. Frame holds.
+Spoken dialogue (say EXACTLY, word-for-word): "I'll handle it from here."
+Tone: quiet confidence. Mouth clearly visible when speaking, lip-sync aligned.
+
+Sound design: paper rustling, office hum, distant phone ringing.
+No text, subtitles, watermarks, or logos.
+```
+
+### Sound Design & Audio Style
+
+Audio instructions go at the END of the prompt. Two approaches:
+
+**Specific SFX** — list individual sounds when particular sounds matter:
+```
+Sound design: door slam, rain on glass, footsteps on gravel, distant siren.
+```
+
+**Cultural/genre reference** — one phrase that sets tempo, instruments, and mood (often more effective than listing sounds):
+```
+Audio style: French New Wave film score.
+Audio style: 80s John Carpenter synth thriller.
+Audio style: Studio Ghibli pastoral soundtrack.
+Audio style: Ennio Morricone spaghetti western.
+```
+
+**When to use which:**
+- Genre reference when vibe matters more than specific sounds (action, mood pieces)
+- Specific SFX when particular sounds are plot-critical (a gunshot, a phone ring, a crash)
+- Combine both: `Audio style: noir jazz. Sound design: rain on window, typewriter clicks.`
+
+### Negative & Technical Quality Constraints
+
+Every prompt should end with two blocks:
+
+**Negative constraints** (what to exclude):
+```
+No text, subtitles, watermarks, or logos.
+```
+Add scene-specific negatives as needed: `No modern elements.` `No anime style.`
+
+**Technical quality constraints** (optional, for photorealistic content):
+```
+Quality: natural fluid motion, photorealistic skin textures, consistent lighting.
+Avoid: deformed limbs, extra or missing fingers, body clipping, motion blur artifacts, color banding.
+```
+
+These are especially important for:
+- Character close-ups (hands, faces)
+- Action scenes (limb deformation is common)
+- Photorealistic style (AI smoothing artifacts)
+
+For stylized/animated content, technical constraints are less needed — the model handles those styles more naturally.
 
 ### Technical Parameters — API vs Prompt
 
-**DO NOT put these in the prompt** — they are controlled by API parameters (`--ratio`, `--duration`, model config) and writing them in the prompt wastes tokens with no effect:
-
-- Aspect ratio (`2.35:1 widescreen`, `16:9`, `9:16`)
-- Frame rate (`24fps`, `30fps`)
-- Resolution (`1080p`, `4K`, `8K`)
-
-**DO put these in the prompt** — they are visual style choices the model responds to:
-
-- Color palette (`warm golden palette`, `desaturated blue-grey`, `neon pink and cyan`)
-- Depth of field (`shallow depth of field`, `deep focus`)
-- Film texture (`film grain`, `RAW`, `HDR`)
-- Visual style (`cinematic`, `documentary`, `ink wash painting`)
-- Lighting mood (`golden hour`, `rim light`, `volumetric haze`)
-
-```
-Good: warm golden palette, shallow depth of field, film grain.
-      [0-5s] Close-up of hands on piano keys...
-
-Bad:  2.35:1 widescreen, 24fps, 1080p, warm golden palette...
-      (ratio/fps/resolution are wasted — use API params instead)
-```
-
-### Negative Prompting
-
-Exclude unwanted elements at the end of the prompt to prevent auto-generated text, watermarks, etc.:
-
-```
-... frame holds steady. No text, subtitles, watermarks, or logos. No sudden camera shake.
-```
-
-Common negatives: `No text / No subtitles / No watermarks / No logos / No camera shake / No jump cuts`
+**DO NOT put in prompt** (use API params): aspect ratio, frame rate, resolution, duration
+**DO put in prompt** (visual style): color palette, DOF, film texture, lighting mood
 
 ### Style Keywords Cheat Sheet
 
 | Category | Example Keywords |
 |----------|-----------------|
-| Texture | cinematic, film grain, HDR, RAW, 8K |
-| Color | warm tone, cold blue, high contrast, desaturated, neon, Morandy palette |
-| Lighting | golden hour, rim light, Tyndall effect, volumetric light, natural light, side backlight |
-| Style | documentary, vlog, commercial, music video, Hollywood blockbuster, indie film |
+| Texture | cinematic, film grain, HDR, RAW |
+| Color | warm golden palette, desaturated blue-grey, high contrast, neon |
+| Lighting | golden hour, rim light, volumetric light, natural light |
+| Style | documentary, vlog, commercial, Hollywood blockbuster, indie film |
 | Animation | 3D CG animation, cel-shaded anime, ink wash painting, pixel art |
 
-## Scene Type Prompt Focus
+## Complete Example: 30s Drama (2 segments, serial chain)
 
-| Scene Type | Prompt Focus |
-|------------|-------------|
-| **E-commerce/Ads** | Product visible in frame 1 + material close-up + 360° showcase + brand ending |
-| **Story/Drama** | Separate visuals and dialogue + annotate character emotion + SFX on separate line |
-| **Action/Fantasy** | VFX particle details + quick-cut pacing + slow-mo for key actions |
-| **Lifestyle/Vlog** | Natural light + handheld tracking feel + ambient sound |
-| **MV/Beat Sync** | Specify aspect ratio + framerate + sound design priority + beat alignment |
-| **Educational** | 4K CGI style + semi-transparent visualization + educational voiceover |
-
-## Creative Prompt Templates
-
-### Story Completion
-
-Provide keyframes or storyboard description, let the model auto-fill actions and transitions:
-
+### Segment 1 (0-15s) — SETUP
 ```
-A 4-panel comic strip is shown in the reference image. Animate each panel left-to-right,
-top-to-bottom, maintaining character dialogue. Add dramatic sound effects at key moments.
-Style: humorous and exaggerated.
-```
+Cinematic period drama, shallow depth of field, film grain.
 
-### Video Extension
+A woman, late 20s, shoulder-length black hair with auburn highlights, cream knit cardigan
+over charcoal turtleneck, small gold hoop earrings.
 
-Append content to a previously generated video. Pass the previous video via `--materials "ID:ref_video"`, prompt describes **the new portion only**:
+[0-5s] Wide shot of a sunlit cafe interior — wooden shelves, hanging plants, morning light
+streaming through tall windows. The woman sits alone at a corner table. Camera slowly
+pushes in toward her.
 
-```
-Continuing from the previous shot: [0-5s] The character turns and walks toward the door,
-camera tracking follows. [5-10s] She opens the door to reveal a sunlit garden, camera
-glides through the doorframe, frame holds steady.
+[5-10s] Medium shot — she wraps both hands around a steaming ceramic mug. She lifts it,
+takes a sip, and her eyes drift to the window. A quiet moment of contentment. Camera
+gently orbits to a side angle.
+Spoken dialogue (say EXACTLY, word-for-word): "This is my favorite place in the city."
+Tone: warm, peaceful. Mouth clearly visible when speaking, lip-sync aligned.
+
+[10-15s] She sets the mug down and reaches into her bag, pulling out a worn leather
+journal. She opens it and begins to write. Camera continues pushing in toward the journal.
+Her pen moves across the page.
+
+Sound design: quiet cafe ambience, distant espresso machine, soft jazz.
+No text, subtitles, watermarks, or logos.
 ```
 
-> **Note**: `--duration` should be set to the duration of the new portion, not the total.
-
-### Seamless Long Take
-
-Use `single continuous take, no cuts` + scene transition words to link multiple spaces:
-
+### Segment 2 (15-30s) — PAYOFF (uses S1 as ref_video)
 ```
-Single continuous take, no cuts. [0-5s] Camera follows a woman in a red coat through
-a crowded market, tracking shot. [5-10s] She turns a corner into a quiet alley, camera
-keeps following without cutting. [10-15s] She pushes open a wooden door and enters a
-sunlit courtyard, camera glides in behind her, frame holds steady.
-```
+Cinematic period drama, shallow depth of field, film grain.
 
-### Sound & Dialogue
+A woman, late 20s, shoulder-length black hair with auburn highlights, cream knit cardigan
+over charcoal turtleneck, small gold hoop earrings.
 
-Embed dialogue using `Spoken dialogue (say EXACTLY, word-for-word): "..."` format in the corresponding time segment, with emotion and lip-sync annotations:
+Continuing from the previous shot:
 
-```
-[3-8s] Medium shot, she picks up the phone. Spoken dialogue (say EXACTLY, word-for-word):
-"I told you, it's over." Tone: cold and resolute. Mouth clearly visible, lip-sync aligned.
-```
+[0-5s] Close-up of her hand writing in the journal. The pen pauses. She looks up toward
+the cafe door. Camera follows her gaze with a gentle pan.
 
-SFX/BGM on a separate line at the end of the prompt:
+[5-10s] Medium shot — a man enters the cafe, brushing rain from his coat. She stands up,
+face breaking into a wide smile. Camera pulls back to capture both of them as he walks
+toward her table.
+Spoken dialogue (say EXACTLY, word-for-word): "You actually came."
+Tone: surprised, delighted. Mouth clearly visible when speaking, lip-sync aligned.
 
-```
-Sound design: gentle rain on window, distant thunder, melancholic piano.
-```
+[10-15s] They embrace briefly. She gestures to the seat across from her. They sit together.
+Camera slowly pulls back to a wide shot through the rain-streaked cafe window. Two warm
+figures framed by the cozy interior. Frame holds steady.
 
-### Video Editing
-
-Make targeted modifications to a reference video (character replacement, element addition/removal). Pass original video + replacement materials via `--materials`:
-
-```
-Replace the main character in the reference video with the person in the reference image.
-Keep all original camera movements and timing. Add a white cat sitting on the desk
-in the background.
-```
-
-### Beat Sync
-
-Use timestamps to precisely align with beats, emphasize audio-visual synchronization (set ratio via `--ratio` API param):
-
-```
-[0-2s] Beat drop — extreme close-up of hands clapping, sharp
-snap zoom. [2-5s] Wide shot, dancer spins, camera orbits in sync with bass hits.
-[5-8s] Freeze frame on peak pose, 0.5s hold, then rapid montage cuts on every snare.
-Sound design priority: footsteps, fabric rustle, and breath must align with beat.
+Sound design: rain on glass, cafe ambience, warmth.
+No text, subtitles, watermarks, or logos.
 ```
