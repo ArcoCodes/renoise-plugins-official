@@ -1,6 +1,8 @@
-# Stage 2: SCRIPT — Story & Structure Development
+# Stage 2: SCRIPT — PLAN FREEZE CORE
 
-Each mode has a different script structure. Internal coherence checks run silently before presenting to the user.
+SCRIPT is a **PLAN** stage.
+
+Goal: convert the brief into a structure concrete enough to execute without guessing. This is where the project stops being an idea and becomes a plan.
 
 > Cross-references:
 > - Story craft: `Read ${CLAUDE_SKILL_DIR}/references/story-development.md`
@@ -9,29 +11,87 @@ Each mode has a different script structure. Internal coherence checks run silent
 
 ---
 
+## Stage Contract
+
+### Required Inputs
+- INTAKE summary
+- mode selection
+- material status
+- budget snapshot
+
+### Required Outputs
+Before leaving SCRIPT, produce:
+- story structure appropriate to the mode
+- segment-by-segment purpose
+- character usage plan
+- initial anchor needs summary
+- style direction
+- explicit blockers, if any remain
+
+### Blocking Conditions
+Do **not** move to VISUAL DEV or PROMPTS if any of these are missing:
+- what each segment is supposed to do
+- which characters appear where
+- which recurring characters require assets
+- which environments / products / visual anchors matter enough to plan for
+- what kind of continuity matters between segments
+
+The exact format varies by mode, but the planning completeness requirement does not.
+
+---
+
+## Common Planning Outputs for All Modes
+
+No matter the mode, SCRIPT should answer these questions:
+
+1. **What changes from beginning to end?**
+2. **What is each segment for?**
+3. **Who appears in each segment?**
+4. **Which elements need anchoring to avoid drift?**
+5. **Where does continuity matter enough to plan explicitly?**
+
+For multi-clip work, add a lightweight anchor forecast like:
+
+```md
+Anchor Needs Summary
+- Character anchors needed: Maya, Guard
+- Environment anchors needed: hallway, apartment living room
+- Strong continuity required: S2→S3 and S3→S4
+- Parallel-safe transitions: S1→S2 only
+```
+
+---
+
 ## Mode A — Micro-Check
 
-Three lines. If any answer is unclear, ask the user before proceeding.
+Three lines. If any answer is unclear, resolve it before writing prompts.
 
-```
+```text
 Hook  (0-3s):  What expectation am I violating? Why would the viewer NOT swipe?
 Build (3-10s): What CHANGES between the start and end of this section?
 Close (10-15s): What emotion does the viewer walk away with? Is it earned?
 ```
 
-→ **Confirm ①**: Present the micro-check. Proceed to PROMPTS (skip VISUAL DEV).
+Required outputs:
+- micro-check
+- style direction
+- any required anchor note (if product / character / environment reference matters)
+
+→ **Confirm ①**: present the micro-check package, then proceed to PROMPTS.
 
 ---
 
 ## Mode B — Micro-Story
 
-```
-BEFORE:    [viewer's problem / status quo]
+Structure:
+
+```text
+BEFORE:    [viewer problem / status quo]
 TRANSFORM: [how the product changes things]
 AFTER:     [new reality]
 ```
 
-User confirms 5 fields:
+User-facing confirmation fields:
 ```json
 {
   "product_type": "...",
@@ -42,104 +102,183 @@ User confirms 5 fields:
 }
 ```
 
-→ **Confirm ①**: Present product analysis + micro-story. Proceed to PROMPTS (skip VISUAL DEV for single-clip; do product analysis for multi-scene).
+Also decide:
+- how many variants to generate
+- whether the product image alone is enough anchor
+- whether model consistency matters across variants
+
+→ **Confirm ①**: product analysis + micro-story + anchor note.
 
 ---
 
 ## Mode C — Logline + Treatment (Original)
 
-**Step 1: Logline** — one sentence:
-```
+### Step 1: Logline
+```text
 When [INCITING INCIDENT], a [CHARACTER] must [GOAL], but [OBSTACLE] threatens [STAKES].
 ```
 
-**Step 2: Treatment** — prose narrative, 2-3 sentences per scene. Describe what the viewer SEES and FEELS. Embed dialogue naturally.
+### Step 2: Treatment
+Write 2-3 sentences per segment. Describe what the viewer sees and feels. Dialogue should emerge from the scene, not explain it from outside.
 
-**Step 3 (internal, not shown to user)**: Run coherence self-check:
-- Every scene transition is THEREFORE or BUT (no AND THEN)
-- No two adjacent scenes target the same viewer emotion
-- Every character action has explicit motivation
-- Every dialogue line serves a purpose (reveal / conflict / emotion / character)
+### Step 3: Internal Coherence Check
+Run the checklist silently:
+- every scene transition is THEREFORE or BUT
+- adjacent scenes do not target the same emotion
+- character actions are motivated
+- dialogue lines serve a purpose
 
-If any check fails, fix the treatment silently before presenting.
+Fix silently before presenting.
 
-**Step 4: Character Asset Plan (MANDATORY).** For every character in the treatment, produce this table:
+### Step 4: Character Asset Plan (MANDATORY)
+For every character:
 
-```
+```text
 | Character | Segments | Asset Strategy | Justification |
 |-----------|----------|----------------|---------------|
 | [name]    | S1,S3,S5 | ✅ Generate Asset | Appears in 3 segments |
-| [name]    | S3       | ❌ Text-only     | Single scene only |
+| [name]    | S3       | ❌ Text-only | Single segment only |
 ```
 
-**Rule: Any character appearing in 2+ segments MUST have strategy "✅ Generate Asset".** Text-only is permitted ONLY for characters in exactly 1 segment.
+Rule: any character appearing in **2+ segments** must be `✅ Generate Asset` or mapped to an existing Character Library entry.
 
-**Step 5: Style direction** — propose 1-2 style options based on content.
+### Step 5: Segment Purpose Table (MANDATORY)
 
-Output to user: **logline + treatment + character asset plan + style recommendation** (one concise package).
+```text
+| Segment | Story Function | Emotion | Key Location | Continuity Importance |
+|---------|----------------|---------|--------------|-----------------------|
+| S1      | setup          | curiosity | hallway     | low |
+| S2      | discovery      | wonder    | living room | high |
+```
 
-→ **Confirm ①**: User approves or adjusts the story + style + character plan.
+### Step 6: Style Direction
+Propose 1-2 style options.
+
+### Step 7: Anchor Needs Summary
+List the important anchors and continuity links before VISUAL DEV.
+
+Output to user:
+- logline
+- treatment
+- character asset plan
+- segment purpose table
+- anchor needs summary
+- style recommendation
+
+→ **Confirm ①**: approve story + style + asset logic.
 
 ---
 
 ## Mode D — Select + Condense (Adaptation)
 
-The source material already contains the story. The task is to **select** the best moments and **condense** them for video.
+### Step 1: Parse Source Material
+Extract:
+- scene inventory
+- character roster
+- emotional peaks
+- visually strong moments
 
-**Step 1: Parse source material.** Extract:
-- Scene inventory (number + one-line summary each)
-- Character roster (name + appearance + key traits)
-- Emotional peaks / most visual moments
+### Step 2: Recommend a Condensed Plan
+Include:
+- suggested segment count
+- selected scenes + rationale
+- emotional arc
+- what is cut and why
 
-**Step 2: Recommend a plan.**
-- Suggested segment count (based on budget + story density)
-- Selected scenes + rationale for each
-- Emotional arc formed by the selected scenes
-- What's cut and why
+### Step 3: Write Condensed Treatment
+Only for the selected scenes.
 
-**Step 3: Write condensed treatment** for selected scenes only (2-3 sentences each).
+### Step 4: Character Asset Plan (MANDATORY)
+Use the same table structure as Mode C.
 
-**Step 4: Character Asset Plan (MANDATORY).** For every character extracted in Step 1, produce this table:
+### Step 5: Segment Purpose Table (MANDATORY)
+Use the same structure as Mode C.
 
-```
-| Character | Segments | Asset Strategy | Justification |
-|-----------|----------|----------------|---------------|
-| [name]    | S1,S3,S5 | ✅ Generate Asset | Appears in 3 segments |
-| [name]    | S3,S5    | ✅ Generate Asset | Appears in 2 segments |
-| [name]    | S4       | ❌ Text-only     | Single scene, minor role |
-```
+### Step 6: Anchor Needs Summary
+Identify:
+- recurring characters needing assets
+- key environments needing anchors
+- segments that need tight continuity
+- segments safe for looser transitions
 
-**Rule: Any character appearing in 2+ segments MUST have strategy "✅ Generate Asset".** Text-only is permitted ONLY for characters in exactly 1 segment. This table feeds directly into VISUAL DEV Step 3a — every "✅ Generate Asset" row becomes a character sheet to generate.
+### Step 7: Internal Coherence Check
+Run silently.
 
-Include the asset cost in the budget estimate: ~12 credits per character image + ~0 for registration.
+### Step 8: Style Direction
+Based on period / tone / genre of the source.
 
-**Step 5 (internal)**: Coherence self-check on the condensed version.
+Output to user:
+- scene selection table
+- emotional arc
+- treatment
+- character asset plan
+- segment purpose table
+- anchor needs summary
+- style direction
 
-**Step 6: Style direction** — propose style based on source material's tone/period/genre.
-
-Output to user: **scene selection table + emotional arc + treatment + character asset plan + style**.
-
-→ **Confirm ①**: User approves or adjusts scene selection + treatment + character plan.
+→ **Confirm ①**: approve selection + treatment + asset logic.
 
 ---
 
 ## Mode E — Beat Sheet (Montage / MV)
 
-No narrative causation required. Structure is driven by **mood + rhythm**.
+### Step 1: Core Emotion
+One word: nostalgia, euphoria, melancholy, adrenaline, etc.
 
-**Step 1: Core emotion** — one word (nostalgia, euphoria, melancholy, adrenaline...).
-
-**Step 2: Beat sheet** — per segment:
-```
+### Step 2: Beat Sheet
+```text
 S1: [visual keyword] — mood: [X] — energy: [N/10]
 S2: [visual keyword] — mood: [X] — energy: [N/10]
 ...
 ```
 
-**Step 3: Rhythm reference** — BPM, genre, reference track/mood.
+### Step 3: Rhythm Reference
+BPM, genre, reference track / feel.
 
-**Step 4: Style direction.**
+### Step 4: Segment Purpose Table
+Even without plot, define what each segment contributes.
 
-Output to user: **core emotion + beat sheet + energy curve + style**.
+### Step 5: Anchor Needs Summary
+Which environments, recurring subjects, or visual motifs need anchoring?
+Which transitions need strong continuity, if any?
 
-→ **Confirm ①**: User approves or adjusts the beat sheet.
+### Step 6: Style Direction
+
+Output to user:
+- core emotion
+- beat sheet
+- rhythm reference
+- segment purpose table
+- anchor needs summary
+- style direction
+
+→ **Confirm ①**: approve the beat sheet package.
+
+---
+
+## Exit Format
+
+Before leaving SCRIPT, the user-facing package should look like a plan, not a loose brainstorm. Example:
+
+```md
+## Story Plan
+Logline: ...
+Treatment: ...
+
+## Segment Purpose
+S1: setup
+S2: discovery
+S3: escalation
+S4: resolution
+
+## Character Asset Plan
+...
+
+## Anchor Needs Summary
+...
+
+## Style Direction
+...
+```
+
+If the plan is too vague to survive execution without guesswork, stay in SCRIPT.

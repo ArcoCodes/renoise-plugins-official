@@ -31,15 +31,34 @@ All endpoints require `X-API-Key: <api_key>` header.
 
 | Method | Path                                       | Description                       |
 | ------ | ------------------------------------------ | --------------------------------- |
-| POST   | `/api/public/v1/materials/upload`          | Upload material (multipart)       |
+| POST   | `/api/public/v1/materials/upload`          | Upload raw material (multipart)   |
 | GET    | `/api/public/v1/materials?type=X&search=Y` | List materials with download URLs |
+
+> **Important:** materials are raw inputs. They are great for products, environments, motion refs, and temporary uploads, but they are not automatically the right long-lived anchor for recurring human identity.
+
+### Assets
+
+Assets are reusable anchors distinct from raw materials. Use them when you need stable, face-safe references across multiple generations.
+
+Common CLI operations:
+- `asset register <material_id> --name "..."`
+- `asset create <material_id> --name "..."`
+- `asset wait <id>`
+- `asset list`
+- `asset get <id>`
+- `asset delete <id>`
+
+Typical use in generation:
+- `--materials "asset:27:reference_image"`
 
 ### Characters
 
-| Method | Path                                                                              | Description      |
-| ------ | --------------------------------------------------------------------------------- | ---------------- |
+| Method | Path                                                                               | Description      |
+| ------ | ---------------------------------------------------------------------------------- | ---------------- |
 | GET    | `/api/public/v1/characters?category=X&usage_group=Y&search=Z&page=1&page_size=20` | List characters  |
-| GET    | `/api/public/v1/characters/:id`                                                   | Character detail |
+| GET    | `/api/public/v1/characters/:id`                                                    | Character detail |
+
+> Characters are platform-managed face-safe human anchors. Prefer characters or assets for recurring people; prefer materials for non-face references.
 
 ## Request/Response Formats
 
@@ -128,7 +147,15 @@ Response:
 - `ref_video` — Reference video (affects pricing)
 - `ref_image` — Reference image
 - `image1`, `image2` — Additional reference images
-- `reference_image` — Character reference image
+- `reference_image` — Character or asset reference image
+
+## Anchor Guidance
+
+Use the reference system intentionally:
+- **Asset** → best reusable anchor for recurring custom human identity
+- **Character** → best reusable anchor for pre-existing platform humans
+- **Material** → best for products, environments, objects, motion refs, and temporary inputs
+- **Storyboard panel** → best as a style/composition support anchor, not the primary face anchor
 
 ## Aspect Ratios
 

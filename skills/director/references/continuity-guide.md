@@ -1,216 +1,198 @@
 # Cross-Clip Continuity Guide
 
-Techniques for maintaining visual consistency across multiple Seedance 2.0 clips.
+Continuity is not just a prompt-writing trick. It is a **handoff design problem**.
 
-## Character Description Rules
+For multi-clip work, continuity should be planned before execution, then reinforced in prompts and generation strategy.
+
+---
+
+## 1. Plan Continuity First
+
+Before writing final prompts, define continuity where it matters.
+
+Use a table like this:
+
+```text
+| Transition | opening_state next shot | closing_state prior shot | Strategy | Notes |
+|------------|--------------------------|--------------------------|----------|-------|
+| S1→S2 | Maya enters living room holding package | Maya at doorway holding package | parallel + continuity text | location change |
+| S2→S3 | Maya seated with watch raised to lamp | Maya seated with watch raised to lamp | serial / ref_video preferred | same location, continuous action |
+```
+
+### What Belongs in a State Description
+- character position and orientation
+- prop state
+- emotional state
+- lighting state
+- important environment state
+- whether motion is ongoing or settled
+
+### What Does Not Belong
+- soundtrack notes
+- camera jargon that only applies to one shot
+- long exposition
+
+If a transition matters visually, plan it explicitly. Do not trust the model to infer the seam.
+
+---
+
+## 2. Choose the Right Continuity Strategy
+
+| Situation | Best Strategy |
+|-----------|---------------|
+| Same location + same character + continuous action | **Serial / ref_video** |
+| Same character, different location | **Parallel with strong face + scene anchors** |
+| Different characters / different places | **Parallel** |
+| Mixed project | **Hybrid** |
+
+The tighter the seam requirement, the less you should rely on prompt-only continuity.
+
+---
+
+## 3. Character Continuity Rules
 
 ### Copy Verbatim — Never Abbreviate
+The biggest cause of drift is paraphrasing.
 
-The #1 cause of character drift is paraphrasing. Every shot must include the **exact same character description** from the Character Bible.
-
-```
+```text
 WRONG:  "A young woman with black hair"
 RIGHT:  "East Asian woman, late 20s, shoulder-length black hair with subtle auburn highlights, warm ivory skin, almond-shaped dark brown eyes"
 ```
 
-Even small omissions cause drift. If the Bible says "shoulder-length black hair with subtle auburn highlights", every prompt must say exactly that.
+### Highest-Risk Drift Features
+1. hair color / length
+2. skin tone
+3. wardrobe color and cut
+4. apparent age
+5. signature accessories
 
-### Drift Vulnerability Ranking
-
-Features that drift most easily (highest risk first):
-
-1. **Hair color & length** — Most volatile. Always specify shade, length, and texture.
-2. **Skin tone** — Use specific terms ("warm ivory", "deep espresso brown"), not vague ones ("light", "dark").
-3. **Clothing color** — Must include texture + cut + color: "cream-colored chunky-knit wool cardigan" not "white sweater".
-4. **Age** — State explicitly: "late 20s" not "young woman".
-5. **Body type** — Least volatile but still specify if relevant.
-
-### Wardrobe Anchoring
-
-Three-part wardrobe description for every garment:
-
-```
-[texture/material] + [cut/style] + [color]
-
-"Oversized cream-colored chunky-knit wool cardigan"
- ↑ cut      ↑ color     ↑ texture/material  ↑ garment
-
-"Fitted charcoal cotton turtleneck"
- ↑ cut  ↑ color  ↑ material  ↑ garment
+### Wardrobe Anchoring Pattern
+Use:
+```text
+[texture/material] + [cut/style] + [color] + [garment]
 ```
 
-### Signature Details as Anchors
-
-Accessories and unique features act as visual anchors that help the model maintain identity:
-- Jewelry: "Small gold hoop earrings, thin gold chain bracelet on left wrist"
-- Tattoos: "Small constellation tattoo on inner right wrist"
-- Props: "Always carries a worn leather messenger bag"
-
-Include these in every prompt, even if not the focus of the shot.
-
-## Lighting Consistency
-
-### Same Scene = Same Light Words
-
-If shots S1 and S2 occur in the same location, use **identical lighting descriptors**:
-
+Example:
+```text
+oversized cream-colored chunky-knit wool cardigan
 ```
-S1: "Soft golden hour side-lighting through large windows, practical lamps as secondary fill"
-S2: "Soft golden hour side-lighting through large windows, practical lamps as secondary fill"
-```
-
-Never rephrase "golden hour side-lighting" as "warm natural light" — the model interprets these differently.
-
-### Cross-Scene Lighting
-
-Different locations can have different lighting, but the **color temperature** should stay consistent with the Style Guide. If the guide says "warm amber tones with cool blue shadows", every location should interpret this within that range.
-
-## Continuity Bridging
-
-### The Bridge Formula
-
-Every shot after S1 must begin with:
-
-```
-Continuing from the previous shot: [exact continuity_out from previous shot].
-```
-
-This is the single most important technique for visual coherence.
-
-### What to Include in continuity_out
-
-1. **Character position**: "Standing at doorway, facing camera at 3/4 angle"
-2. **Prop state**: "Both hands holding small wrapped package at chest height"
-3. **Emotional state**: "Curious expression, slight head tilt"
-4. **Lighting state**: "Warm pendant light from above, soft shadows on face"
-5. **Environmental state**: "Door is open behind her, hallway light visible"
-
-### What NOT to Include
-
-- Camera angles (the new shot may use a different angle)
-- Music cues (handled separately)
-- Dialogue (new shot has its own script)
-
-## Style Prefix Consistency
-
-### The Global Prefix
-
-Every prompt starts with the exact same style block:
-
-```
-[visual_style]. [color_palette]. [lighting].
-```
-
-This prefix is the #2 most important consistency tool after character descriptions.
-
-### Negative Prompts
-
-End every prompt with the same negative block:
-
-```
-Avoid: [negative_prompts from Style Guide].
-```
-
-## Transition Techniques
-
-### Hiding Inconsistency
-
-When character appearance inevitably drifts slightly between clips:
-
-1. **Whip pan / motion blur**: End one shot with fast camera movement, start next with fast movement. The blur hides the transition.
-2. **Close-up → Wide**: End on a face close-up, start the next shot wide. The scale change masks small differences.
-3. **Cut on action**: End mid-movement (hand reaching), start the next shot completing the movement. The viewer's eye follows the action, not appearance details.
-4. **Dark → Light**: End shot in shadow, start next in light. Lighting shift distracts from appearance changes.
-
-### The 80% Rule
-
-AI-generated clips will achieve ~80% visual consistency when following these techniques. The remaining 20% is handled in post-production:
-- Color grading to unify color palette
-- Subtle speed adjustments for timing
-- Audio continuity (shared BGM) creates perceived visual continuity
-
-## Face-Safe References (User Assets & Character Library)
-
-Two approaches for face consistency across clips, both bypass privacy detection:
-
-### Comparison
-
-| Method | Face Consistency | Privacy Detection | Setup | Best For |
-|--------|-----------------|-------------------|-------|----------|
-| **User Asset** (`asset:ID:reference_image`) | High — same face reference | ✅ Bypasses — `asset://` URI | ~1 min per character | AI-generated characters, new projects |
-| **Character Library** (`--characters "ID"`) | Highest — exact face every time | ✅ Bypasses — platform-registered | Requires platform setup | Pre-existing characters, real faces |
-| Grid Storyboard (`ref_image`) | Medium — shared context but may drift | ❌ **Often blocked** if faces visible | Quick to generate | Style/palette anchoring only |
-| Text-only description | Lowest — face drifts per generation | ✅ No images | Zero setup | Fallback, simple projects |
-
-### User Asset Workflow (recommended for AI-generated characters)
-
-1. Generate character design sheet with `nano-banana-2`
-2. Download → `material upload` → get material ID
-3. `asset register <material_id> --name "Character Name"` → wait ~30-60s → get asset ID
-4. Use `--materials "asset:ID:reference_image"` in every segment featuring that character
-5. Combine with text Character Bible for wardrobe/pose control
-
-### Character Library Workflow (for pre-existing platform characters)
-
-1. Create/find characters on https://www.renoise.ai
-2. `renoise character list` to find IDs
-3. Use `--characters "ID"` in every segment featuring that character
-4. Combine with text Character Bible for wardrobe/pose control
-
-### When to Use Which
-
-- **New original project, no existing characters** → User Asset (generate + register)
-- **Recurring platform characters** → Character Library
-- **Real person likeness** → Character Library (upload real photo on platform)
-- **Quick one-off, no face consistency needed** → Text-only
 
 ---
 
-## Grid Storyboard Method
+## 4. Environment Continuity Rules
 
-### Why One Image > Many Images
+If the same location appears again, reuse the same core lighting and environment language.
 
-When generating reference images for each shot independently (even with the same prompt style), each generation starts from a different random seed. This causes:
-- Slight differences in character face shape, eye size, hair texture
-- Color palette drift between shots
-- Inconsistent rendering style (more/less detailed, different line weights)
+```text
+S2: Soft golden hour side-lighting through large windows, practical lamps as warm fill.
+S3: Soft golden hour side-lighting through large windows, practical lamps as warm fill.
+```
 
-**The Grid Storyboard method solves this** by generating ALL shots in a single image. Because the AI renders all panels in one context:
-- Characters share the exact same face structure, proportions, and styling
-- Color palette is unified across all panels
-- Rendering technique (line weight, shading style, texture) is consistent
-- The AI "remembers" what it drew in Panel 1 when drawing Panel 8
+Do not casually rewrite the same environment as a new one.
 
-### ⚠️ Privacy Detection Warning
+If the location transforms, make the transformation explicit:
+- base environment stays the same
+- changed element is stated clearly
 
-Storyboard grids containing **close-up human faces** will likely trigger `PrivacyInformation` errors when used as `ref_image`. To avoid this:
-- Design grids with **environment-focused panels** (wide shots, small figures)
-- Use the **Character Library** for face consistency instead of relying on the grid
-- If the grid is blocked, fall back to **text-only** prompts with full Character Bible
+Example:
+```text
+Same living room as S2, but now filled with warm golden particles from the glowing watch.
+```
 
-### Workflow
+---
 
-1. Write a single prompt describing all panels with verbatim character descriptions
-2. Generate one grid image via `renoise-gen` (`nano-banana-2`)
-3. Split into individual panels: `bash split-grid.sh grid.png storyboard/ 2 4`
-4. Upload each panel as material for Image-to-Video generation
-5. Each Seedance clip now has a visual anchor from the same source
+## 5. Prompt-Level Continuity Bridge
 
-> **Best practice**: Use the grid for **style/palette/composition** anchoring, and the Character Library for **face** anchoring. These complement each other.
+When continuity matters, start later shots with a bridge like:
 
-### When to Use
+```text
+Continuing from the previous shot: [exact prior closing_state].
+```
 
-- **Recommended** for projects with recurring characters (but combine with Character Library for faces)
-- Especially important for anime/manga/stylized projects where character design must be exact
-- Less critical for pure environment/landscape shots with no characters
+This works best when the state was already planned.
 
-## Common Mistakes
+### Include
+- pose / placement
+- held objects
+- emotional tone
+- lighting state
+- relevant environment state
+
+### Avoid
+- restating the whole previous shot
+- camera instructions from the old shot
+- music cues
+
+---
+
+## 6. Style Prefix Consistency
+
+Keep the same global style block across related clips:
+
+```text
+[visual_style]. [color_palette]. [lighting].
+```
+
+And keep the same negative block:
+
+```text
+Avoid: [negative prompts].
+```
+
+This is one of the strongest non-reference continuity tools.
+
+---
+
+## 7. Reference Choices
+
+### Face Consistency
+| Method | Consistency | Best For |
+|--------|-------------|----------|
+| User Asset | High | new recurring characters |
+| Character Library | Highest | existing platform characters |
+| Text-only | Low | fallback only |
+
+### Environment / Composition Consistency
+| Method | Consistency | Best For |
+|--------|-------------|----------|
+| scene ref_image | High | recurring environments |
+| storyboard panel | Medium-High | shared visual DNA |
+| text-only | Low | fallback |
+
+### Motion / Seam Consistency
+| Method | Consistency | Best For |
+|--------|-------------|----------|
+| ref_video | Highest | direct shot-to-shot continuation |
+| continuity text only | Medium | softer handoffs |
+
+---
+
+## 8. Transition Tactics When Perfect Continuity Is Not Possible
+
+Useful tactics:
+1. cut on action
+2. motion blur / whip pan at seam
+3. close-up to wide change
+4. shadow-to-light or light-to-shadow shift
+5. short cross-dissolve in post
+
+These do not replace planning. They help hide residual mismatch.
+
+---
+
+## 9. Common Mistakes
 
 | Mistake | Fix |
 |---------|-----|
-| Abbreviating character descriptions | Copy the full Character Bible entry every time |
-| Rephrasing lighting descriptors | Use identical words for same-location lighting |
-| Forgetting continuity bridge | Always start S2+ with "Continuing from the previous shot:" |
-| Including BGM in Seedance prompt | Never mention music in video prompts — BGM is overlaid in post |
-| Using different style prefixes | Same prefix for every shot, character for character |
-| Describing camera in continuity_out | Continuity describes scene state, not camera state |
+| Abbreviating recurring character descriptions | Copy verbatim every time |
+| Treating every transition the same | Mark serial vs parallel in plan |
+| No closing_state / opening_state | Add handoff state before prompt writing |
+| Rephrasing the same environment repeatedly | Reuse the same core wording |
+| Using raw face `ref_image` | Register as asset or use Character Library |
+| Expecting prompt prose alone to solve seam continuity | Use stronger anchors or `ref_video` |
+
+---
+
+## Summary Rule
+
+**If the viewer should feel that two clips belong to the same continuous world or action, continuity must be designed before generation, not hoped for after generation.**

@@ -4,7 +4,7 @@ description: Generate AI videos and images via Renoise platform. Create tasks, u
 allowed-tools: Bash, Read, Write, Glob
 metadata:
   author: renoise
-  version: 0.2.0
+  version: 0.3.0
   category: video-production
   tags: [general, video-generation, image-generation, product-sheet, scene-background, material-pool]
 ---
@@ -17,7 +17,7 @@ Generate AI videos, images, product design sheets, and scene backgrounds through
 
 ## Choose Your Workflow First
 
-Before generating anything, identify your project type. Different projects require different preparation steps. **Skipping preparation for multi-scene projects will result in inconsistent characters across scenes.**
+Before generating anything, identify your project type. Different projects require different preparation steps. **Skipping preparation for multi-scene projects will result in inconsistent characters, scenes, and objects across shots.**
 
 | Project Type | Examples | Workflow |
 |---|---|---|
@@ -28,9 +28,34 @@ Before generating anything, identify your project type. Different projects requi
 
 ---
 
+## Anchor Model
+
+Treat every reference as one of these anchor types:
+
+| Anchor Type | What it is | Best For |
+|---|---|---|
+| **Asset** | Reusable, stable, face-safe anchor | Recurring people and long-lived identity anchors |
+| **Character Library** | Platform-managed face-safe human anchor | Pre-existing platform characters |
+| **Material** | Raw uploaded media | Products, environments, motion refs, temporary inputs |
+| **Storyboard / panel** | Shared visual DNA anchor | Palette, composition, scene family resemblance |
+| **Text-only** | Prompt-only fallback | One-off elements or last resort |
+
+### Anchor Hierarchy
+
+Prefer anchors in this order when consistency matters:
+1. **User Asset / Asset**
+2. **Character Library**
+3. **Scene / product / object material**
+4. **Storyboard panel / grid**
+5. **Text-only**
+
+**Do not treat raw materials as interchangeable with assets.** Materials are inputs; assets are durable anchors.
+
+---
+
 ## Multi-Scene Production Workflow
 
-**Use this workflow whenever your project has recurring characters across 2+ scenes.** This is the most common workflow for drama, short films, and narrative content.
+**Use this workflow whenever your project has recurring people, environments, or key objects across 2+ scenes.** This is the most common workflow for drama, short films, and narrative content.
 
 ### Step 1: Check Balance
 
@@ -41,9 +66,19 @@ node ${CLAUDE_SKILL_DIR}/renoise-cli.mjs credit me
 node ${CLAUDE_SKILL_DIR}/renoise-cli.mjs credit estimate --duration 15
 ```
 
-### Step 2: Generate Character Reference Sheets
+### Step 2: Build an Anchor Package
 
-For each recurring character, generate a reference sheet with `nano-banana-2`. This anchors their appearance across all scenes.
+Before generating shots, decide which recurring elements need durable anchors.
+
+Minimum anchor package for multi-scene work:
+- recurring people → **User Asset** or **Character Library**
+- recurring environments → scene or storyboard anchor
+- recurring products / props → product or object anchor where needed
+- continuity-critical transitions → `ref_video` plan or explicit handoff state
+
+### Step 3: Generate Character Reference Sheets
+
+For each recurring human character that does not already exist as a Character Library entry, generate a reference sheet with `nano-banana-2`. This anchors their appearance across all scenes.
 
 ```bash
 # Example: generate a character reference for a Tang Dynasty official
@@ -54,7 +89,7 @@ node ${CLAUDE_SKILL_DIR}/renoise-cli.mjs task generate \
 
 **Do this for every character that appears in 2+ scenes.** Minor one-scene characters can be described in text only.
 
-### Step 3: Download, Upload, and Register as Assets
+### Step 4: Download, Upload, and Register as Assets
 
 This makes them privacy-safe and reusable across all video generations.
 
@@ -71,7 +106,7 @@ node ${CLAUDE_SKILL_DIR}/renoise-cli.mjs asset register 42 --name "Li Shande"
 # Returns asset #ID (e.g. 7) when active
 ```
 
-### Step 4: Generate Videos Scene by Scene
+### Step 5: Generate Videos Scene by Scene
 
 Use `asset:<asset_id>:reference_image` to anchor character appearance in every scene.
 
@@ -86,7 +121,7 @@ For scenes with multiple characters, combine assets:
   --materials "asset:7:reference_image,asset:8:reference_image"
 ```
 
-### Step 5: Review and Iterate
+### Step 6: Review and Iterate
 
 Check each video result. If a scene needs adjustment, regenerate with the same asset references to maintain consistency.
 
@@ -165,7 +200,7 @@ All commands follow the pattern:
 node ${CLAUDE_SKILL_DIR}/renoise-cli.mjs <domain> <action> [options]
 ```
 
-Four domains: `task`, `material`, `character`, `credit`
+Five domains: `task`, `material`, `character`, `asset`, `credit`
 
 ### Check Balance
 
@@ -273,7 +308,7 @@ node ${CLAUDE_SKILL_DIR}/scripts/match-materials.mjs --pool pool.json --shots pr
 
 See [Material Pool](#material-pool) section above for full details.
 
-### Character Browsing
+### Character Library Browsing
 
 ```bash
 node ${CLAUDE_SKILL_DIR}/renoise-cli.mjs character list                              # List available characters
@@ -288,9 +323,9 @@ node ${CLAUDE_SKILL_DIR}/renoise-cli.mjs task tags                          # Li
 node ${CLAUDE_SKILL_DIR}/renoise-cli.mjs task tag <id> --tags a,b,c         # Update task tags
 ```
 
-### Asset Registration (User Assets)
+### Assets — Stable Reusable Anchors
 
-Register uploaded images as **Ark assets** so they bypass face/privacy detection when used as `reference_image`. This is the recommended way to use AI-generated character images for consistent character appearance across video segments.
+Register uploaded images as **Ark assets** so they become reusable, face-safe anchors when used as `reference_image`. This is the recommended way to use AI-generated character images for consistent character appearance across video segments, and it aligns with the platform's asset-first direction.
 
 ```bash
 # One-step: create + wait until active
@@ -471,7 +506,8 @@ The storyboard grid method produces the best visual consistency by anchoring eac
 
 | Approach | Visual Consistency | Privacy Risk | Setup Effort |
 |----------|-------------------|--------------|--------------|
-| **Storyboard Grid (preferred)** | Highest — all panels share style context | Low — faces are small in grid cells | Medium |
+| **Asset + scene anchor + storyboard** | Highest — identity + environment + shared visual DNA | Lowest practical risk | Medium-High |
+| Storyboard Grid only | Medium-High — strong style context, weaker identity locking | Low-Medium | Medium |
 | Text-to-Video (fallback) | Lower — style varies per call | None | Low |
 | Individual ref_image | Medium | High — close-up faces trigger blocking | Medium |
 
@@ -501,9 +537,9 @@ The storyboard grid method produces the best visual consistency by anchoring eac
 
 | Signal | Approach |
 |--------|----------|
-| Any project with recurring characters | **Storyboard grid** (preferred) |
-| Product shots, landscapes, no people | Image-to-Video with individual ref_image |
-| Grid ref_image blocked by privacy detection | **Text-to-Video** (fallback) |
+| Recurring people + recurring scenes | **Asset / Character Library + scene anchors + optional storyboard** |
+| Product shots, landscapes, no people | Image-to-Video with individual `ref_image` |
+| Grid `ref_image` blocked by privacy detection | Asset / Character Library for people + text or scene anchors for the rest |
 | Quick one-off generation, no consistency needs | Text-to-Video |
 
 ---
@@ -524,6 +560,16 @@ The storyboard grid method produces the best visual consistency by anchoring eac
 - End the last segment with "frame holds steady" for clean endings or easy continuation
 
 **Negative prompting:** Describe what you want, not what you don't want. The model responds best to positive, descriptive language.
+
+---
+
+## Face-Safe Human Anchors
+
+For human identity consistency, there are two first-class anchor paths:
+- **User Assets** — best for new custom characters you generate or upload
+- **Character Library** — best for pre-existing platform characters
+
+Use either of these before falling back to raw materials or text-only.
 
 ---
 
@@ -578,9 +624,9 @@ node ${CLAUDE_SKILL_DIR}/renoise-cli.mjs task generate \
 
 ---
 
-## Character Library — The Correct Way to Handle Human Faces
+## Character Library — Face-Safe Platform Characters
 
-The Renoise platform has a **Character Library** for managing human face/body references. This is the **primary and recommended** way to maintain character consistency across video segments and avoid `PrivacyInformation` errors.
+The Renoise platform has a **Character Library** for managing human face/body references. This is a first-class face-safe anchor path for maintaining character consistency across video segments and avoiding `PrivacyInformation` errors.
 
 ### Why Character Library?
 
@@ -621,11 +667,12 @@ When using `--characters`, the CLI sends `{ "character_id": ID, "role": "referen
 
 | Scenario | Approach |
 |----------|----------|
-| Characters exist in the library | `--characters "ID"` (strongest consistency, no privacy issues) |
-| No characters in library, custom project | Create characters on https://www.renoise.ai first, then use `--characters` |
-| Quick generation, no library setup | **Text-to-Video** with detailed Character Bible (no materials at all) |
-| Product/landscape images (no faces) | `--materials "ID:ref_image"` (safe, no privacy issues) |
-| Storyboard grids with small figures | May or may not trigger — test first; fall back to text-only |
+| Existing reusable platform character | `--characters "ID"` |
+| New custom recurring person with generated or uploaded face reference | **User Asset** → `asset register` → `asset:ID:reference_image` |
+| No reusable face-safe anchor available yet | Create one before multi-scene execution |
+| Quick one-off with low identity importance | **Text-to-Video** with detailed Character Bible |
+| Product/landscape images (no faces) | `--materials "ID:ref_image"` |
+| Storyboard grids with small figures | Use for style/composition only, not as the primary face anchor |
 
 ### What NOT to Do
 

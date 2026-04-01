@@ -1,327 +1,296 @@
 # Visual Development Guide
 
-The pipeline for transforming text descriptions into visual assets that anchor video generation. This stage bridges SCRIPT → PROMPTS by creating character design sheets, scene references, and storyboard grids — all uploaded as materials and referenced in every video prompt.
+VISUAL DEV bridges late **PLAN** and early **EXECUTE**.
 
-## Why Visual Dev Matters
+Goal: turn abstract planning decisions into concrete anchors the model can actually follow. This stage exists to prevent drift.
 
-| Approach | Character Consistency | Setup Time | Credits |
-|----------|----------------------|------------|---------|
-| Text-only (no visual dev) | Low — model drifts per generation | 0 min | 0 |
-| Storyboard grid as ref_image | Medium-High — shared visual DNA | ~15 min | ~50-150 |
-| Char sheets + scene refs + storyboard | Highest — layered anchoring | ~30 min | ~150-400 |
+In practical terms, VISUAL DEV answers:
+- What will anchor recurring people?
+- What will anchor important environments, products, or props?
+- What will each shot reference?
+- Where does clip-to-clip continuity need stronger support?
 
-**Rule**: For any project with 3+ segments and recurring characters, ALWAYS do visual dev. The time investment pays for itself in fewer re-generations.
+---
 
-## Sub-Pipeline Overview
+## Stage Contract
 
-```
-┌─────────────┐   ┌──────────────┐   ┌─────────────────┐   ┌───────────────┐   ┌───────────────┐
-│ 1. MATCH    │──▶│ 2. GAP       │──▶│ 3. GENERATE     │──▶│ 4. REGISTER   │──▶│ 5. MAP        │
-│ existing    │   │ analysis     │   │ missing assets   │   │ face assets   │   │ shot→material │
-│ materials   │   │ + characters │   │ (images)         │   │ as Ark assets │   │ + assets      │
-└─────────────┘   └──────────────┘   └─────────────────┘   └───────────────┘   └───────────────┘
-```
+### Required Inputs
+- approved SCRIPT package
+- segment purpose table
+- character asset plan
+- anchor needs summary
+- style direction
 
-> **Critical**: Images containing human faces **must** go through asset registration before use in video generation. Three options (strongest → weakest):
-> 1. **User Asset** — generate character image → upload → `asset register` → use as `asset:ID:reference_image` (bypass privacy detection, ~1 min setup)
-> 2. **Character Library** — pre-existing platform characters → `--characters "ID"` (bypass privacy detection, zero setup if character exists)
-> 3. **Text-only** — full Character Bible description in prompt (no images, no privacy issues, lowest consistency)
+### Required Outputs
+Before leaving VISUAL DEV, produce:
+- **Anchor Registry**
+- **Scene / Environment Anchor Plan**
+- **Shot → Anchor Mapping**
+- **Continuity Strategy Table**
+- any generated / registered assets and their IDs
+
+### Blocking Conditions
+Do **not** move to PROMPTS if any of these are missing for quality-critical shots:
+- recurring human anchor
+- important recurring environment anchor
+- important recurring product / object anchor when the shot depends on it
+- shot-level anchor assignment
+- continuity strategy for tight handoffs
+
+If a key anchor is missing, either create it here or explicitly downgrade the plan with user awareness. Do not silently continue.
+
+---
+
+## Why This Stage Matters
+
+| Approach | Consistency | Setup Time | Cost | Best Use |
+|----------|-------------|------------|------|----------|
+| Text-only | Low | 0 | 0 | Simple one-off shots |
+| Storyboard-only | Medium | Low-Med | Low-Med | Palette / composition anchoring |
+| Human + scene + storyboard anchors | High | Med | Med | Multi-clip work with continuity needs |
+
+**Rule of thumb:** for multi-clip work, recurring people, environments, and important props should have anchors planned on purpose, not by accident.
 
 ---
 
 ## Step 1: Match Existing Materials
 
-If the user provided materials during INTAKE (uploaded via `material-ingest.mjs`), score them against project needs.
+If INTAKE produced a material pool, score it against project needs:
 
 ```bash
 node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/scripts/match-materials.mjs \
   --pool material-pool.json --shots project.json
 ```
 
-This outputs a mapping with confidence scores:
-```
-character "protagonist" → material #5  (score: 0.91) ✅
-character "sidekick"    → no match                    ❌
-scene "office"          → material #23 (score: 0.78)  ✅
-scene "tavern"          → no match                    ❌
-shot S1               → material #42 (score: 0.85)  ✅
-shot S3               → no match                    ❌
-```
+This helps separate:
+- what is already usable
+- what can be reused
+- what still needs creation
 
-**If no material pool exists**: Skip to Step 2 with everything marked as ❌.
+If no material pool exists, mark those needs as unresolved and continue to gap analysis.
 
 ---
 
 ## Step 2: Gap Analysis
 
-### Step 2a: Check Existing Face-Safe References
+### 2a. Check Existing Face-Safe Options
 
-Before generating any character design sheets, check what's already available:
+Before generating new character art, inspect existing options:
 
 ```bash
-# Check Character Library (pre-existing platform characters)
 node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/renoise-cli.mjs character list
-node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/renoise-cli.mjs character list --search "warrior"
-
-# Check existing User Assets (previously registered)
 node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/renoise-cli.mjs asset list --status active
 ```
 
-If suitable characters/assets are found, note their IDs and skip generating those characters.
+If suitable characters or assets already exist, reuse them.
 
-If none exist, the plan is: **generate character image → upload → register as User Asset → use `asset:ID:reference_image`**. This is detailed in Step 3a and Step 4 below.
+### 2b. Identify Missing Anchors
 
-### Step 2b: Compare Materials Against Needs
+Use a planning table like this:
 
-Compare matched materials against full project needs:
+```text
+| Need | Reuse? | New Asset Needed? | Anchor Type |
+|------|--------|-------------------|-------------|
+| Maya (S1-S4) | no | yes | User Asset |
+| Hallway (S1) | yes | no | scene ref_image |
+| Living room (S2-S4) | no | yes | scene ref_image + storyboard |
+| Pocket watch | maybe | maybe | object/product ref |
+```
 
-| Need | Matched? | Action |
-|------|----------|--------|
-| Character: [protagonist] (8 segments) | ✅ existing User Asset #27 | Use `--materials "asset:27:reference_image"` |
-| Character: [protagonist] (8 segments) | ✅ in Character Library #42 | Use `--characters "42"` |
-| Character: [supporting] (2+ segments) | ❌ no asset or library entry | **MUST Generate → upload → asset register** |
-| Character: [cameo] (1 segment only) | ❌ no asset | Text-only acceptable |
-| Scene: [location A] | ✅ material (no faces) | Use as `--materials "ID:ref_image"` |
-| Scene: [location B] | ❌ | Generate scene ref (no faces, optional) |
-| Storyboard grid | ❌ | Generate (environment-only panels, recommended) |
+### Anchor Priority
 
-**Priority for face references**: User Asset (`asset:ID:reference_image`) = Character Library (`--characters "ID"`) > Text-only.
-**Priority for non-face references**: Material `ref_image` > Storyboard grid panel > Text-only.
+**Faces / characters**
+1. User Asset (`asset:ID:reference_image`)
+2. Character Library (`--characters "ID"`)
+3. Text-only fallback
 
-**Characters appearing in 2+ segments MUST have asset registration — this is not optional.** The cost is negligible (~12 credits per image) vs. the visual consistency benefit. Scene refs help but are less critical if the storyboard grid already depicts those environments.
+**Non-face anchors**
+1. scene / product `ref_image`
+2. storyboard panel
+3. text-only
 
 ---
 
-## Step 3: Generate Missing Assets
+## Step 3: Build the Anchor Plan First
 
-All assets generated with `nano-banana-2` (image model).
+Before generating anything, write the plan explicitly.
 
-### 3a. Character Design Sheets
+### 3a. Anchor Registry
 
-One sheet per main character. Shows multiple angles and expressions in a single image, ensuring the model generates a consistent face/body.
-
-**Prompt template:**
+```text
+| Anchor | Type | Segments | Anchor Strategy | Asset ID / Source | Notes |
+|--------|------|----------|-----------------|-------------------|-------|
+| Maya | recurring human | S1-S4 | User Asset | pending | recurring lead |
+| Courier | one-shot human | S1 | Text-only | — | cameo only |
+| Hallway | environment | S1 | existing scene ref | material:53 | already provided |
+| Pocket watch | object | S2-S4 | product/object ref | pending | recurring hero prop |
 ```
+
+### 3b. Scene / Environment Anchor Plan
+
+```text
+| Environment | Segments | Anchor Strategy | Material ID | Notes |
+|-------------|----------|-----------------|-------------|-------|
+| Hallway | S1 | existing scene ref | 53 | already provided |
+| Living room | S2-S4 | generate scene ref | pending | recurring key location |
+| Magical living room state | S3-S4 | storyboard + prompt lighting variation | pending | derived from living room |
+```
+
+### 3c. Continuity Strategy Table
+
+```text
+| Transition | Continuity Need | Strategy | Why |
+|------------|------------------|----------|-----|
+| S1→S2 | medium | parallel + continuity text | location change |
+| S2→S3 | high | serial / ref_video preferred | same room, continuous action |
+| S3→S4 | high | serial preferred | same room, aftermath |
+```
+
+**This table is mandatory for multi-clip work.** It keeps the team from pretending all transitions are equal.
+
+---
+
+## Step 4: Generate Missing Assets
+
+All image assets use `nano-banana-2`.
+
+### 4a. Character Design Sheets
+
+Use when a character needs a reusable face anchor.
+
+Prompt template:
+```text
 Character design sheet for [CHARACTER NAME].
 
-[FULL CHARACTER DESCRIPTION — verbatim from Character Bible, including:
-  age, ethnicity, face details, hair, skin tone, body type,
-  wardrobe (texture + cut + color for each garment),
-  signature details (jewelry, accessories, props)]
+[FULL CHARACTER DESCRIPTION from Character Bible]
 
 Layout: 2 rows × 3 columns on clean white background.
-Row 1: front view (neutral expression), 3/4 view (neutral), side profile (neutral).
-Row 2: front view ([emotion A] expression), front view ([emotion B] expression), full body pose.
+Row 1: front, 3/4, side profile.
+Row 2: two expressions + full body pose.
 
-[STYLE LINE from project — e.g. "Cinematic period drama, warm earth tones, film grain."]
-Concept art style, clean lines, consistent appearance across all panels.
+[STYLE LINE]
+Concept art style, consistent appearance across all panels.
 No text labels. No background elements.
 ```
 
-**CLI:**
+CLI:
 ```bash
 node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/renoise-cli.mjs task generate \
   --model nano-banana-2 --resolution 2k --ratio 16:9 \
   --prompt "<character sheet prompt>" --tags "<project>,char-<name>"
 ```
 
-**Upload + Register as Asset (for face-safe use):**
-```bash
-# Download the generated image
-curl -s -o character-sheet.png "<image_url>"
+### 4b. Scene Reference Images
 
-# Upload as material
-node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/renoise-cli.mjs material upload character-sheet.png
-# → Returns material ID (e.g. #101)
+Use for recurring or important environments.
 
-# Register as Ark asset (one-step: create + wait ~30-60s)
-node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/renoise-cli.mjs asset register 101 --name "Maya - Character Reference"
-# → Returns asset ID (e.g. #27) when active
-# Use in video: --materials "asset:27:reference_image"
-```
-
-> **Why asset register?** Character design sheets contain human faces. Using them directly as `ref_image` via material ID triggers privacy detection. Registering as an Ark asset creates an `asset://` URI that bypasses this entirely.
-
-### 3b. Scene Reference Images
-
-One image per key location. No characters — environment only.
-
-**Prompt template:**
-```
-[LOCATION DESCRIPTION — architecture, materials, objects, scale]
-[TIME OF DAY + LIGHTING — e.g. "Late afternoon, golden hour side-lighting through tall windows"]
+Prompt template:
+```text
+[LOCATION DESCRIPTION]
+[TIME OF DAY + LIGHTING]
 [STYLE LINE]
-Cinematic composition, wide establishing shot. No people, environment only.
-No text, watermarks, or logos.
+Cinematic wide establishing shot. Environment only.
+No people, text, logos, or watermarks.
 ```
 
-**CLI:**
+CLI:
 ```bash
 node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/renoise-cli.mjs task generate \
   --model nano-banana-2 --resolution 2k --ratio 16:9 \
   --prompt "<scene ref prompt>" --tags "<project>,scene-<name>"
 ```
 
-Upload and record material ID.
+### 4c. Storyboard Grid
 
-### 3c. Storyboard Grid
+Use when you want shared visual DNA across many shots.
 
-A single image containing key frames from ALL segments, arranged in a grid. Because the AI renders all panels in one context, characters share consistent face structure, proportions, and styling across panels.
-
-**Prompt template:**
-```
-Storyboard grid for "[PROJECT TITLE]", [N] panels arranged in [R] rows × [C] columns.
+Prompt template:
+```text
+Storyboard grid for "[PROJECT TITLE]", [N] panels.
 
 [STYLE LINE]
+[FULL CHARACTER DESCRIPTIONS as needed]
 
-[For each character in the project, full Character Bible description — verbatim]
-
-Panel 1 (S1 — [scene label]): [Key visual moment, 1 sentence. Include character action + environment + lighting mood]
-Panel 2 (S2 — [scene label]): [Key visual moment]
-Panel 3 (S3 — [scene label]): [Key visual moment]
+Panel 1 (S1): ...
+Panel 2 (S2): ...
 ...
 
-Consistent character appearance across all panels. Each panel is a distinct scene with its own lighting and environment.
-Cinematic composition per panel. No text labels.
+Consistent appearance across panels. No text labels.
 ```
 
-**CLI:**
+CLI:
 ```bash
 node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/renoise-cli.mjs task generate \
   --model nano-banana-2 --resolution 2k --ratio 16:9 \
   --prompt "<storyboard grid prompt>" --tags "<project>,storyboard"
 ```
 
-**Split grid into individual panels** (if needed for per-segment ref_image):
+Optional split:
 ```bash
-# Using ImageMagick or ffmpeg
-# For a 2×3 grid:
 convert storyboard.png -crop 3x2@ +repage +adjoin panel_%d.png
 ```
 
-Upload each panel:
-```bash
-for f in panel_*.png; do
-  node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/renoise-cli.mjs material upload "$f"
-done
-```
-
-### Generation Order
-
-Generate assets in parallel when possible:
-- Character sheets and scene refs have no dependencies → generate simultaneously
-- Storyboard grid depends on knowing the character descriptions and scenes → generate after reviewing char sheets (to ensure consistency)
-
-Alternatively, if budget is tight, skip character sheets and scene refs — generate ONLY the storyboard grid. It provides the most consistency-per-credit.
-
 ---
 
-## Step 4: Register Face-Containing Assets
+## Step 5: Register Face Assets
 
-**NEW STEP** — Any generated image containing human faces must be registered as an Ark asset before use.
+Any face-containing image intended for video reference must be registered:
 
 ```bash
-# For each character design sheet generated in Step 3a:
+node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/renoise-cli.mjs material upload character-sheet.png
 node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/renoise-cli.mjs asset register <material_id> --name "<Character Name>"
-# Waits ~30-60s, returns asset ID when active
 ```
 
-Scene refs and storyboard panels (no faces) do NOT need registration — use them directly as `--materials "ID:ref_image"`.
+Use the resulting asset ID in video generation:
+```text
+--materials "asset:27:reference_image"
+```
+
+Never rely on raw `ref_image` for close-up faces.
 
 ---
 
-## Step 5: Build Final Mapping
+## Step 6: Build Final Shot Mapping
 
-Create a complete shot → anchor mapping:
+This is the real output of VISUAL DEV.
 
-```
-Shot    Anchor Type              Reference              CLI Flag
-─────   ──────────────────────   ────────────────────   ───────────────────────────────────
-S1      User Asset (face)        asset #27 (Maya)       --materials "asset:27:reference_image"
-S2      scene ref (no face)      material #53           --materials "53:ref_image"
-S3      Character Library        char #42               --characters "42"
-S4      storyboard panel         material #54           --materials "54:ref_image"
-S5      text-only                —                      (Character Bible in prompt)
-
-Face Reference Registry:
-  Maya (protagonist)   asset #27   (used in S1, S3, S5)
-  Wei (supporting)     asset #28   (used in S3)
-  Elder (cameo)        char #42    (Character Library, used in S3)
+```text
+| Shot | Human Anchor | Environment Anchor | Extra Anchor | Continuity Strategy |
+|------|--------------|--------------------|--------------|---------------------|
+| S1 | asset:27 | material:53 | object:watch | establish |
+| S2 | asset:27 | material:61 | storyboard:72 | parallel |
+| S3 | asset:27 | material:61 | ref_video from S2 | serial |
+| S4 | asset:27 | material:61 | ref_video from S3 | serial |
 ```
 
-**Anchor selection decision tree:**
-
-1. **Has face + generated character image** → `--materials "asset:ID:reference_image"` (User Asset, strongest for new characters)
-2. **Has face + exists in Character Library** → `--characters "ID"` (strongest for pre-existing characters)
-3. **No face (scene, product, environment)** → `--materials "ID:ref_image"` (safe, no registration needed)
-4. **No suitable materials** → text-only with full Character Bible (always works)
-
-> **Rule**: Never use raw `ref_image` (material ID) for images containing human faces. Either register as User Asset or use Character Library. `ref_image` is only for face-free content.
-
-**⚠️ Privacy & Face Detection**:
-- **Character design sheets** generated by `nano-banana-2` contain AI-generated faces that WILL trigger privacy detection if used as raw `ref_image`. **Always register them as User Assets first** (`asset register`).
-- **Storyboard grid panels** with small figures usually pass as `ref_image`, but close-up face panels may be blocked.
-- **If any `ref_image` is blocked**:
-  1. **Best**: Register the image as a User Asset → `asset register <material_id>` → use `asset:ID:reference_image`
-  2. **Alternative**: Use Character Library → `--characters "ID"` (if the character exists there)
-  3. **Fallback**: Drop the image entirely, use text-only with full Character Bible
-- **Real photographs of human faces** — must go through User Asset registration or Character Library. Never use as raw `ref_image`.
+This mapping is what PROMPTS must follow.
 
 ---
 
-## Visual Dev by Mode
+## Checklist Before Proceeding
 
-| Mode | Character Sheets | Scene Refs | Storyboard Grid |
-|------|-----------------|------------|-----------------|
-| A (Quick) | Skip | Skip | Skip |
-| B (E-commerce) | Skip (text description) | Skip (product photo is the ref) | Skip |
-| C (Original) | ✅ All main characters | ✅ Key locations | ✅ Always |
-| D (Adaptation) | ✅ All main characters | ✅ Key locations | ✅ Always |
-| E (Montage) | Optional (if recurring character) | ✅ Key environments | ✅ Always (mood anchoring) |
+### Blocking
+- [ ] Every recurring human has a real anchor strategy
+- [ ] All face anchors are registered or mapped to Character Library
+- [ ] Important recurring environments have anchors or an explicit fallback decision
+- [ ] Important recurring products / props have anchors or an explicit fallback decision when the shot depends on them
+- [ ] Multi-clip transitions have a continuity strategy
+- [ ] Shot → Anchor Mapping is complete
 
----
+### Required Output Tables
+- [ ] Anchor Registry
+- [ ] Scene / Environment Anchor Plan
+- [ ] Continuity Strategy Table
+- [ ] Shot → Anchor Mapping
 
-## Efficiency Tips
-
-1. **Character sheets are NOT optional for 2+ segment characters.** Every character appearing in 2+ segments MUST have a registered User Asset. At ~12 credits per image + ~1 min registration, this is negligible compared to the 300 credits per video segment. Skipping character assets to "save budget" is a false economy — inconsistent characters require expensive re-generations.
-
-2. **Scene refs and storyboard grids CAN be skipped** if budget is tight. These provide environmental consistency but are less critical than character assets. Priority order: character assets (mandatory) > storyboard grid (recommended) > scene refs (nice-to-have).
-
-3. **Quality-maximizing path**: Generate character sheets first, review them, then reference those designs when writing the storyboard grid prompt. The grid will be more consistent because you've already locked the character look.
-
-4. **Parallel generation**: Character sheets and scene refs are independent — generate them all simultaneously (~8 min total regardless of count). Then generate the storyboard grid.
-
-5. **Re-use across episodes**: Save material IDs. For episodic content (same characters, new story), reuse character sheets and regenerate only new scene refs + storyboard grid.
+If these four artifacts do not exist, VISUAL DEV is not done.
 
 ---
 
-## Checklist Before Proceeding to PROMPTS
+## Efficiency Notes
 
-**Character Assets (BLOCKING — cannot proceed if any fail):**
-- [ ] Character Library and existing User Assets checked
-- [ ] Every character appearing in **2+ segments** has a registered User Asset (asset ID) or Character Library entry — **text-only is NOT acceptable for 2+ segment characters** unless image generation failed after retry
-- [ ] All face-containing character images are registered as User Assets (`asset register`) and status is `active`
-- [ ] Characters in exactly 1 segment may use text-only (document which ones and why)
-
-**Character-to-Asset Registry (MANDATORY — output this table before proceeding):**
-```
-| Character | Segments | Asset ID | Strategy |
-|-----------|----------|----------|----------|
-| [name]    | S1-S8    | asset:28 | User Asset ✅ |
-| [name]    | S3,S5    | asset:29 | User Asset ✅ |
-| [name]    | S7,S8    | asset:30 | User Asset ✅ |
-| [name]    | S4       | —        | Text-only (1 segment) |
-```
-
-**Scene & Environment (recommended, not blocking):**
-- [ ] Every key location has either a matched material or a generated scene ref (face-free)
-- [ ] Storyboard grid generated (if applicable) with environment-focused panels
-- [ ] All non-face assets are uploaded and have material IDs
-
-**Shot Mapping:**
-- [ ] Shot → anchor mapping is complete, using the correct CLI flag format:
-  - Face images: `--materials "asset:ID:reference_image"` or `--characters "ID"`
-  - Non-face images: `--materials "ID:ref_image"`
-  - No anchor: text-only with full Character Bible (1-segment characters only)
-- [ ] No raw `ref_image` contains close-up human faces
-- [ ] User has reviewed and approved the visual assets (Confirm ②)
+- Human identity anchors are usually the highest-value investment
+- Scene anchors become critical when the same location appears multiple times
+- Product / prop anchors matter when the object itself must stay recognizably consistent
+- Storyboard grids are strong for overall visual DNA, but weaker than face-safe assets for identity
+- If a transition must match tightly at the seam, choose serial / `ref_video` early instead of hoping prompt wording will solve it later
