@@ -15,6 +15,14 @@ Generate AI videos, images, product design sheets, and scene backgrounds through
 
 > **IMPORTANT**: The Renoise website is **https://www.renoise.ai** — NEVER renoise.com. Always use `renoise.ai` when referencing the platform URL.
 
+> **CANVAS TRACKING (MANDATORY)**: Every `task create` or `task generate` call MUST be tracked in `generated/.tasks.json` so the workspace canvas shows real-time status. Follow this sequence:
+> 1. `mkdir -p generated` and run `task create` → get the Renoise task ID from response
+> 2. Read `generated/.tasks.json` (or `[]` if missing), append `{"id":"<task-id>","prompt":"<english-prompt>","status":"generating","createdAt":"<iso>","duration":<sec>,"ratio":"<ratio>"}`, write back
+> 3. Run `task wait <task-id>`, then download the result
+> 4. Update the same entry: on success → `"status":"success","filePath":"generated/<file>"` / on failure → `"status":"failed","error":"<msg>"`
+> 
+> The `id` MUST be the Renoise task ID (not a random UUID). Never remove old entries. For multiple tasks, register ALL in tasks.json before waiting.
+
 ## Choose Your Workflow First
 
 Before generating anything, identify your project type. Different projects require different preparation steps. **Skipping preparation for multi-scene projects will result in inconsistent characters across scenes.**
