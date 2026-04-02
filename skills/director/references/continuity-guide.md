@@ -15,6 +15,30 @@ RIGHT:  "East Asian woman, late 20s, shoulder-length black hair with subtle aubu
 
 Even small omissions cause drift. If the Bible says "shoulder-length black hair with subtle auburn highlights", every prompt must say exactly that.
 
+### Action Continuity Across Segments
+
+When a character’s action spans multiple segments, describe the **completion state** of each action to help the model bridge segments:
+
+```
+S1 ending: "She reaches for the door handle, fingers wrapping around it."
+S2 opening: "Continuing from the previous shot — carrying momentum from grasping the handle, she pushes the door open and steps through."
+```
+
+**Write both start and end states** for every major action. This is the #2 most impactful technique after verbatim character descriptions.
+
+### Externalizing Emotion for Continuity
+
+Abstract emotions (“sad”, “angry”) produce different visual results each time. Externalized body signals produce consistent results:
+
+```
+INCONSISTENT: S1 ends "she looks sad" → S2 opens "she is still sad"
+→ Model interprets “sad” differently each generation.
+
+CONSISTENT: S1 ends "her lips quiver, eyes redden, shoulders slump"
+→ S2 opens "Continuing — tears now falling, she lowers her gaze to the ground."
+→ Observable physical signals bridge reliably.
+```
+
 ### Drift Vulnerability Ranking
 
 Features that drift most easily (highest risk first):
@@ -214,3 +238,9 @@ Storyboard grids containing **close-up human faces** will likely trigger `Privac
 | Including BGM in Seedance prompt | Never mention music in video prompts — BGM is overlaid in post |
 | Using different style prefixes | Same prefix for every shot, character for character |
 | Describing camera in continuity_out | Continuity describes scene state, not camera state |
+| Abstract emotion words across segments | Externalize emotions as body signals for consistent bridging |
+| Missing action completion states | Always describe where each action ends at segment boundaries |
+| Using numbers for multi-char IDs | Use letters (A, B, C) to avoid count ambiguity |
+| Missing material role declarations | Always declare "@Image1 is [character], @Image2 is [scene]" |
+| Omitting stability constraints | Always end with "Face stable without deformation..." |
+| Multiple camera moves per time stage | One movement per 5s window; sequential, not simultaneous |
