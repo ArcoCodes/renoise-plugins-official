@@ -359,24 +359,41 @@ Express energy through actual scene content:
 
 ## Prompt Writing Principles
 
+### The 8-Element Formula (Seedance 2.0 Optimized)
+
+Seedance 2.0 processes prompts through **spatial** (scene layout) and **temporal** (how things change over time) layers. The following order maximizes the model's parsing accuracy and generation stability:
+
+```
+① Precise Subject  →  ② Action Details  →  ③ Scene/Environment  →  ④ Lighting & Color
+→  ⑤ Camera Movement  →  ⑥ Visual Style  →  ⑦ Quality Parameters  →  ⑧ Constraint Clauses
+```
+
+**Why this order matters**: "Lock WHO and WHAT first, then WHERE and WHAT MOOD, then HOW TO SHOOT, finally tighten with style, quality, and constraints." This sequence aligns with how the model internally decomposes prompts and produces significantly higher first-pass success rates compared to unstructured descriptions.
+
 ### Basic Rules
 1. **Scene descriptions must be in English** — the model understands English scene/camera/action prompts best. Dialogue lines can be in any language (see Sound & Dialogue section)
 2. **Natural narrative** — coherent descriptive paragraphs, not comma-separated tag lists
 3. **Specific > Abstract** — `a golden retriever running through shallow ocean waves at sunset` beats `a dog on a beach`
 4. **One mood per segment** — do not ask for contradictory tones in the same prompt
 5. **Every token must earn its place** — no meta-commentary, no HTML comments, no instructions the model ignores
+6. **One camera movement per time stage** — do not request push + pull + pan + orbit simultaneously in the same 5s window; this destabilizes the output
 
-### Prompt Structure
+### Prompt Structure (Expanded)
 
 ```
-Style (1 line) + Character (full Bible, if present) + Time Segments (2-3) + Sound Design + Negative
+Visual Style (1 line) + Quality Parameters
++ Character (full Bible, if present)
++ Time Segments (2-3), each containing: Action + Scene + Lighting + Camera
++ Sound Design
++ Constraint Clauses
 ```
 
-- **Style**: Persistent visual DNA only (see Visual Anchor section)
+- **Visual Style**: Persistent visual DNA only (see Visual Anchor section)
+- **Quality Parameters**: `4K, rich detail, cinematic texture, natural color, soft lighting` — placed near the style line
 - **Character**: Full appearance + wardrobe verbatim from Bible. Never abbreviate.
-- **Time Segments**: 2-3 stages with smooth camera flow
+- **Time Segments**: 2-3 stages with smooth camera flow. Each stage: subject action → environment context → camera movement
 - **Sound Design**: One line at the end for ambient/SFX
-- **Negative**: `No text, subtitles, watermarks, or logos.`
+- **Constraint Clauses**: Stability constraints + negative prompts (see below)
 
 ### Action Writing — CRITICAL
 
@@ -387,11 +404,46 @@ The model generates **video**, not photos. Every shot needs visible motion.
 **Level 3 (good)**: Action + body detail — `reaches up to touch the branch, fingers brushing the bark, sleeve falling back to reveal his wrist`
 **Level 4 (great)**: Action + micro-movement — `reaches up to touch the branch. Wind catches his robe — it billows. His fingers brush the bark gently. A petal detaches and drifts past his face.`
 
+#### Action Intensity Guidelines
+
+The model handles **gradual, continuous, subtle movements** far better than explosive, high-intensity actions:
+
+| Preferred (High Success) | Avoid (Unstable) |
+|--------------------------|------------------|
+| Slowly walks, gently raises hand | Sprints wildly, leaps dramatically |
+| Turns head gradually, sits down smoothly | Violent rolls, rapid spinning |
+| Trembling lips, eyes welling up | "Extremely angry", "very sad" (abstract) |
+| Momentum carries from previous motion | Abrupt direction changes |
+
+#### Writing Completion Actions
+
+Always describe where a motion **ends**, not just where it starts. This helps the model judge continuity:
+
+```
+BAD:  "She raises her hand."
+GOOD: "She raises her hand from her side to shoulder height, palm facing forward, then holds."
+GOOD: "Carrying momentum from the turn, she transitions smoothly into raising her hand."
+```
+
+#### Externalizing Emotion Through Body Language
+
+Replace abstract emotion words with observable physical signals:
+
+| Abstract (Weak) | Externalized (Strong) |
+|-----------------|----------------------|
+| "looks very sad" | "lips quiver slightly, eyes redden, shoulders tremble" |
+| "extremely angry" | "jaw clenches, fists tighten, nostrils flare" |
+| "feels nervous" | "fidgets with ring, avoids eye contact, shallow breathing" |
+| "is happy" | "eyes crinkle, dimples appear, chest lifts with a deep breath" |
+
 Rules:
 - Every shot must have at least one verb of motion
+- **Prefer subtle, continuous small actions** — these render with highest fidelity
 - Add micro-movements: hair blowing, fingers tightening, fabric rippling, chest rising with breath
 - Describe the arc of motion: `raises the sword from hip to overhead` not `holds sword up`
+- **Write both start and end states** of each action for continuity
 - Physical reactions: when things collide, describe aftermath (dust, recoil, fabric displacement)
+- **Externalize emotions** through body signals, not abstract adjectives
 
 ### Camera Writing — CRITICAL
 
@@ -536,28 +588,61 @@ Audio style: Ennio Morricone spaghetti western.
 - Specific SFX when particular sounds are plot-critical (a gunshot, a phone ring, a crash)
 - Combine both: `Audio style: noir jazz. Sound design: rain on window, typewriter clicks.`
 
-### Negative & Technical Quality Constraints
+### Constraint Clauses — CRITICAL
 
-Every prompt should end with two blocks:
+Every prompt MUST end with constraint clauses. This is the most impactful quality lever in Seedance 2.0.
 
-**Negative constraints** (what to exclude):
+#### Stability Constraints (MANDATORY for all human/character content)
+
+Always include this block at the end of prompts featuring characters:
+
+```
+Face stable without deformation, facial features clear, body proportions normal,
+motion natural and fluid, no stiffness, no frame stuttering, no flickering.
+```
+
+This single line significantly reduces face-morphing, body distortion, and motion jitter — the three most common generation artifacts.
+
+#### Quality Parameters (place after style line)
+
+```
+High-definition, rich detail, cinematic texture, natural color, soft lighting.
+```
+
+For photorealistic content, strengthen:
+```
+4K high-definition, photorealistic skin textures, natural fluid motion, consistent lighting.
+```
+
+#### Negative Constraints (what to exclude)
 ```
 No text, subtitles, watermarks, or logos.
 ```
 Add scene-specific negatives as needed: `No modern elements.` `No anime style.`
 
-**Technical quality constraints** (optional, for photorealistic content):
+#### Technical Quality Constraints (optional, for close-ups and action)
 ```
-Quality: natural fluid motion, photorealistic skin textures, consistent lighting.
 Avoid: deformed limbs, extra or missing fingers, body clipping, motion blur artifacts, color banding.
+```
+
+#### The Complete Constraint Block Template
+
+For maximum quality on character-focused content:
+```
+High-definition, rich detail, cinematic texture, natural color, soft lighting.
+Face stable without deformation, facial features clear, body proportions normal,
+motion natural and fluid, no stiffness, no frame stuttering, no flickering.
+No text, subtitles, watermarks, or logos.
 ```
 
 These are especially important for:
 - Character close-ups (hands, faces)
+- Multi-character scenes (faces compete for model attention)
 - Action scenes (limb deformation is common)
 - Photorealistic style (AI smoothing artifacts)
+- Any content involving dialogue/lip-sync
 
-For stylized/animated content, technical constraints are less needed — the model handles those styles more naturally.
+For stylized/animated content, the stability constraints are still recommended; technical quality constraints are less needed.
 
 ### Technical Parameters — API vs Prompt
 
