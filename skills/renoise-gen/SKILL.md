@@ -527,13 +527,30 @@ The storyboard grid method produces the best visual consistency by anchoring eac
 
 ---
 
-## User Assets — AI-Generated Character References (Recommended for New Characters)
+## User Assets — Character References That Bypass Privacy Detection
 
 > **For multi-scene projects, see [Multi-Scene Production Workflow](#multi-scene-production-workflow) first** — it covers the full end-to-end process including character setup.
 
-When the user doesn't have pre-existing character references, **generate character images with nano-banana-2 and register them as Ark assets**. This creates face-safe references that bypass privacy detection.
+Raw materials with human faces are blocked by privacy detection (`PrivacyInformation` error). **Registering a material as an Ark asset bypasses this.** This works for both user-uploaded photos and AI-generated character sheets.
 
-### Full Workflow
+### Workflow A: User Already Has Character Photos
+
+```bash
+# 1. Upload the photo as material
+node ${CLAUDE_SKILL_DIR}/renoise-cli.mjs material upload hana.png
+# Returns material #ID (e.g. 42)
+
+# 2. Register as asset (one-step: create + wait ~30-60s)
+node ${CLAUDE_SKILL_DIR}/renoise-cli.mjs asset register 42 --name "Hana"
+# Returns asset #ID (e.g. 7) when active
+
+# 3. Use in video generation
+node ${CLAUDE_SKILL_DIR}/renoise-cli.mjs task generate \
+  --prompt "[0-5s] ... [5-10s] ... [10-15s] ..." \
+  --materials "asset:7:reference_image" --duration 15 --ratio 16:9
+```
+
+### Workflow B: Generate Character Sheet First
 
 ```bash
 # 1. Generate a character design sheet
@@ -548,9 +565,9 @@ curl -s -o character.png "<image_url>"
 node ${CLAUDE_SKILL_DIR}/renoise-cli.mjs material upload character.png
 # Returns material #ID
 
-# 4. Register as asset (one-step: create + wait)
+# 4. Register as asset
 node ${CLAUDE_SKILL_DIR}/renoise-cli.mjs asset register <material_id> --name "Character Name"
-# Waits ~30-60s, returns asset #ID when active
+# Returns asset #ID when active
 
 # 5. Use in video generation
 node ${CLAUDE_SKILL_DIR}/renoise-cli.mjs task generate \
@@ -564,7 +581,7 @@ node ${CLAUDE_SKILL_DIR}/renoise-cli.mjs task generate \
 |----------|-------------|----------------------|-------|
 | **User Asset (recommended)** | ✅ `asset://` bypasses detection | High — same face reference | ~1 min registration |
 | Character Library | ✅ pre-registered | High — platform characters | Must exist in library |
-| ref_image (material) | ❌ blocked if face detected | High | Immediate |
+| ref_image (raw material) | ❌ blocked if face detected | High | Immediate |
 | Text-only description | ✅ no image | Low — varies per generation | None |
 
 ### Decision Tree
@@ -572,9 +589,10 @@ node ${CLAUDE_SKILL_DIR}/renoise-cli.mjs task generate \
 | Scenario | Approach |
 |----------|----------|
 | Character exists in library | `--characters "ID"` |
-| No library character, have/can generate face image | **User Asset** → `asset register` → `--materials "asset:ID:reference_image"` |
-| No library character, no face image, quick generation | Text-only with Character Bible |
-| Product/landscape images (no faces) | `--materials "ID:ref_image"` (safe) |
+| User has character photo (with face) | **User Asset** → `material upload` → `asset register` → `--materials "asset:ID:reference_image"` |
+| No photo, need to generate one | **Workflow B** above → `nano-banana-2` → `asset register` |
+| No library character, quick generation | Text-only with Character Bible |
+| Product/landscape images (no faces) | `--materials "ID:ref_image"` (safe, no registration needed) |
 
 ---
 
@@ -615,22 +633,23 @@ node ${CLAUDE_SKILL_DIR}/renoise-cli.mjs task generate \
 
 ### How It Works in the API
 
-When using `--characters`, the CLI sends `{ "character_id": ID, "role": "reference_image" }` in the materials array. This is different from `{ "id": ID, "role": "ref_image" }` (material reference). The platform treats character references specially — no privacy detection is triggered.
+When using `--characters`, the CLI sends `{ "character_id": ID, "role": "reference_image" }` in the materials array. Both `ref_image` and `reference_image` normalize to the same role at the model level — the difference is that character references and registered assets bypass privacy detection, while raw materials do not.
 
 ### Decision Tree for Human Faces
 
 | Scenario | Approach |
 |----------|----------|
 | Characters exist in the library | `--characters "ID"` (strongest consistency, no privacy issues) |
+| User has own character photos | **User Asset** → `material upload` → `asset register` → `--materials "asset:ID:reference_image"` |
+| No photo, need to generate one | Generate with `nano-banana-2` → `asset register` → use as asset |
 | No characters in library, custom project | Create characters on https://www.renoise.ai first, then use `--characters` |
 | Quick generation, no library setup | **Text-to-Video** with detailed Character Bible (no materials at all) |
-| Product/landscape images (no faces) | `--materials "ID:ref_image"` (safe, no privacy issues) |
-| Storyboard grids with small figures | May or may not trigger — test first; fall back to text-only |
+| Product/landscape images (no faces) | `--materials "ID:ref_image"` (safe, no registration needed) |
 
 ### What NOT to Do
 
-- ❌ Upload face photos as materials and use `--materials "ID:ref_image"` — will be blocked
-- ❌ Put storyboard grids with close-up faces as `ref_image` — will be blocked
+- ❌ Pass raw materials with faces as `--materials "ID:ref_image"` — will be blocked by privacy detection
+- ❌ Assume `ref_image` and `reference_image` have different privacy behavior — they are aliases, both blocked for raw materials with faces
 
 ---
 
@@ -638,7 +657,7 @@ When using `--characters`, the CLI sends `{ "character_id": ID, "role": "referen
 
 | Error | Cause | Solution |
 |-------|-------|----------|
-| `PrivacyInformation` | Reference image/video with human faces blocked by privacy detection | **Primary fix**: use Character Library (`--characters "ID"`) or User Assets (`asset register`) — both bypass detection. **Fallback**: switch to Text-to-Video and describe appearance in text. |
+| `PrivacyInformation` | Raw material with human faces blocked by privacy detection | **Primary fix**: register the material as an asset (`asset register`) then use `--materials "asset:ID:reference_image"`. Or use Character Library (`--characters "ID"`). Both bypass detection. **Fallback**: Text-to-Video with character description in prompt. |
 | `Insufficient credits` (402) | Balance too low | Inform user of current balance and required cost, suggest top-up at https://www.renoise.ai |
 | Task `failed` | Generation failed | Use `task get <id>` to check error. Common causes: prompt violation, server timeout. Adjust and retry |
 | `Auth Error` (401) | Invalid API Key | Check that `RENOISE_API_KEY` environment variable is set correctly |

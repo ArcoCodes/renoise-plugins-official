@@ -60,11 +60,12 @@
 
 ### Best Practices
 
-Default to **Text-to-Video** and describe character appearance entirely in text. Only use reference materials for:
-- Pure product photos (white background, no faces) → `ref_image`
-- Abstract/landscape references → `ref_image`
-- Precise motion replication (no faces) → `ref_video`
-- **Human faces → use the Character Library** (`--characters "ID"`) or **User Assets** (`asset register`). Create characters on https://www.renoise.ai or register AI-generated character sheets as assets. **Do NOT** pass face images as `ref_image` — privacy detection will block them.
+`ref_image` and `reference_image` are aliases — both normalize to `reference_image` at the model level. Privacy detection depends on **source** (raw material vs registered asset), not the role name.
+
+- Pure product photos (white background, no faces) → `--materials "ID:ref_image"` (safe)
+- Abstract/landscape references → `--materials "ID:ref_image"` (safe)
+- Precise motion replication (no faces) → `--materials "ID:ref_video"`
+- **Images with human faces** → register as asset first, then `--materials "asset:ID:reference_image"`. Or use the Character Library (`--characters "ID"`). **Do NOT** pass face images as raw materials — privacy detection will block them regardless of role name.
 
 ## Duration Strategy
 
@@ -331,11 +332,12 @@ Without ref_image: "Cinematic period drama, warm golden palette,
 
 ### Priority order for consistency
 1. `--characters "ID"` (strongest — exact face/body from Character Library; no privacy detection issues)
-2. `--materials "ID:ref_video"` (strong — continues from previous segment visually)
-3. `--materials "ID:ref_image"` with concept art (medium — locks style/palette; **must NOT contain human faces**)
-4. Text-only anchor (weakest — model may drift, but safest for any content)
+2. `--materials "asset:ID:reference_image"` (strong — user-uploaded or AI-generated face photo, registered as asset to bypass privacy detection)
+3. `--materials "ID:ref_video"` (strong — continues from previous segment visually)
+4. `--materials "ID:ref_image"` with concept art (medium — locks style/palette; raw materials with faces will be blocked)
+5. Text-only anchor (weakest — model may drift, but safest for any content)
 
-> **Key insight**: `ref_image` and `ref_video` trigger privacy detection if they contain human faces. The Character Library exists precisely to solve this — once a face is registered there, it can be referenced safely via `--characters`.
+> **Key insight**: Privacy detection is based on **source**, not role. Raw materials with faces are blocked. Registered assets and Character Library entries bypass detection. When you have face images, always `asset register` first.
 
 ## Narrative Continuity
 
