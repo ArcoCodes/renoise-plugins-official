@@ -221,8 +221,9 @@ var RenoiseClient = class {
 };
 
 // src/cli.ts
-import { readFileSync } from "fs";
+import { readFileSync, writeFileSync } from "fs";
 import { join, extname, basename } from "path";
+import { tmpdir } from "os";
 import { fileURLToPath } from "url";
 var __dir = fileURLToPath(new URL(".", import.meta.url));
 function loadEnv() {
@@ -332,6 +333,7 @@ Commands:
   result <id>                 Get task result
   wait <id>                   Wait for task to complete
   cancel <id>                 Cancel a pending task
+  chain <id>                  Download completed task result → upload as material (for ref_video chaining)
   tags                        List all your tags
   tag <id> --tags a,b,c       Update tags on a task
 
@@ -362,6 +364,7 @@ Examples:
   renoise task list --status completed --limit 5
   renoise task result 123
   renoise task wait 123 --interval 15
+  renoise task chain 123      # downloads video result → uploads as material → prints material ID
 `.trim();
 var HELP_MATERIAL = `
 renoise material \u2014 Manage materials
@@ -575,6 +578,41 @@ async function taskCancel(client, positional) {
   }
   await client.cancelTask(id);
   console.log(`Task #${id} cancelled.`);
+}
+async function taskChain(client, positional) {
+  const id = parseInt(positional[0]);
+  if (!id) {
+    console.error("Error: task ID required.\nUsage: renoise task chain <id>\n\nDownloads completed task result and uploads as material for ref_video chaining.");
+    process.exit(1);
+  }
+  // 1. Get result
+  console.log(`Getting result for task #${id}...`);
+  const result = await client.getTaskResult(id);
+  const url = result.videoUrl || result.imageUrl;
+  if (!url) {
+    console.error(`Task #${id} has no video or image result.`);
+    process.exit(1);
+  }
+  const isVideo = !!result.videoUrl;
+  const ext = isVideo ? "mp4" : "png";
+  const tmpPath = join(tmpdir(), `chain-${id}.${ext}`);
+  // 2. Download
+  console.log(`Downloading ${isVideo ? "video" : "image"} to ${tmpPath}...`);
+  const resp = await fetch(url);
+  if (!resp.ok) throw new Error(`Download failed: ${resp.status}`);
+  const arrayBuf = await resp.arrayBuffer();
+  writeFileSync(tmpPath, Buffer.from(arrayBuf));
+  console.log(`Downloaded: ${(arrayBuf.byteLength / 1024 / 1024).toFixed(1)}MB`);
+  // 3. Upload as material
+  const type = isVideo ? "video" : "image";
+  const buffer = readFileSync(tmpPath);
+  const filename = `chain-${id}.${ext}`;
+  console.log(`Uploading as ${type} material...`);
+  const data = await client.uploadMaterial(buffer, filename, type);
+  const matId = data.material?.id || data.id;
+  console.log(`\nMaterial #${matId} ready.`);
+  console.log(`Use as: --materials "${matId}:ref_${type}"`);
+  json(data);
 }
 async function taskTags(client) {
   json(await client.listTags());
@@ -946,6 +984,9 @@ async function main() {
             break;
           case "cancel":
             await taskCancel(client, subPositional);
+            break;
+          case "chain":
+            await taskChain(client, subPositional);
             break;
           case "tags":
             await taskTags(client);
