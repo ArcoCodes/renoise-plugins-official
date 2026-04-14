@@ -185,7 +185,34 @@ Design the **ending of each segment** to set up the next:
 | **Time Jump** | Visual time indicators (light change, seasons) | Montage, passage of time |
 | **Spatial Flow** | Camera moves through a door/window into new space | Exploration, journey |
 
-When using `ref_video` serial chain, the model physically continues from the previous segment's ending frame - focus transition design on the **last 2-3 seconds** of each segment.
+### Serial continuity routing: choose based on the scene goal
+
+For continuity blocks in the same location, choose the method based on what must stay fixed:
+
+**Use tail-frame → next `first_frame` when:**
+- The next shot must open on an exact composition from the previous shot
+- Pose, gaze, lighting state, or prop placement needs to match precisely
+- You want a clean visual handoff, but the next shot can develop new motion after the opening frame
+
+Workflow:
+1. End the current segment on a clean, readable composition
+2. Generate the segment
+3. Extract the previous segment's tail frame with ffmpeg
+4. Upload that extracted image and use it as the next segment's `first_frame`
+
+Recommended extraction command:
+```bash
+ffmpeg -sseof -0.2 -i previous-segment.mp4 -frames:v 1 -q:v 2 -y next-first-frame.jpg
+```
+
+When you design segment endings for this workflow, the final 1-2 seconds should settle into a clear pose, gaze direction, lighting state, and prop state that can survive extraction as a single still frame.
+
+**Use `ref_video` when:**
+- Motion/style transfer matters more than pinning the next shot's opening frame
+- The transition itself is dynamic and the previous clip's movement should influence the next one
+- A single extracted still frame is not enough to carry the intended continuity
+
+When using `ref_video` serial chain, the model physically continues from the previous segment's ending frame — focus transition design on the **last 2-3 seconds** of each segment.
 
 ### Same style line everywhere
 Copy your style foundation block (Section 1) identically into every segment.

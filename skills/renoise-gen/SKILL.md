@@ -266,7 +266,30 @@ When a video exceeds 15s, split into segments:
 1. Each segment 5–15s (default 15s unless beat alignment or pacing requires otherwise)
 2. Repeat full character description in every segment prompt
 3. Start each segment after S1 with "Continuing from the previous shot: [ending state of prev segment]"
-4. Use `task chain <id>` to turn a completed segment into ref_video material for the next
+4. Choose the continuity method for the next segment:
+   - Exact carried-over opening state → extract the previous segment tail frame with ffmpeg, upload it, use `ID:first_frame`
+   - Motion/style carryover → use `task chain <id>` to turn a completed segment into `ref_video` material for the next
+
+#### Tail-frame → next first-frame
+
+```bash
+ffmpeg -sseof -0.2 -i generated/shots/S1.mp4 -frames:v 1 -q:v 2 -y generated/keyframes/S1-end.jpg
+node ${CLAUDE_SKILL_DIR}/renoise-cli.mjs material upload generated/keyframes/S1-end.jpg
+# Use returned material ID as S2 first_frame
+node ${CLAUDE_SKILL_DIR}/renoise-cli.mjs task generate \
+  --prompt "Continuing from the previous shot: <S2 prompt>" \
+  --duration 15 --ratio 16:9 --materials "ID:first_frame"
+```
+
+#### ref_video chaining
+
+```bash
+node ${CLAUDE_SKILL_DIR}/renoise-cli.mjs task chain <id>
+# Use returned material ID as the next segment's ref_video
+node ${CLAUDE_SKILL_DIR}/renoise-cli.mjs task generate \
+  --prompt "Continuing from the previous shot: <S2 prompt>" \
+  --duration 15 --ratio 16:9 --materials "ID:ref_video"
+```
 
 ### Face handling decision tree
 

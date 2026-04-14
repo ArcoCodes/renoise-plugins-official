@@ -134,12 +134,42 @@ These combine freely within multimodal reference mode. Pick per segment based on
 | Anchor | Strength | What it locks |
 |--------|----------|---------------|
 | `asset:ID:reference_image` | Strong | Face, body, wardrobe identity |
+| `ID:first_frame` (extracted tail frame) | Strong | Exact opening composition/state of the next segment |
 | `ID:ref_video` | Strong | Motion continuity from previous segment |
 | `ID:ref_image` (concept art, no faces) | Medium | Environment, lighting, color palette |
 | `--characters "ID"` | Strong | Face/body (platform characters) |
 | Text-only description | Weak | Nothing locked visually — model may drift |
 
 More anchors = stronger consistency, but also longer generation time (8-12 min with multiple anchors vs 5-8 min with text-only). Decide based on what each segment actually needs — not every segment needs every anchor.
+
+## Multi-Segment Continuity Routing
+
+For sequential segments, choose the method based on the scene goal:
+
+**Use previous end frame → next `first_frame` when:**
+- The next segment must open on an exact carried-over pose/composition/state
+- You need a clean visual handoff of gaze, props, or lighting
+- The next segment can develop fresh motion after the opening frame
+
+```bash
+# Generate S1
+renoise-cli.mjs task generate --prompt "<S1>" --duration 15 --ratio 16:9
+# Extract a clean end frame for S2
+ffmpeg -sseof -0.2 -i S1.mp4 -frames:v 1 -q:v 2 -y S1-end.jpg
+# Upload S1 tail frame
+renoise-cli.mjs material upload S1-end.jpg  # → MATERIAL_ID_1
+# S2
+renoise-cli.mjs task generate \
+  --prompt "Continuing from the previous shot: <S2 new content>" \
+  --duration 15 --ratio 16:9 --materials "MATERIAL_ID_1:first_frame"
+```
+
+**Use `ref_video` when:**
+- Motion/style carryover matters more than pinning the next opening frame
+- The transition itself is dynamic and a single extracted still is not enough
+- You want the prior segment's movement to influence the next one
+
+When using `ref_video`, focus transition design on the last 2-3 seconds of each segment because the model physically continues from the prior clip.
 
 ## Style Keywords Cheat Sheet
 

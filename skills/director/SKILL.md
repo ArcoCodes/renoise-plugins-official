@@ -34,6 +34,7 @@ You are a creative director for AI video production. Default language: English. 
 - One mood per segment — no contradictory tone/color in the same prompt
 - Characters in 2+ segments **must** have a registered User Asset. No exceptions without user approval.
 - Human faces as `ref_image` → blocked by privacy detection. Always register as asset first.
+- Serial continuity is **scene-dependent**: use tail-frame → next `first_frame` when you need an exact opening composition/state; use `ref_video` when you need motion/style carryover from the previous clip.
 - Read video model capabilities before every prompt session: `Read ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/references/video-capabilities.md`
 
 ---
@@ -105,11 +106,12 @@ User brief → Script → Visual Dev → Write all prompts → Confirm → Gener
    - Not every segment needs every anchor. A segment with a new character in a new location may only need a scene ref. A continuation of the previous shot needs ref_video. Judge per segment.
    - Build a **Shot Mapping** table showing what each segment needs and why
 
-3. **Prompts**: Write one prompt per segment following prompt-craft.md. Same style line across all segments. Full character description copied verbatim every time. Each segment after S1 starts with `Continuing from the previous shot:` bridge.
+3. **Prompts**: Write one prompt per segment following prompt-craft.md. Same style line across all segments. Full character description copied verbatim every time. Each segment after S1 starts with `Continuing from the previous shot:` bridge. If the continuity method is tail-frame → `first_frame`, the described opening state must match the extracted frame exactly.
 
 4. **Generate**: Assemble `--materials` per segment based on the Shot Mapping:
    - Character in frame → `asset:ID:reference_image`
-   - Continues from previous segment → `PREV_ID:ref_video` (use `task chain <id>` to get material)
+   - Exact carried-over opening pose/composition/state needed → extract the previous segment tail frame with ffmpeg, upload it, use `ID:first_frame`
+   - Motion/style carryover from previous segment needed → `PREV_ID:ref_video` (use `task chain <id>` to get material)
    - Recurring or visually specific location → `SCENE_ID:ref_image`
    - Sequential segments: serial chain. Independent segments: parallel.
 
@@ -126,6 +128,7 @@ Anchors are tools, not a checklist. Analyze what each segment needs to stay cons
 | Anchor | `--materials` syntax | What it locks | When to use |
 |--------|---------------------|---------------|-------------|
 | Character asset | `asset:ID:reference_image` | Face, body, wardrobe | Character appears in 2+ segments |
+| Previous segment end frame | `ID:first_frame` | Exact opening composition/state | Next segment must start exactly where the previous one lands |
 | Previous segment | `ID:ref_video` | Motion continuity, scene flow | Segment continues from the previous one |
 | Scene concept | `ID:ref_image` | Environment, lighting, palette | Location recurs or has specific visual requirements |
 | Character Library | `--characters "ID"` | Face/body (platform characters) | Pre-existing platform characters |
@@ -137,9 +140,10 @@ These combine freely within multimodal reference mode — use as many or as few 
 
 Ask per segment:
 1. **Does a recurring character appear?** → add their asset
-2. **Does it continue from the previous segment's action?** → add ref_video
-3. **Is the location visually specific or shared with other segments?** → add scene ref_image
-4. **Is it a standalone establishing shot or B-roll?** → text-only may suffice
+2. **Does the next segment need an exact opening frame from the previous one?** → extract tail frame and add `first_frame`
+3. **Does it continue from the previous segment's motion/style?** → add ref_video
+4. **Is the location visually specific or shared with other segments?** → add scene ref_image
+5. **Is it a standalone establishing shot or B-roll?** → text-only may suffice
 
 Example Shot Mapping:
 ```
@@ -176,13 +180,26 @@ node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/renoise-cli.mjs task generate \
   [--materials "asset:ID:reference_image"] [--tags "project-tag"]
 ```
 
-**Serial chain (continuous scenes):**
+**Serial continuity option A — exact opening frame:**
 ```bash
-# S1: character asset + scene ref (no ref_video for first segment)
+# S1: generate the previous segment first
 node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/renoise-cli.mjs task generate \
   --prompt "<S1 prompt>" --duration 15 --ratio <ratio> \
   --materials "asset:ASSET_ID:reference_image,SCENE1_MAT_ID:ref_image"
 
+# Extract a clean tail frame from the completed segment
+ffmpeg -sseof -0.2 -i generated/shots/S1.mp4 -frames:v 1 -q:v 2 -y generated/keyframes/S1-end.jpg
+
+# Upload the extracted frame and use it as S2 first_frame
+node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/renoise-cli.mjs material upload generated/keyframes/S1-end.jpg
+# → returns material ID, e.g. 91
+node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/renoise-cli.mjs task generate \
+  --prompt "Continuing from the previous shot: <S2 prompt>" --duration 15 --ratio <ratio> \
+  --materials "asset:ASSET_ID:reference_image,91:first_frame,SCENE2_MAT_ID:ref_image"
+```
+
+**Serial continuity option B — motion/style carryover:**
+```bash
 # Chain S1 output → material in one step (download + upload)
 node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/renoise-cli.mjs task chain <S1_TASK_ID>
 # → prints material ID for ref_video
@@ -221,4 +238,4 @@ node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/renoise-cli.mjs credit me
 | Character drifts between segments | Use User Asset + copy full character description verbatim |
 | Video ignores actions in prompt | Prompt too dense — reduce to 3-4 actions per 5s window |
 | Video looks incoherent | Simplify: 2 camera stages, one mood, fewer actions |
-| Segments don't connect | Use `ref_video` serial chain, or add cross-dissolve in post |
+| Segments don't connect | Re-check the continuity choice: use tail-frame → next `first_frame` for exact opening-state matches, or `ref_video` for motion carryover; add cross-dissolve in post if needed |
