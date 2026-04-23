@@ -125,23 +125,10 @@ Response:
 
 ## Material Roles
 
-All image reference roles normalize to `reference_image` at the model level. The functional difference is **privacy handling based on source**, not the role name.
-
-| Role | Alias for | Privacy Detection |
-|------|-----------|-------------------|
-| `reference_image` | — (canonical) | Depends on source |
-| `ref_image` | `reference_image` | Depends on source |
-| `ref_video` | `reference_video` | Yes — faces in video blocked |
-| `first_frame` | — | Yes — faces blocked |
-| `last_frame` | — | Yes — faces blocked |
-
-**Privacy detection depends on source, not role:**
-
-| Source | Syntax | Privacy Detection | Use Case |
-|--------|--------|-------------------|----------|
-| Raw material | `"ID:ref_image"` | **Yes** — faces blocked | Products, landscapes, illustrations (no faces) |
-| Registered asset | `"asset:ID:reference_image"` | **No** — bypassed | User-uploaded or AI-generated character photos with faces |
-| Character library | `--characters "ID"` | **No** — bypassed | Platform preset characters |
+- `ref_video` — Reference video (affects pricing)
+- `ref_image` — Reference image
+- `image1`, `image2` — Additional reference images
+- `reference_image` — Character reference image
 
 ## Aspect Ratios
 
