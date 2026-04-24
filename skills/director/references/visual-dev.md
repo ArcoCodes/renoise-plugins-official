@@ -12,6 +12,19 @@ Quick reference for creating and registering visual assets before writing prompt
 
 ---
 
+## Picking an Image Model
+
+| Use case | Model | Why |
+|----------|-------|-----|
+| Character design sheet, scene ref, drafts | `nano-banana-2` | Cheapest, widest ratios (incl. 8:1 / 1:8), fast iteration |
+| Hero / final keyframe where fidelity matters | `nano-banana-pro` | Higher detail + lighting quality |
+| Poster / title card / anything with readable text or logos | `gpt-image-2` | Best prompt-following for typography |
+| Stylized / painterly illustration | `midjourney-v7` | Strongest stylization (no `--resolution`) |
+
+Default to `nano-banana-2` for anchoring work (character sheets, scene refs). Switch per-shot only when the job demands it.
+
+---
+
 ## Character Design Sheet
 
 Generate a multi-angle reference for each main character.
