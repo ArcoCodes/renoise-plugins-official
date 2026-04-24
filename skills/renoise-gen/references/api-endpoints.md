@@ -120,8 +120,17 @@ Response:
 
 ## Models
 
-- `renoise-2.0` — Default video model (Renoise 2.0)
-- `nano-banana-2` — Image generation model
+**Video:**
+- `renoise-2.0` — Default video model (aliases: `seedance-2.0`, `youmeng-2.0`, `sd-2.0`)
+- `renoise-2.0-fast` — Faster/cheaper tier, 720p only
+
+**Image:**
+- `nano-banana-2` — Google Vertex; `1k`/`2k`/`4k`; widest aspect-ratio set incl. `1:4`, `4:1`, `1:8`, `8:1`
+- `nano-banana-pro` — Google Vertex, higher quality tier; `1k`/`2k`/`4k`
+- `midjourney-v7` — Midjourney (alias: `midjourney`); **no `resolution` param**; max 4 reference images
+- `gpt-image-2` — Colorist provider; `1k`/`2k`/`4k`; max 4 reference images; strongest at text/typography in image
+
+Per-model aspect-ratio and resolution constraints are validated server-side; see `skills/renoise-gen/SKILL.md` for the full matrix.
 
 ## Material Roles
 
@@ -132,11 +141,12 @@ Response:
 
 ## Aspect Ratios
 
-- `1:1` (default)
-- `16:9`
-- `9:16`
+Supported set varies by model. Common ratios: `1:1` (default), `16:9`, `9:16`, `4:3`, `3:4`, `3:2`, `2:3`, `21:9`. `nano-banana-2` additionally supports extreme banner ratios `1:4`, `4:1`, `1:8`, `8:1`. See model table in `SKILL.md`.
 
 ## Image Resolutions
 
 - `1k`
 - `2k`
+- `4k`
+
+`midjourney-v7` does **not** accept a resolution parameter.

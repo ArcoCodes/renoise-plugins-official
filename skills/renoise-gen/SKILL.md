@@ -42,14 +42,29 @@ node ${CLAUDE_SKILL_DIR}/renoise-cli.mjs task generate \
 node ${CLAUDE_SKILL_DIR}/renoise-cli.mjs task generate \
   --prompt "A cute cat sitting on a crescent moon, watercolor style, dreamy atmosphere" \
   --model nano-banana-2 --resolution 2k --ratio 1:1
+
+# Generate Image with Text/Typography (use gpt-image-2 for best prompt-following on text/logos)
+node ${CLAUDE_SKILL_DIR}/renoise-cli.mjs task generate \
+  --prompt "Hero product poster with bold headline 'MIDNIGHT BLOOM' in serif type, centered, minimalist layout" \
+  --model gpt-image-2 --resolution 2k --ratio 16:9
 ```
 
 ## Supported Models
 
-| Model | Type | Duration / Resolution | Aspect Ratios |
-|-------|------|-----------------------|---------------|
-| `renoise-2.0` | Video | 5–15s (any integer) | `1:1`, `16:9`, `9:16` |
-| `nano-banana-2` | Image | `1k`, `2k` | `1:1`, `16:9`, `9:16` |
+| Model | Type | Duration / Resolution | Aspect Ratios | Notes |
+|-------|------|-----------------------|---------------|-------|
+| `renoise-2.0` | Video | 5–15s (any integer) | `9:16`, `16:9`, `1:1`, `4:3`, `3:4`, `21:9` | Up to 9 ref images, 3 ref videos |
+| `renoise-2.0-fast` | Video | 5–15s (any integer) | `9:16`, `16:9`, `1:1`, `4:3`, `3:4`, `21:9` | 720p only, faster/cheaper |
+| `nano-banana-2` | Image | `1k`, `2k`, `4k` | `1:1`, `2:3`, `3:2`, `3:4`, `4:3`, `4:5`, `5:4`, `9:16`, `16:9`, `21:9`, `1:4`, `4:1`, `1:8`, `8:1` | Google Vertex; widest ratio set |
+| `nano-banana-pro` | Image | `1k`, `2k`, `4k` | `1:1`, `2:3`, `3:2`, `3:4`, `4:3`, `4:5`, `5:4`, `9:16`, `16:9`, `21:9` | Google Vertex; higher quality tier |
+| `midjourney-v7` | Image | _(no `--resolution`)_ | `1:1`, `4:3`, `3:4`, `16:9`, `9:16`, `3:2`, `2:3` | Max 4 ref images; alias `midjourney` |
+| `gpt-image-2` | Image | `1k`, `2k`, `4k` | `1:1`, `3:2`, `2:3`, `4:3`, `3:4`, `5:4`, `4:5`, `16:9`, `9:16`, `21:9` | Max 4 ref images |
+
+**Choosing an image model:**
+- `nano-banana-2` — default, cheapest, flexible ratios (incl. extreme 8:1 / 1:8 banners).
+- `nano-banana-pro` — higher fidelity; use for hero / final frames.
+- `midjourney-v7` — strongest stylization; pass `--ratio` only (no resolution).
+- `gpt-image-2` — best prompt-following for text/logos/typography in image.
 
 ---
 
@@ -104,8 +119,8 @@ node ${CLAUDE_SKILL_DIR}/renoise-cli.mjs task tag <id> --tags a,b,c
 | `--prompt` | **(required)** English narrative prompt | — |
 | `--model` | Model name | `renoise-2.0` (video) or `nano-banana-2` (image) |
 | `--duration` | Video duration 5–15s | `5` |
-| `--ratio` | `1:1` / `16:9` / `9:16` | `1:1` |
-| `--resolution` | Image resolution `1k` / `2k` (image models only) | — |
+| `--ratio` | Aspect ratio — supported set varies per model (see [Supported Models](#supported-models)) | `1:1` |
+| `--resolution` | Image resolution `1k` / `2k` / `4k` (image models only; **omit for `midjourney-v7`**) | — |
 | `--tags` | Comma-separated tags | — |
 | `--materials` | Material refs, comma-separated (see [Material Roles](#material-roles)) | — |
 | `--characters` | Character refs: `id1,id2` or `id1:role,id2:role` | — |
@@ -306,6 +321,8 @@ Never pass raw face images as `ref_image` — privacy detection will block them.
 
 ## Quick Templates
 
+> Pick the model by job: `nano-banana-2` for drafts / banners / wide aspect ratios, `nano-banana-pro` for hero / final frames, `gpt-image-2` for anything with text/logos/typography, `midjourney-v7` for stylized illustration (no `--resolution`).
+
 ### Product Design Sheet
 
 ```bash
@@ -320,6 +337,30 @@ node ${CLAUDE_SKILL_DIR}/renoise-cli.mjs task generate \
 node ${CLAUDE_SKILL_DIR}/renoise-cli.mjs task generate \
   --prompt "A modern minimalist living room at golden hour, floor-to-ceiling windows overlooking a city skyline, warm sunlight, photorealistic, 8K detail." \
   --model nano-banana-2 --resolution 2k --ratio 16:9
+```
+
+### Hero / Key Frame (higher fidelity)
+
+```bash
+node ${CLAUDE_SKILL_DIR}/renoise-cli.mjs task generate \
+  --prompt "Cinematic hero shot: a lone astronaut standing on a red Martian plain, Earth visible in the dusty sky, volumetric sunlight, photorealistic, highly detailed, shallow depth of field." \
+  --model nano-banana-pro --resolution 2k --ratio 16:9
+```
+
+### Poster / Graphic with Text
+
+```bash
+node ${CLAUDE_SKILL_DIR}/renoise-cli.mjs task generate \
+  --prompt "Minimalist product poster with bold serif headline 'MIDNIGHT BLOOM' centered, subtitle 'Eau de Parfum' in small caps, dark navy background, gold foil accents." \
+  --model gpt-image-2 --resolution 2k --ratio 16:9
+```
+
+### Stylized Illustration
+
+```bash
+node ${CLAUDE_SKILL_DIR}/renoise-cli.mjs task generate \
+  --prompt "Stylized fantasy portrait of an elven archer, moody forest lighting, painterly, intricate details." \
+  --model midjourney-v7 --ratio 3:4
 ```
 
 ---

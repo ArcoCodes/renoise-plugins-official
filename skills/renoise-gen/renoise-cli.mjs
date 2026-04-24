@@ -342,7 +342,7 @@ Options for generate/create:
   --model <name>              Model name (default: renoise-2.0)
   --duration <seconds>        Video duration (default: 5)
   --ratio <w:h>               Aspect ratio (default: 1:1)
-  --resolution <1k|2k>        Image resolution (for image models)
+  --resolution <1k|2k|4k>     Image resolution (image models; omit for midjourney-v7)
   --tags <a,b,c>              Comma-separated tags
   --materials <spec>          Material refs: "id:role" or "id1:role1,id2:role2"
   --characters <spec>         Character refs: "id1,id2" or "id1:role,id2:role"
@@ -359,7 +359,10 @@ Options for wait:
 
 Examples:
   renoise task generate --prompt "a cat dancing" --duration 5
-  renoise task generate --prompt "cute cat" --model nano-banana-2
+  renoise task generate --prompt "cute cat" --model nano-banana-2 --resolution 2k
+  renoise task generate --prompt "cinematic hero frame of a lone astronaut on Mars" --model nano-banana-pro --resolution 2k --ratio 16:9
+  renoise task generate --prompt "hero product shot with bold typography" --model gpt-image-2 --resolution 2k --ratio 16:9
+  renoise task generate --prompt "stylized fantasy portrait" --model midjourney-v7 --ratio 3:4
   renoise task create --prompt "epic scene" --duration 10 --ratio 16:9
   renoise task list --status completed --limit 5
   renoise task result 123
