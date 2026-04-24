@@ -66,6 +66,8 @@ var RenoiseClient = class {
     const qs = new URLSearchParams();
     if (params.model) qs.set("model", params.model);
     if (params.duration) qs.set("duration", String(params.duration));
+    if (params.resolution) qs.set("resolution", params.resolution);
+    if (params.variant) qs.set("variant", params.variant);
     if (params.hasVideoRef) qs.set("hasVideoRef", "1");
     return this.request("GET", `/credit/estimate?${qs}`);
   }
@@ -261,6 +263,7 @@ Set it via environment variable or .env file.`);
   return v;
 }
 var DEFAULT_BASE_URL = "https://www.renoise.ai/api/public/v1";
+var IMAGE_MODELS = /* @__PURE__ */ new Set(["gpt-image-2", "nano-banana-2", "nano-banana-pro", "midjourney-v7", "midjourney"]);
 
 function createClient(baseUrlOverride) {
   loadEnv();
@@ -469,6 +472,7 @@ Commands:
 Options for estimate:
   --model <name>              Model name
   --duration <seconds>        Duration
+  --resolution <value>        Resolution variant (image: 1k/2k/4k; video: 720p/1080p)
   --hasVideoRef               Has video reference material
 
 Options for history:
@@ -478,6 +482,7 @@ Options for history:
 Examples:
   renoise credit me
   renoise credit estimate --model renoise-2.0 --duration 5
+  renoise credit estimate --model gpt-image-2 --resolution 2k
   renoise credit history --limit 10
 `.trim();
 async function taskGenerate(client, flags) {
@@ -877,9 +882,14 @@ async function creditMe(client) {
   json(await client.getMe());
 }
 async function creditEstimate(client, flags) {
+  const variant = !flags.variant && flags.model && IMAGE_MODELS.has(flags.model) && flags.resolution
+    ? flags.resolution
+    : flags.variant;
   json(await client.estimateCost({
     model: flags.model,
     duration: flags.duration ? parseInt(flags.duration) : void 0,
+    resolution: flags.resolution,
+    variant,
     hasVideoRef: flags.hasVideoRef === "true" || flags.hasVideoRef === "1"
   }));
 }
