@@ -30,17 +30,12 @@ var InsufficientCreditError = class extends ApiError {
 var RenoiseClient = class {
   baseUrl;
   apiKey;
-  authToken;
   constructor(config) {
     this.baseUrl = config.baseUrl.replace(/\/$/, "");
     this.apiKey = config.apiKey;
-    this.authToken = config.authToken;
   }
   buildAuthHeaders() {
-    const headers = {};
-    if (this.apiKey) headers["X-API-Key"] = this.apiKey;
-    if (this.authToken) headers["Authorization"] = `Bearer ${this.authToken}`;
-    return headers;
+    return { "X-API-Key": this.apiKey };
   }
   // ---- HTTP ----
   async request(method, path, body) {
@@ -69,6 +64,7 @@ var RenoiseClient = class {
     if (params.resolution) qs.set("resolution", params.resolution);
     if (params.variant) qs.set("variant", params.variant);
     if (params.hasVideoRef) qs.set("hasVideoRef", "1");
+    if (params.watermark) qs.set("watermark", "1");
     return this.request("GET", `/credit/estimate?${qs}`);
   }
   async getCreditHistory(limit = 50, offset = 0) {
@@ -82,6 +78,9 @@ var RenoiseClient = class {
     const qs = new URLSearchParams();
     if (params.status) qs.set("status", params.status);
     if (params.tag) qs.set("tag", params.tag);
+    if (params.type) qs.set("type", params.type);
+    if (params.provider) qs.set("provider", params.provider);
+    if (params.ids) qs.set("ids", params.ids);
     qs.set("limit", String(params.limit ?? 50));
     qs.set("offset", String(params.offset ?? 0));
     return this.request("GET", `/tasks?${qs}`);
@@ -148,6 +147,9 @@ var RenoiseClient = class {
     const qs = new URLSearchParams();
     if (params.type) qs.set("type", params.type);
     if (params.search) qs.set("search", params.search);
+    if (params.id) qs.set("id", String(params.id));
+    if (params.ids) qs.set("ids", params.ids);
+    if (params.mine) qs.set("mine", "true");
     if (params.limit) qs.set("limit", String(params.limit));
     if (params.offset) qs.set("offset", String(params.offset));
     return this.request("GET", `/materials?${qs}`);
@@ -268,13 +270,12 @@ var IMAGE_MODELS = /* @__PURE__ */ new Set(["gpt-image-2", "nano-banana-2", "nan
 function createClient(baseUrlOverride) {
   loadEnv();
   const apiKey = process.env["RENOISE_API_KEY"];
-  const authToken = process.env["RENOISE_AUTH_TOKEN"];
-  if (!apiKey && !authToken) {
-    console.error("Error: RENOISE_API_KEY or RENOISE_AUTH_TOKEN is required.\nSet one via environment variable or .env file.");
+  if (!apiKey) {
+    console.error("Error: RENOISE_API_KEY is required for /api/public/v1.\nSet it via environment variable or .env file.");
     process.exit(1);
   }
   const baseUrl = baseUrlOverride || env("RENOISE_BASE_URL", DEFAULT_BASE_URL);
-  return new RenoiseClient({ baseUrl, apiKey, authToken });
+  return new RenoiseClient({ baseUrl, apiKey });
 }
 
 function json(data) {
@@ -314,10 +315,8 @@ Domains:
   credit      Check balance and transaction history
 
 Environment:
-  RENOISE_API_KEY     API key (starts with fk_), sent as X-API-Key
-  RENOISE_AUTH_TOKEN  Auth token, sent as Authorization: Bearer
-                      (at least one of API_KEY or AUTH_TOKEN required)
-  RENOISE_BASE_URL    (optional) Full API base URL (including path)
+  RENOISE_API_KEY     Required for /api/public/v1. Sent as X-API-Key.
+  RENOISE_BASE_URL    (optional) Full API base URL (including /api/public/v1)
                       Default: https://www.renoise.ai/api/public/v1
 
 Global Flags:
@@ -342,17 +341,25 @@ Commands:
 
 Options for generate/create:
   --prompt <text>             (required) Generation prompt
-  --model <name>              Model name (default: renoise-2.0)
+  --model <name>              Model name (default: renoise-2.0 / sd-2.0)
+  --type <video|image>        Optional task type; must match model
   --duration <seconds>        Video duration (default: 5)
   --ratio <w:h>               Aspect ratio (default: 1:1)
-  --resolution <1k|2k|4k>     Image resolution (image models; omit for midjourney-v7)
+  --resolution <1k|2k|4k|720p|1080p>
+  --watermark                 Add watermark to video task (10% credit discount)
+  --audio-generation <0|1>    Enable/disable model audio generation when supported
+  --no-audio-generation       Disable model audio generation
+  --template-id <id>          Create task from template
   --tags <a,b,c>              Comma-separated tags
-  --materials <spec>          Material refs: "id:role" or "id1:role1,id2:role2"
+  --materials <spec>          Material refs: "id:role" or "asset:id:role"; role required
   --characters <spec>         Character refs: "id1,id2" or "id1:role,id2:role"
 
 Options for list:
   --status <status>           Filter by status
   --tag <tag>                 Filter by tag
+  --type <video|image>        Filter by task type
+  --provider <provider>       Filter by provider
+  --ids <id1,id2>             Fetch specific task IDs
   --limit <n>                 Max results (default: 20)
   --offset <n>                Pagination offset
 
@@ -377,15 +384,18 @@ renoise material \u2014 Manage materials
 
 Commands:
   list                        List your uploaded materials
-  upload <file>               Upload a material (image or video)
+  upload <file>               Upload a material (image, video, or audio)
 
 Options for list:
-  --type <image|video>        Filter by type
+  --type <image|video|audio>  Filter by type
   --search <keyword>          Search by name
+  --id <id>                   Fetch one material by id
+  --ids <id1,id2>             Fetch multiple material ids
+  --mine                      Only list current user's materials
   --limit <n>                 Max results (default: 20)
 
 Options for upload:
-  --type <image|video>        Override auto-detected type
+  --type <image|video|audio>  Override auto-detected type
 
 Examples:
   renoise material list
@@ -474,6 +484,8 @@ Options for estimate:
   --duration <seconds>        Duration
   --resolution <value>        Resolution variant (image: 1k/2k/4k; video: 720p/1080p)
   --hasVideoRef               Has video reference material
+  --variant <variant>         Pricing variant override
+  --watermark                 Apply video watermark discount
 
 Options for history:
   --limit <n>                 Max results (default: 20)
@@ -525,6 +537,9 @@ async function taskList(client, flags) {
   const data = await client.listTasks({
     status: flags.status,
     tag: flags.tag,
+    type: flags.type,
+    provider: flags.provider,
+    ids: flags.ids,
     limit: flags.limit ? parseInt(flags.limit) : 20,
     offset: flags.offset ? parseInt(flags.offset) : 0
   });
@@ -638,6 +653,9 @@ async function materialList(client, flags) {
   const data = await client.listMaterials({
     type: flags.type,
     search: flags.search,
+    id: flags.id ? parseInt(flags.id) : void 0,
+    ids: flags.ids,
+    mine: flags.mine === "true" || flags.mine === "1",
     limit: flags.limit ? parseInt(flags.limit) : 20,
     offset: flags.offset ? parseInt(flags.offset) : 0
   });
@@ -650,12 +668,13 @@ async function materialList(client, flags) {
 async function materialUpload(client, positional, flags) {
   const filePath = positional[0];
   if (!filePath) {
-    console.error("Error: file path required.\nUsage: renoise material upload <file> [--type image|video]");
+    console.error("Error: file path required.\nUsage: renoise material upload <file> [--type image|video|audio]");
     process.exit(1);
   }
   const ext = extname(filePath).toLowerCase();
   const videoExts = [".mp4", ".mov", ".avi", ".webm", ".mkv"];
-  const type = flags.type || (videoExts.includes(ext) ? "video" : "image");
+  const audioExts = [".mp3", ".wav", ".aac", ".ogg", ".m4a"];
+  const type = flags.type || (videoExts.includes(ext) ? "video" : audioExts.includes(ext) ? "audio" : "image");
   const buffer = readFileSync(filePath);
   const filename = basename(filePath);
   console.log(`Uploading ${filename} (${type}, ${(buffer.byteLength / 1024).toFixed(1)}KB)...`);
@@ -890,7 +909,8 @@ async function creditEstimate(client, flags) {
     duration: flags.duration ? parseInt(flags.duration) : void 0,
     resolution: flags.resolution,
     variant,
-    hasVideoRef: flags.hasVideoRef === "true" || flags.hasVideoRef === "1"
+    hasVideoRef: flags.hasVideoRef === "true" || flags.hasVideoRef === "1",
+    watermark: flags.watermark === "true" || flags.watermark === "1"
   }));
 }
 async function creditHistory(client, flags) {
@@ -901,9 +921,18 @@ async function creditHistory(client, flags) {
 function buildCreateParams(flags) {
   const params = { prompt: flags.prompt };
   if (flags.model) params.model = flags.model;
+  if (flags.type) params.type = flags.type;
   if (flags.duration) params.duration = parseInt(flags.duration);
   if (flags.ratio) params.ratio = flags.ratio;
   if (flags.resolution) params.resolution = flags.resolution;
+  if (flags.templateId) params.template_id = parseInt(flags.templateId);
+  if (flags.template_id) params.template_id = parseInt(flags.template_id);
+  if (flags["template-id"]) params.template_id = parseInt(flags["template-id"]);
+  if (flags.watermark === "true" || flags.watermark === "1") params.watermark = true;
+  if (flags.audioGeneration !== void 0) params.audioGeneration = flags.audioGeneration === "true" || flags.audioGeneration === "1";
+  if (flags.audio_generation !== void 0) params.audioGeneration = flags.audio_generation === "true" || flags.audio_generation === "1";
+  if (flags["audio-generation"] !== void 0) params.audioGeneration = flags["audio-generation"] === "true" || flags["audio-generation"] === "1";
+  if (flags["no-audio-generation"] !== void 0) params.audioGeneration = false;
   if (flags.tags) params.tags = flags.tags.split(",").map((t) => t.trim());
   const allMaterials = [];
   if (flags.materials) {
@@ -912,11 +941,13 @@ function buildCreateParams(flags) {
       if (parts[0] === "asset") {
         // asset:ID:role format
         const assetId = parseInt(parts[1]);
-        const role = parts[2] || "reference_image";
+        const role = parts[2];
+        if (!role) throw new Error(`Material role is required for --materials entry '${m}'. Use asset:id:role, e.g. asset:27:reference_image`);
         allMaterials.push({ user_asset_id: assetId, role });
       } else {
         const [id, role] = parts;
-        allMaterials.push({ id: parseInt(id), role: role || "ref_video" });
+        if (!role) throw new Error(`Material role is required for --materials entry '${m}'. Use id:role, e.g. 123:ref_image`);
+        allMaterials.push({ id: parseInt(id), role });
       }
     }
   }
