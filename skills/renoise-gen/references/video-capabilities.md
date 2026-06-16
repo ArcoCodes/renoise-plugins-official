@@ -7,9 +7,9 @@ Model reference only. For prompt writing guidance, see `Read ${CLAUDE_SKILL_DIR}
 | Parameter | Value |
 |-----------|-------|
 | Model name | `renoise-2.0` |
-| Min duration | 5 seconds |
+| Min duration | 4 seconds |
 | Max duration | 15 seconds |
-| Duration options | Any integer from 5-15s |
+| Duration options | Any integer from 4-15s |
 | Resolution | Up to 1080p |
 | Aspect ratio | `1:1`, `16:9`, `9:16` |
 
@@ -65,7 +65,7 @@ Default to **Text-to-Video**. Only use reference materials for:
 
 ## Duration Strategy
 
-All video generations use `--duration 15`. This is the fixed unit. A 3-minute film = 12 × 15s segments.
+For finished-cut workflows, prefer `--duration 15` when possible. Renoise/Seedance supports 4–15s segments; a 3-minute film at 15s per segment = 12 segments.
 
 | | Single 15s | Stitched segments |
 |---|---------|----------|

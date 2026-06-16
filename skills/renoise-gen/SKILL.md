@@ -53,12 +53,14 @@ node ${CLAUDE_SKILL_DIR}/renoise-cli.mjs task generate \
 
 | Model | Type | Duration / Resolution | Aspect Ratios | Notes |
 |-------|------|-----------------------|---------------|-------|
-| `renoise-2.0` | Video | 5–15s (any integer) | `9:16`, `16:9`, `1:1`, `4:3`, `3:4`, `21:9` | Up to 9 ref images, 3 ref videos |
-| `renoise-2.0-fast` | Video | 5–15s (any integer) | `9:16`, `16:9`, `1:1`, `4:3`, `3:4`, `21:9` | 720p only, faster/cheaper |
+| `renoise-2.0` / `sd-2.0` | Video | 4–15s, `720p`/`1080p` | `9:16`, `16:9`, `1:1`, `4:3`, `3:4`, `21:9` | Aliases: `seedance-2.0`, `youmeng-2.0`; refs image ≤9, video ≤3, audio ≤3; supports watermark/audio generation |
+| `renoise-2.0-fast` / `sd-2.0-fast` | Video | 4–15s, `720p` only | `9:16`, `16:9`, `1:1`, `4:3`, `3:4`, `21:9` | Aliases: `seedance-2.0-fast`, `youmeng-2.0-fast`; refs image ≤9, video ≤3, audio ≤3 |
+| `happyhorse-1.0` | Video | 3–15s, `720p`/`1080p` | `16:9`, `9:16`, `1:1`, `4:3`, `3:4` | Alias typo accepted: `happyhourse-1.0`; refs image ≤9, video 0; no `last_frame` |
+| `kling-3.0-omni` | Video | 3/5/10/15s, `720p`/`1080p` | `16:9`, `9:16`, `1:1`, `4:3`, `3:4` | refs image ≤7, video ≤1, audio unsupported; prompt ≤2500 chars; ref video 3–10s, dimensions 720–2160px |
 | `nano-banana-2` | Image | `1k`, `2k`, `4k` | `1:1`, `2:3`, `3:2`, `3:4`, `4:3`, `4:5`, `5:4`, `9:16`, `16:9`, `21:9`, `1:4`, `4:1`, `1:8`, `8:1` | Google Vertex; widest ratio set |
 | `nano-banana-pro` | Image | `1k`, `2k`, `4k` | `1:1`, `2:3`, `3:2`, `3:4`, `4:3`, `4:5`, `5:4`, `9:16`, `16:9`, `21:9` | Google Vertex; higher quality tier |
 | `midjourney-v7` | Image | _(no `--resolution`)_ | `1:1`, `4:3`, `3:4`, `16:9`, `9:16`, `3:2`, `2:3` | Max 4 ref images; alias `midjourney` |
-| `gpt-image-2` | Image | `1k`, `2k`, `4k` | `1:1`, `3:2`, `2:3`, `4:3`, `3:4`, `5:4`, `4:5`, `16:9`, `9:16`, `21:9` | Max 4 ref images |
+| `gpt-image-2` | Image | `1k`, `2k`, `4k` | `1:1`, `3:2`, `2:3`, `3:4`, `4:3`, `16:9`, `9:16`, `21:9` | Max 16 ref images; strongest at text/typography |
 
 **Choosing an image model:**
 - `nano-banana-2` — default, cheapest, flexible ratios (incl. extreme 8:1 / 1:8 banners).
@@ -117,22 +119,27 @@ node ${CLAUDE_SKILL_DIR}/renoise-cli.mjs task tag <id> --tags a,b,c
 | Parameter | Description | Default |
 |-----------|-------------|---------|
 | `--prompt` | **(required)** English narrative prompt | — |
-| `--model` | Model name | `renoise-2.0` (video) or `nano-banana-2` (image) |
-| `--duration` | Video duration 5–15s | `5` |
+| `--model` | Model name | `renoise-2.0` / `sd-2.0` (video) or `nano-banana-2` (image) |
+| `--type` | Optional `video` / `image`; must match model | inferred from model |
+| `--duration` | Video duration, model-specific | `5` |
 | `--ratio` | Aspect ratio — supported set varies per model (see [Supported Models](#supported-models)) | `1:1` |
-| `--resolution` | Image resolution `1k` / `2k` / `4k` (image models only; **omit for `midjourney-v7`**) | — |
+| `--resolution` | Image `1k`/`2k`/`4k`; video `720p`/`1080p`; omit for `midjourney-v7` | model default |
+| `--watermark` | Add video watermark and apply 10% credit discount | off |
+| `--audio-generation 0|1`, `--no-audio-generation` | Toggle generated audio when model supports it | model default |
+| `--template-id` | Create from template | — |
 | `--tags` | Comma-separated tags | — |
-| `--materials` | Material refs, comma-separated (see [Material Roles](#material-roles)) | — |
+| `--materials` | Material refs, comma-separated (see [Material Roles](#material-roles)); role required | — |
 | `--characters` | Character refs: `id1,id2` or `id1:role,id2:role` | — |
 
-**Task statuses:** `pending` → `assigning` → `assigned` → `queued` → `running` → `completed` / `failed`
+**Task statuses:** user-facing statuses are `pending`, `assigned`, `running`, `completed`, `failed`, `cancelled`. Internal states such as `submitted`, `queued`, `assigning`, `archiving`, and `preparing_facepass` are collapsed to `running` by the public API.
 
 ### Material — Upload & Browse
 
 ```bash
 node ${CLAUDE_SKILL_DIR}/renoise-cli.mjs material upload /path/to/file.jpg
 node ${CLAUDE_SKILL_DIR}/renoise-cli.mjs material upload /path/to/clip.mp4 --type video
-node ${CLAUDE_SKILL_DIR}/renoise-cli.mjs material list [--type image] [--search cat]
+node ${CLAUDE_SKILL_DIR}/renoise-cli.mjs material upload /path/to/audio.mp3 --type audio
+node ${CLAUDE_SKILL_DIR}/renoise-cli.mjs material list [--type image|video|audio] [--search cat] [--ids 1,2] [--mine]
 ```
 
 ### Asset — Register for Face/Character Use
@@ -184,7 +191,8 @@ Three mutually exclusive **modes** for visual input. Do NOT mix modes.
 |------|--------|-------------|-------|
 | Character asset | `asset:ID:reference_image` | Locks face/body identity. Bypasses privacy detection. | Multiple OK |
 | Reference video | `ID:ref_video` | Continues motion/scene from previous segment | Up to 3 |
-| Reference image | `ID:ref_image` | Style/environment/palette guidance. **No human faces.** | Up to 9 |
+| Reference image | `ID:ref_image` | Style/environment/palette guidance. **No human faces.** | Up to 9 (`gpt-image-2`: 16, `midjourney-v7`: 4, `kling-3.0-omni`: 7) |
+| Reference audio | `ID:ref_audio` | Voice/audio reference where supported. Must be paired with image or video. | `sd-2.0`: up to 3; unsupported on Kling |
 | Character library | `--characters "ID"` | Platform character. Bypasses privacy detection. | Multiple OK |
 
 Combine as needed per segment:
@@ -278,7 +286,7 @@ Finished Cut is the default. Use Clip Stock when the user needs individual shots
 
 When a video exceeds 15s, split into segments:
 
-1. Each segment 5–15s (default 15s unless beat alignment or pacing requires otherwise)
+1. Each Renoise/Seedance segment is 4–15s (default 15s unless beat alignment or pacing requires otherwise). Kling uses discrete options `3`, `5`, `10`, `15`.
 2. Repeat full character description in every segment prompt
 3. Start each segment after S1 with "Continuing from the previous shot: [ending state of prev segment]"
 4. Choose the continuity method for the next segment:
