@@ -24,9 +24,10 @@ Model reference only. For prompt writing guidance, see `Read ${CLAUDE_SKILL_DIR}
 - Lip-sync dialogue in multiple languages when using the exact embedding format
 - Atmospheric scenes with clear mood (one mood per segment)
 - Simple cause-and-effect actions (hand picks up cup, person walks forward)
+- **Multi-stage visual flow in a single prompt** — the model can handle a prompt that describes multiple sequential visual stages (e.g., wide landscape → character walking → product close-up) as long as they are written as a continuous narrative. The model renders these as smooth flowing transitions, not hard cuts. This is the preferred approach for ≤15s TVC/brand films, as it produces coherent audio throughout.
 
 ### What the model does poorly or cannot do
-- **Hard cuts / jump cuts** — generates continuous flow, not edited footage
+- **Hard cuts / jump cuts** — generates continuous flow, not edited footage. However, describing multiple visual stages as a flowing narrative IS supported (see above).
 - **Shot-reverse-shot** — camera cannot teleport to a new angle mid-generation
 - **Dolly zoom / vertigo effect** — too complex, produces artifacts
 - **Whip pan with motion blur** — unpredictable results
@@ -37,7 +38,7 @@ Model reference only. For prompt writing guidance, see `Read ${CLAUDE_SKILL_DIR}
 - **Maintaining exact face identity across separate generations** — always drifts
 
 ### The golden rule
-**One mood, one scene, one continuous camera flow per 15s segment.**
+**One unified mood and coherent audio per segment.** Within a single generation (up to 15s), the model can flow through multiple visual stages and camera compositions — what it cannot do is hard-cut between disconnected scenes. Describe visual transitions as a continuous journey, and provide a unified audio direction that spans the entire segment with optional per-stage audio accents.
 
 ## Input Types
 

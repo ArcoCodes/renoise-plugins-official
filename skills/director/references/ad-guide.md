@@ -37,12 +37,11 @@ Mapping references to Renoise roles:
 | Product / scene image (no faces) | `@Image N` | `ID:ref_image` | Up to 9 |
 | Scene image that incidentally contains faces (face NOT being referenced) | `@Image N` | `ID:ref_image` | Treat as scene ref, no registration needed |
 | Person image where the face IS being used as character identity | `@Image N` | `asset:ID:reference_image` | Must `asset register` first |
-| Reference video | `@Video N` | `ID:ref_video` | Up to 3 |
-| Audio | `@Audio N` | Prompt description only, not passed to materials | For beat-sync guidance |
+| Reference video (for chaining own generated segments) | `@Video N` | `ID:ref_video` | Up to 3; **not for external style reference** — for Scenario A, analyze with Gemini instead |
 | First frame | `@Image N` | `ID:first_frame` | Mutually exclusive with ref_image |
 
-**Face Privacy Rule**: Only images where the face is intentionally used as character identity (passed as `ref_image` with face as the reference target) will be blocked by Renoise's privacy detection. Scene/environment images that incidentally contain faces are fine as `ref_image`. Two bypass paths for face-identity images:
-1. `asset register <material_id>` to register as a user asset → `asset:ID:reference_image`
+**Face Privacy Rule**: Renoise's privacy detection blocks ANY image containing a recognizable human face when passed as `ref_image` — regardless of whether the face is the intended reference target. In practice, even scene/environment images with a prominent person will be rejected. Therefore: **any image you judge to contain a human face must be registered as a User Asset before use.** Do this automatically in Phase 4 Step 1 without asking the user. Two paths:
+1. `asset register <material_id>` to register as a user asset → `asset:ID:reference_image` (default — always use this)
 2. Use the platform character library → `--characters "ID"`
 
 ---
@@ -53,45 +52,69 @@ Mapping references to Renoise roles:
 
 After receiving the user's request, confirm the following in order:
 
-1. **Creative intent**: What type of video? Match to the appropriate scenario template (see below)
-2. **Asset inventory**: Review each image / video / audio the user provides
+1. **Creative intent**: What type of video? Match to the appropriate scenario template (see below but you don't need to tell the users which scenario)
+2. **Asset inventory**: Review each image / video the user provides
    - Images: View with the Read tool, analyze content (product? scene? person?)
    - Videos: If the Renoise plugin is available, use Gemini analysis; otherwise ask the user to describe key frames
-   - Audio: If the beat analysis script is available, analyze BPM and beat points; otherwise ask the user to describe rhythm characteristics
 3. **Assign a role to each asset**: subject anchor / scene calibration / camera reference / beat-sync control
+   - **Face auto-detection**: When viewing each image, judge whether it contains a recognizable human face (even partially — side profile, background person with clear features, etc.). Tag any such image as `has_face: true`. These MUST be registered as User Assets in Phase 4 — do not attempt to pass them as `ref_image`, as Renoise's privacy detection will block the generation. This applies regardless of whether the face is the intended reference target.
 4. **Confirm generation parameters**:
-   - Duration: 5–15 seconds per segment (over 15s requires multi-segment chaining)
-   - Aspect ratio: based on target platform
+   - Duration: 4–15 seconds per segment (over 15s requires multi-segment chaining)
+   - Aspect ratio: based on user's request
+   - Which model to use:
 
-| Platform | Recommended ratio |
-|----------|------------------|
-| TikTok / Douyin / Reels | `9:16` |
-| YouTube | `16:9` |
-| Xiaohongshu / Pinterest | `3:4` |
-| Instagram Feed / WeChat Moments | `1:1` |
+| Model | Duration | Resolution |  Notes |
+|-------|----------|------------|-------|
+| `renoise-2.0` | 4–15s | 720p / 1080p  | Default; supports ref image ≤9, ref video ≤3, audio generation |
+| `renoise-2.0-fast` | 4–15s | 720p only  | Faster & cheaper; same ref limits as above |
+| `happyhorse-1.0` | 3–15s | 720p / 1080p | No `last_frame` support; no ref video |
+| `kling-3.0-omni` | 3/5/10/15s (fixed) | 720p / 1080p  | ref image ≤7, ref video ≤1; no audio; prompt ≤2500 chars |
 
 If the user's brief is incomplete, **only ask for missing critical information** — don't throw all questions at once. Infer what you can from the assets first.
 
 ### Phase 2: Prompt Construction
 
-Write each dimension sequentially, tagging each with its category label in brackets. Writing rules:
+Build the prompt according to the structure defined in the matched scenario. Each scenario specifies its own prompt format — follow it exactly. The six-dimension formula still applies, but how the dimensions are organized (paragraph-per-dimension vs. shot-by-shot timeline vs. second-by-second script) is determined by the scenario.
+
+Writing rules that apply to all scenarios:
 
 **DO:**
-- Give each dimension its own paragraph, logically clear
 - Place `@` references immediately next to their descriptions, stating "what was referenced" and "what it's used for"
 - When referencing a video, explicitly annotate "reference only XX, NOT YY"
-- Use concrete micro-actions for selling-point action — never abstract adjectives
-- Include at least 2 negative rules (prohibitions) in post-production constraints
+- Use concrete micro-actions — never abstract adjectives like "premium" or "cinematic"
+- Include at least 2 negative rules (prohibitions) covering the most failure-prone elements for that scenario
 
 **DON'T:**
-- Don't write vague terms like "premium feel" or "cinematic" → replace with specific lighting / color / material descriptions
-- Don't omit any dimension → all six must be covered
-- Don't stuff content from one dimension into another → each dimension has a single responsibility
+- Don't write vague terms → replace with specific lighting / color / material / motion descriptions
+- Don't omit any of the six dimensions — they must all be covered, even if embedded within a shot or timeline entry
 - Don't assume the AI can automatically understand brand tone → anchor every visual standard with `@` assets
 
 ### Phase 3: User Confirmation
 
-Present the prompt to the user in the following format:
+**For Scenario C (TVC / multi-shot)**, present all shots together so the user sees the complete video in one view:
+
+```
+--- 分镜预览 (N shots / total Xs) ---
+
+[Shot 1 | Xs | label]
+[Full prompt for shot 1]
+
+[Shot 2 | Xs | label]
+[Full prompt for shot 2]
+
+[Shot N | Xs | label]
+[Full prompt for shot N]
+
+--- Asset Mapping ---
+@Image 1 → [filename] → ref_image (all shots)
+
+--- Generation Parameters ---
+Model: renoise-2.0 | Ratio: W:H | Total estimated cost: ~N×M credits
+Note: Each shot is generated as a separate segment, then assembled by ffmpeg.
+---
+```
+
+**For all other scenarios**, present in the standard format:
 
 ```
 --- Prompt Preview ---
@@ -100,8 +123,7 @@ Present the prompt to the user in the following format:
 
 --- Asset Mapping ---
 @Image 1 → [filename / description] → Renoise role: ref_image
-@Video 1 → [filename / description] → Renoise role: ref_video
-@Audio 1 → [filename / description] → Prompt description only
+@Video 1 → [filename / description] → Gemini analysis only (style extracted as text, NOT uploaded to Renoise)
 
 --- Generation Parameters ---
 Model: renoise-2.0
@@ -120,22 +142,26 @@ Estimated cost: [show if queryable]
 
 After user confirmation, execute the following steps. Report the result after each step.
 
-**Step 1 — Upload assets**
+**Step 1 — Upload assets & auto-register faces**
+
+For each asset file:
 
 ```bash
+# 1. Upload
 node skills/renoise-gen/renoise-cli.mjs material upload <file_path>
 ```
 
-Record the `material_id` returned for each asset. Build a `@reference → material_id` mapping table.
-
-**Step 2 — Register face assets (only when assets contain human faces)**
+Record the `material_id`. Then, **if the image was tagged `has_face: true` in Phase 1**, immediately register it as a User Asset — do NOT wait or ask the user:
 
 ```bash
-node skills/renoise-gen/renoise-cli.mjs asset register <material_id> --name "character name"
-# Wait ~30–60 seconds for activation
+# 2. Auto-register (only for has_face images)
+node skills/renoise-gen/renoise-cli.mjs asset register <material_id> --name "<descriptive name>"
+# Takes ~30–60 seconds. Wait for completion before proceeding.
 ```
 
-Record the returned `asset_id`.
+Record the returned `asset_id`. Update the materials mapping: change the role from `ref_image` to `asset:ID:reference_image`.
+
+Build the final `@reference → material_id / asset_id` mapping table after all uploads and registrations are done.
 
 **Step 3 — Translate the prompt to English**
 
@@ -155,7 +181,35 @@ node skills/renoise-gen/renoise-cli.mjs task generate \
   --materials "<id1>:<role1>,<id2>:<role2>"
 ```
 
-**Step 5 — Multi-segment chaining (only when video exceeds 15 seconds)**
+**Step 5 — Scenario C (Mode A): single-clip generation (total ≤ 15s)**
+
+Use Step 4 directly — the prompt already contains all shots + unified audio direction in one prompt. One API call → one continuous video with coherent audio. No assembly needed. Skip to Step 6.
+
+**Step 5 — Scenario C (Mode B): multi-clip generation + assembly (total > 15s)**
+
+Each segment's prompt follows the same structure as Mode A (shots + audio + constraints in one prompt), but covers only that segment's portion of the video.
+
+1. Generate segments in parallel where independent, or sequentially if chaining is needed
+2. Show each video URL to the user as it completes (no approval required, continue immediately)
+3. After all segments are done, ffmpeg concatenate + strip AI audio + apply unified BGM:
+
+```bash
+# Concatenate
+printf "file '%s'\n" S1.mp4 S2.mp4 S3.mp4 > concat.txt
+ffmpeg -y -f concat -safe 0 -i concat.txt -c copy final.mp4
+
+# Strip AI audio and apply unified BGM
+ffmpeg -y -i final.mp4 -an -c:v copy final-silent.mp4
+ffmpeg -y -i final-silent.mp4 -i bgm.mp3 -c:v copy -c:a aac -shortest final-with-bgm.mp4
+```
+
+Before assembly, ask the user: **"Do you have a BGM file? If not, I can deliver the silent version for you to add music in post."**
+
+4. Present the final assembled video to the user
+
+**If the user wants to redo a specific segment**: regenerate that segment only, replace the file, re-run assembly. No need to redo the entire video.
+
+**Step 5 — Standard: Multi-segment chaining (only when single video exceeds 15 seconds)**
 
 ```bash
 # After first segment completes
@@ -180,12 +234,14 @@ Match the user's intent to the appropriate scenario. Each scenario shifts the em
 
 **Trigger**: The user provides a viral/trending video and wants to replicate its style with their own product/brand.
 
+**How the reference video is used**: Run Gemini analysis on the reference video to extract all style elements as text — do NOT upload the reference video to Renoise as `ref_video`. The `ref_video` role is for chaining your own generated segments, not external style reference. Passing the original video to Renoise would risk copying the original person/product into the output.
+
 | Dimension | Emphasis |
 |-----------|----------|
 | Subject | Anchor with `@product image`, replacing the original video's product |
 | Selling-Point Action | Replicate the original video's core selling-point action, adapted to the user's product |
-| Scene & Tone | Can follow the original video's scene, or adjust to match brand tone |
-| Camera Language | `@reference video` extracts camera movement and rhythm only — **explicitly annotate: do NOT reference the original person/product** |
+| Scene & Tone | Use Gemini analysis output to replicate the vibe across all dimensions: scene and background environment; lighting style and color grading / color tone; pacing and editing rhythm; shot structure (how the product enters frame, lingers, and exits; angles used); visual effects, transitions, overlays; overall mood, energy, and brand aesthetic |
+| Camera Language | Use Gemini analysis output to extract and describe camera movement (push-in, pull-out, orbit, handheld, static, drone, etc.) and rhythm — encode into prompt text only, not passed as a material |
 | Audio | Maintain the original video's rhythm structure and beat-sync points |
 | Post-Production | Emphasize facial stability, readable product packaging text |
 
@@ -202,24 +258,74 @@ Match the user's intent to the appropriate scenario. Each scenario shifts the em
 | Audio | Brand music beat sync, reserve timing for logo reveal at the end |
 | Post-Production | Product logo must not distort, material texture must be realistic, proportions strictly consistent |
 
-### C. Pain-Point E-Commerce Ad
+### C. TVC / Brand Concept Film
 
-**Trigger**: The user needs a fast-paced e-commerce video that directly hits consumer pain points (no live presenter — driven by visual effects).
+**Trigger**: The user needs a cinematic, emotionally-driven brand film — lifestyle, outdoor, fashion, sports, or aspirational campaigns. The goal is to evoke feeling and brand identity, not to list product features. No dialogue, no pain-point contrast, no live presenter selling.
+
 
 | Dimension | Emphasis |
 |-----------|----------|
-| Subject | First half: person + pain point; second half: cut to product |
-| Selling-Point Action | Exaggerated but realistic contrast effects (steam penetrating, stains vanishing...) |
-| Scene & Tone | Close to real-life usage scenario, high-saturation warm tones |
-| Camera Language | Fast-paced cuts — use a visual hook in the first 3 seconds to grab attention |
-| Audio | Tight rhythm, tense sound effects paired with pain-point visuals |
-| Post-Production | Actions must not drag, effects must be natural not over-the-top, facial features must remain stable |
+| Subject | Person + product exist together as storytelling elements — neither dominates; anchor both with `@` references |
+| Selling-Point Action | Replace feature callouts with cinematic micro-moments: product interacting with environment (boot crushing wet grass, jacket catching wind), body language conveying effort or freedom |
+| Scene & Tone | Rich, specific environments — anchor with `@scene image`; describe light quality (golden morning haze, blue-hour ridge glow), atmosphere, and how the environment feels physically |
+| Camera Language | **Follow the user's shot ideas if specified.** If the user has not described their own shots, propose a shot plan first and wait for confirmation before writing prompts. Default arc when unspecified: ultra-wide establishing → follow-cam tracking → product detail close-up → wide silhouette finale — treat as a starting suggestion, not a requirement. |
+| Audio | No dialogue — music-driven. Write a **unified audio direction** that spans the entire video, describing the overall ambient soundscape and per-shot audio accents in a single paragraph. This ensures the model generates coherent audio across all visual stages. See prompt structure below for format. |
+| Post-Production | Maintain person consistency across all shots; end frame reserved for slogan/logo reveal (fade to black + centered text); no jump cuts — each transition must feel intentional |
+
+**Prompt structure for TVC — two modes based on total duration:**
+
+#### Mode A: Single-clip (total ≤ 15s) — PREFERRED
+
+When the total video is 15 seconds or less, generate as **ONE single API call**. Write all visual stages (shots) into a single prompt, plus a **unified audio direction** at the end. The model renders the shots as a continuous flowing video with coherent audio throughout. No assembly, no audio patching needed.
+
+The prompt has three parts:
+1. **Shot descriptions** — each shot as its own paragraph, labeled `[Shot N | Xs | label]`. Describe camera, subject, action, and environment per shot. The model will flow between shots as smooth transitions, not hard cuts.
+2. **Unified audio direction** — one paragraph describing the overall soundscape that spans the entire video, plus per-shot audio accents tied to specific visual moments.
+3. **Post-production constraints** — consistency rules, negative constraints.
+
+**How to determine the shot plan:**
+- **User has their own clear shots** → use them directly and polish
+- **User brief is vague** → propose a shot plan and wait for confirmation before writing the prompt
+
+**Default arc when unspecified** (adjust freely based on brief):
+```
+[Shot 1 | 5s | Establishing] Ultra-wide panoramic of [environment], [light quality], camera slowly pushing forward.
+[Shot 2 | 5s | Character Intro] [Person] wearing [product], [action], follow-cam tracking, [environmental detail].
+[Shot 3 | 5s | Product Detail] Macro close-up of [product interacting with environment], camera orbiting. Fade to black.
+```
+
+**Example prompt** (hiking boot TVC, single 15s clip):
+
+> Ultra-wide panoramic of mountain ranges and open ridge, referencing the environment from @Image 1. Golden morning mist drifts across the slopes, camera slowly and steadily pushes forward through the landscape. **[Shot 1 | 5s | Establishing]**
+>
+> A man wearing the hiking boots from @Image 2 strides along a mountain trail with purpose, follow-cam tracking alongside him at ground level. Wind moves his clothing and the surrounding tall grass, natural and unposed. **[Shot 2 | 5s | Character in Motion]**
+>
+> Macro slow-motion close-up of the hiking boots stepping into wet grass — grass blades bending under the sole, morning dew splashing in soft arcs. Camera orbits slowly to reveal the boot from multiple angles. Frame holds, then fades to black. **[Shot 3 | 5s | Product Detail]**
+>
+> **[Audio]** Background soundscape of crisp birdsong and wind rustling through pine trees throughout. When the hiker appears in Shot 2, a gentle acoustic guitar strum fades in. During the boot close-up in Shot 3, the music swells softly with a warm bass note as the dewdrops splash. No dialogue, no sudden loud sounds.
+>
+> **[Post-Production]** Person's appearance and boot design must remain consistent throughout. No visible product logos until the final fade. No frame flickering, no distorted faces. **[Single 15s clip]**
+
+#### Mode B: Multi-clip (total > 15s) — only when duration exceeds model limit
+
+When the total video exceeds 15 seconds, split into multiple segments (each ≤ 15s). Each segment is a separate API call with its own shot descriptions and unified audio direction (following the same format as Mode A — shots + audio + constraints in one prompt per segment).
+
+After all segments are generated, ffmpeg concatenates them. Since each segment has its own coherent audio, the audio transition between segments may still be noticeable. For seamless results, **strip all AI audio and replace with a unified BGM** (see Phase 4 Step 5):
+
+```bash
+# Strip all AI-generated audio
+ffmpeg -y -i final.mp4 -an -c:v copy final-silent.mp4
+# Apply unified BGM
+ffmpeg -y -i final-silent.mp4 -i bgm.mp3 -c:v copy -c:a aac -shortest final-with-bgm.mp4
+```
+
+Before assembly, ask the user: **"Do you have a BGM file? If not, I can deliver the silent version for you to add music in post."**
 
 ### D. Live-Presenter Product Showcase (Unboxing / Review / Talking-Head)
 
 **Trigger**: The user needs a video with a real person presenting products on camera — unboxing, review, talking-head product endorsement. Has explicit requirements for a person, dialogue/voiceover, and multi-product display.
 
-**Difference from Scenario C**: Scenario C is driven by visual effects (no dialogue). Scenario D is driven by a live presenter speaking on camera (with dialogue and choreographed actions).
+**Difference from Scenario C**: Scenario C is cinematic and emotion-driven (no dialogue). Scenario D is driven by a live presenter speaking on camera (with dialogue and choreographed actions).
 
 **How the six dimensions adapt for this scenario**:
 
@@ -250,18 +356,6 @@ Unlike other scenarios, live-presenter prompts are organized along a **second-by
 [Consistency constraints + prohibitions] [Post-Production Constraints]
 ```
 
-### E. Creative Campaign (Reserved for Expansion)
-
-**Trigger**: The user needs a brand short film with narrative structure and creative concepts.
-
-*Core formula unchanged. Emphasis shifts to: narrative structure, emotional arc, visualization of creative concepts. Detailed template to be added later.*
-
-### F. Brand Visual Extension (Reserved for Expansion)
-
-**Trigger**: The user already has an established brand visual system and needs a series of style-consistent videos.
-
-*Core formula unchanged. Emphasis shifts to: brand color palette / typography / visual element consistency anchoring, maintaining series coherence. Detailed template to be added later.*
-
 ---
 
 ## Rewrite Examples
@@ -274,7 +368,6 @@ Unlike other scenarios, live-presenter prompts are organized along a **second-by
 **Provided assets**:
 - `@Image 1` (product hi-res photo): asset anchor
 - `@Image 2` (high-contrast space photo): scene calibration
-- `@Audio 1` (brand instrumental music): beat-sync control
 
 **Rewritten prompt**:
 
@@ -286,7 +379,7 @@ Unlike other scenarios, live-presenter prompts are organized along a **second-by
 >
 > Camera begins with a macro close-up, slowly and steadily orbiting the bottle while pushing in. **[Camera Language]**
 >
-> Following the drum beats of @Audio 1, a silver brand logo emerges at the center of the frame in the final 2 seconds. **[Audio]**
+> In the final 2 seconds, a soft chime marks the beat as a silver brand logo fades in at the center of the frame. **[Audio]**
 >
 > No frame flickering, product logo must not distort, water droplet dynamics must be realistic. **[Post-Production Constraints]**
 
@@ -301,23 +394,27 @@ Unlike other scenarios, live-presenter prompts are organized along a **second-by
 
 **Provided assets**:
 - `@Image 1` (product flat-lay photo): lock the product
-- `@Video 1` (a trending viral video): reference camera movement and expressions only
+- Viral reference video (analyzed with Gemini — not uploaded to Renoise)
+
+**Gemini analysis output** (extracted from the reference video before writing the prompt):
+- Camera: fast whip-pan cut at 3s, handheld close-up in opening
+- Expression: mother's anxious close-up, furrowed brows, distressed body language
+- Pacing: rapid cuts every 1–2s, tension builds in first half
+- Scene: warm-toned home nursery, soft natural light
 
 **Rewritten prompt**:
 
-> Reference the fast-paced camera movement and anxious expression from @Video 1 (note: reference camera movement and expressions only, NOT the original person).
->
-> Close-up of a young mother with furrowed brows, holding a crying baby, expressing extreme anxiety. **[Visual Hook (Opening)]**
+> Close-up of a young mother with furrowed brows, holding a crying baby, expressing extreme anxiety — handheld camera, slightly shaky, tight on face. **[Visual Hook (Opening)]**
 >
 > At the 3-second mark, camera whip-pans horizontally to the baby diaper product from @Image 1. **[Subject]**
 >
 > Product lies flat on a table surface as a burst of steam instantly penetrates from the bottom through the top layer, viscerally demonstrating breathability. **[Selling-Point Action]**
 >
-> Warm, bright home nursery environment, high-saturation warm color palette. **[Scene & Tone]**
+> Warm, bright home nursery environment, high-saturation warm color palette, soft natural light. Fast cuts every 1–2 seconds, tension building through the first half. **[Scene & Tone + Camera Language]**
 >
 > Actions must not drag, steam effect must be natural without exaggeration, packaging text must be clearly readable, facial features must remain stable and undistorted. **[Post-Production Constraints]**
 
-**Why it's good**: First 3 seconds use a pain-point visual as the hook; `@Video 1` explicitly annotates "reference camera movement and expressions only" to avoid copying original video content; "breathable" is translated into the visualizable action of "steam penetrating"; post-production constraints simultaneously govern effect realism and character stability.
+**Why it's good**: The reference video was analyzed by Gemini first — camera style, pacing, and expression details are encoded as text directly in the prompt. The video itself is never uploaded to Renoise, avoiding any risk of copying the original person. "Breathable" is translated into the visualizable action of "steam penetrating."
 
 ---
 
