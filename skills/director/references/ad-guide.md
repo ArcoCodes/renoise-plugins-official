@@ -72,6 +72,46 @@ After receiving the user's request, confirm the following in order:
 
 If the user's brief is incomplete, **only ask for missing critical information** — don't throw all questions at once. Infer what you can from the assets first.
 
+### Phase 1.5: Tone-Setting Image (Scenario D only)
+
+**Why**: Video generation is expensive (~300 credits) and takes minutes. A tone-setting image costs ~50 credits and returns in seconds. For live-presenter videos (Scenario D), generate a tone-setting image first so the user can validate the visual direction — presenter appearance in scene, lighting, product placement, overall vibe — before committing to video.
+
+**Steps:**
+
+1. **Upload assets early** — upload the person image and register as User Asset (face detection requires it). Upload product images as materials. Record all IDs.
+
+```bash
+# Upload person image
+node skills/renoise-gen/renoise-cli.mjs material upload <person_image_path>
+# Register as asset (required for face)
+node skills/renoise-gen/renoise-cli.mjs asset register <material_id> --name "<name>"
+
+# Upload product image
+node skills/renoise-gen/renoise-cli.mjs material upload <product_image_path>
+```
+
+2. **Generate tone-setting image** — write a concise image prompt describing the presenter in the target scene with the product, covering: person appearance, scene/environment, lighting, product placement, and overall mood. Use the same aspect ratio as the planned video.
+
+```bash
+node skills/renoise-gen/renoise-cli.mjs task generate \
+  --model nano-banana-2 --resolution 2k --ratio <same as video, e.g. 9:16> \
+  --prompt "<tone-setting image prompt>" \
+  --materials "asset:<asset_id>:reference_image,<product_material_id>:ref_image"
+```
+
+3. **Present to user** — show the tone-setting image and ask: "This is the visual direction — presenter appearance, scene, lighting, and product placement. Want to adjust anything before I write the video prompt?"
+
+4. **Iterate** — if the user wants changes (different scene, lighting, outfit, product position, etc.), adjust the image prompt and regenerate. Loop until the user approves.
+
+5. **Lock the visual direction** — once approved, the tone-setting image establishes the visual contract. Upload it as a material for use as `ref_image` in the video generation step (Phase 4), anchoring the video's scene and tone to the approved image.
+
+```bash
+# Upload approved tone-setting image as material (if not already a material)
+node skills/renoise-gen/renoise-cli.mjs material upload <tone_setting_image_path>
+```
+
+**After user approves the tone-setting image**, proceed to Phase 2 to write the video prompt. The video prompt should describe actions and dialogue that match the approved visual direction.
+
 ### Phase 2: Prompt Construction
 
 Build the prompt according to the structure defined in the matched scenario. Each scenario specifies its own prompt format — follow it exactly. The six-dimension formula still applies, but how the dimensions are organized (paragraph-per-dimension vs. shot-by-shot timeline vs. second-by-second script) is determined by the scenario.
@@ -144,7 +184,9 @@ After user confirmation, execute the following steps. Report the result after ea
 
 **Step 1 — Upload assets & auto-register faces**
 
-For each asset file:
+> **Scenario D note**: If Phase 1.5 was executed, person assets and product materials are already uploaded and registered — skip re-uploading them. Only upload any NEW materials not handled in Phase 1.5 (e.g., additional scene references). Also add the approved tone-setting image as a material (`ref_image`) to anchor the video's visual direction.
+
+For each asset file (skip if already uploaded in Phase 1.5):
 
 ```bash
 # 1. Upload
@@ -163,12 +205,12 @@ Record the returned `asset_id`. Update the materials mapping: change the role fr
 
 Build the final `@reference → material_id / asset_id` mapping table after all uploads and registrations are done.
 
-**Step 3 — Translate the prompt to English**
+**Step 3 — Prompt language decision**
 
-Translate the prompt constructed in Phase 2 into English, preserving the six-dimension structure and `@` reference positions. When translating:
-- Use professional cinematography terminology (macro close-up, dolly in, rack focus, whip pan...)
-- Keep selling-point action descriptions precise — don't generalize
-- Translate post-production constraints into clear negative constraints
+Check whether the prompt contains dialogue or voiceover lines (Scenario D: live-presenter / 带货口播):
+
+- **With dialogue (Scenario D)**: Keep the entire prompt in the user's language. Do NOT translate. The model generates lip-synced speech directly from the dialogue text — translating would change the spoken language.
+- **Without dialogue (Scenarios A/B/C)**: Translate the prompt to English, preserving the six-dimension structure and `@` reference positions. Use professional cinematography terminology (macro close-up, dolly in, rack focus, whip pan...). Keep selling-point action descriptions precise — don't generalize. Translate post-production constraints into clear negative constraints.
 
 **Step 4 — Generate the video**
 
@@ -326,6 +368,8 @@ Before assembly, ask the user: **"Do you have a BGM file? If not, I can deliver 
 **Trigger**: The user needs a video with a real person presenting products on camera — unboxing, review, talking-head product endorsement. Has explicit requirements for a person, dialogue/voiceover, and multi-product display.
 
 **Difference from Scenario C**: Scenario C is cinematic and emotion-driven (no dialogue). Scenario D is driven by a live presenter speaking on camera (with dialogue and choreographed actions).
+
+**Tone-setting image workflow**: Scenario D requires a **tone-setting image (定调图)** step before writing the video prompt. Video generation is expensive (~300 credits) and slow — a tone-setting image is cheap (~50 credits) and fast, letting the user validate the visual direction (presenter appearance, scene, lighting, product placement, overall vibe) before committing to video. See **Phase 1.5** in the Workflow section for full details.
 
 **How the six dimensions adapt for this scenario**:
 
@@ -517,7 +561,7 @@ Three modes are mutually exclusive — do not mix:
 
 ## Important Notes
 
-1. **Language**: Construct the prompt in the user's language for confirmation, then translate to English before passing to the Renoise API
+1. **Language**: Construct the prompt in the user's language for confirmation. For prompts **without dialogue** (Scenarios A/B/C), translate to English before passing to the Renoise API. For prompts **with dialogue/voiceover** (Scenario D), keep the prompt in the user's language — the model needs the original language to generate correct lip-synced speech
 2. **Asset limits**: renoise-2.0 supports up to 9 ref_images + 3 ref_videos
 3. **Duration**: 5–15 seconds per segment; use `task chain` for longer videos
 4. **Face privacy**: Assets containing human faces must go through the Asset registration path, otherwise a PrivacyInformation error is thrown
