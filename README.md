@@ -27,19 +27,89 @@ claude plugin marketplace add ArcoCodes/renoise-plugins-official
 claude plugin install renoise@renoise-plugins-official
 ```
 
+3. Run the setup command to connect your Renoise account:
+
+```
+/video-maker:setup
+```
+
 ### OpenClaw
 
 ```bash
 openclaw plugins install @renoise/plugin
 ```
 
-3. Launch Claude Code and run the setup command to connect your Renoise account:
+### Codex (≥ 0.117.0)
 
-```
-/renoise:setup
+<details>
+<summary><b>Personal install</b> — available across all your projects</summary>
+
+1. Clone the plugin:
+
+```bash
+git clone https://github.com/ArcoCodes/renoise-plugins-official.git ~/.codex/plugins/video-maker
 ```
 
-This will guide you through connecting your API key and enabling the real-time credit balance display in the status bar.
+2. Create or update `~/.agents/plugins/marketplace.json`:
+
+```json
+{
+  "name": "renoise-plugins",
+  "plugins": [
+    {
+      "name": "video-maker",
+      "source": {
+        "source": "local",
+        "path": "./video-maker"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}
+```
+
+> `source.path` is resolved relative to the marketplace root (`~/.agents/plugins/`). Since the plugin is at `~/.codex/plugins/video-maker`, you can also symlink it: `ln -s ~/.codex/plugins/video-maker ~/.agents/plugins/video-maker`
+
+</details>
+
+<details>
+<summary><b>Workspace install</b> — scoped to a single repo</summary>
+
+1. Add the plugin to your project:
+
+```bash
+git submodule add https://github.com/ArcoCodes/renoise-plugins-official.git plugins/video-maker
+```
+
+2. Create `$REPO_ROOT/.agents/plugins/marketplace.json`:
+
+```json
+{
+  "name": "renoise-plugins",
+  "plugins": [
+    {
+      "name": "video-maker",
+      "source": {
+        "source": "local",
+        "path": "./plugins/video-maker"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}
+```
+
+</details>
+
+3. Restart Codex, run `/plugins` to find and install **video-maker**.
 
 ## Environment Variables
 
