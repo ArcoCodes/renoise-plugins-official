@@ -13,9 +13,11 @@
   },
   "files": [
     ".claude-plugin/",
+    ".codex-plugin/",
     "openclaw.plugin.json",
     "index.mjs",
     "hooks/",
+    "commands/",
     "skills/",
     "README.md"
   ]
