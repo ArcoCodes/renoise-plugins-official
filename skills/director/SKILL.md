@@ -1,269 +1,241 @@
 ---
 name: director
 description: >
-  AI video creative director for any video type — product, drama, comedy,
-  brand film, animated comic, action sequence. Analyzes materials, suggests 2-3 style
-  directions, generates video prompts, and submits video tasks. Use when
-  user says "make a video", "video idea", "creative direction", "help me
-  shoot", "I want a video", "video script", "storyboard", "generate video",
-  "action sequence", "generate video". Do NOT use for downloading videos or editing existing footage.
-  This skill is the ONLY entry point for video creation in the Visiono project.
+  AI video creative director — the single entry point for ALL video creation.
+  Handles product ads, drama, comedy, brand films, short films, adaptations,
+  montages, and TikTok e-commerce content. Analyzes materials, writes prompts,
+  generates visual assets, and submits video generation tasks.
+  Use when user says "make a video", "video idea", "creative direction",
+  "TikTok product video", "product video", "short film", "generate video",
+  "storyboard", "help me shoot", "adapt this script", "make a montage", "MV".
+  Do NOT use for downloading videos or editing existing footage.
 allowed-tools: Bash, Read
 metadata:
   author: renoise
-  version: 0.1.0
+  version: 0.3.0
   category: video-production
-  tags: [director, creative, video]
+  tags: [director, creative, video, product, ecommerce, short-film, narrative, story]
 ---
 
 # Video Director
 
-You are a creative director for AI video production. You guide users from raw idea to finished video through a structured creative process. Default language: English. Adapt to the user's language if they use another.
+You are a creative director for AI video production. Default language: English. Adapt to the user's language. Video prompts are always in English.
 
-## Critical Rules
+**Before writing ANY prompt, read**: `Read ${CLAUDE_SKILL_DIR}/references/prompt-craft.md`
+**For e-commerce videos, also read**: `Read ${CLAUDE_SKILL_DIR}/references/ecom-guide.md`
 
-- **The Renoise platform URL is https://www.renoise.ai** — NEVER say or link to "renoise.com". The correct domain is `renoise.ai`.
-- **You are the default entry point** for ALL video creation requests. Only route to specialized skills when `metadata.tags` clearly match.
-- **Video prompts must be in English** — the model understands English best.
-- **Dialogue must feel natural** — conversational American English, never salesy or translated.
-- **Always apply advanced prompt techniques**: technical params prefix, negative prompting, style keywords from video-capabilities.md.
-- **Respect the 15-second single-segment default**. Only split into multiple segments if total duration > 15s.
-- **Long videos (>15s) require narrative planning FIRST**. Never jump straight to writing segment prompts. Read `narrative-pacing.md`, design a rhythm blueprint, get user confirmation, THEN write prompts.
-- **Every segment prompt must declare its energy level and transition** in a comment header (e.g., `<!-- Energy: 8→10→6 | Transition: Sound Bridge -->`).
-- **Shot density is mandatory**. Each 15s segment must contain 3-5 distinct camera setups with time annotations (action scenes: 5-7). Never write a 15s prompt as one continuous take unless explicitly requested. See "Shot Density" in video-capabilities.md.
-- **NEVER upload images containing realistic human faces** — privacy detection will block them. Describe people in text instead.
+---
 
-## Phase 1 — Understand & Discover
+## Hard Rules
 
-1. **Collect input**: Accept the user's materials (images, videos, text) and creative brief.
+- Platform URL: **https://www.renoise.ai** (never renoise.com)
+- Default video segment: `--duration 15`. Use other durations (5-15s) when justified (e.g. music beat alignment, pacing needs).
+- Prompts must be in English. Dialogue language matches the user's language.
+- One mood per segment — no contradictory tone/color in the same prompt
+- Characters in 2+ segments **must** have a registered User Asset. No exceptions without user approval.
+- Human faces as `ref_image` → blocked by privacy detection. Always register as asset first.
+- Serial continuity is **scene-dependent**: use tail-frame → next `first_frame` when you need an exact opening composition/state; use `ref_video` when you need motion/style carryover from the previous clip.
+- Read video model capabilities before every prompt session: `Read ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/references/video-capabilities.md`
 
-2. **Load preferences** (if file exists):
-   ```
-   Read ~/.claude/video-maker/preferences.json
-   ```
+---
 
-3. **Discover available skills** by scanning frontmatter:
-   ```bash
-   for f in ${CLAUDE_PLUGIN_ROOT}/skills/*/SKILL.md; do head -15 "$f"; echo "---FILE:$f---"; done
-   ```
-   Parse each skill's `name`, `metadata.tags`, and `description`. Build an internal capability map.
+## Intake: What to Clarify Before Writing
 
-4. **Analyze the request**:
-   - What type of video? (product, story, drama, comedy, brand, art, etc.)
-   - What materials does the user have? (product photos, character refs, scripts, nothing)
-   - What's the intended platform/audience? (TikTok, Instagram, YouTube, general)
+Don't guess — ask. Every detail the user confirms is one fewer reason to regenerate. But don't interrogate — if the brief is rich enough, go straight to writing.
 
-5. **If user provided product images**, analyze them using the `gemini-gen` skill — send product image(s) with a prompt to extract product type, colors, material, selling points, brand tone, and scene suggestions.
+**Judge the brief**: If the user provides a detailed concept (characters, actions, mood, setting), skip to writing. If the brief is vague ("make me a cool video" / "a girl walking in the rain"), ask before inventing.
 
-6. **Present a brief summary**: "Here's what I understand: [product/story/concept]. I'll use [capabilities]. Let me suggest some creative directions."
+**What to clarify** (ask only what's missing, not all of these):
 
-## Phase 2 — Creative Direction
+| Dimension | Why it matters | Example question |
+|-----------|---------------|------------------|
+| **Characters** | Appearance, personality, number of people | "How many characters? What do they look like? What's their relationship?" |
+| **Story/Action** | What physically happens in the video | "What's the key action or event? Is there a conflict, reveal, or transformation?" |
+| **Mood/Style** | Visual tone, genre, film reference | "What feeling should the viewer get? Any visual references (film, anime, documentary)?" |
+| **Setting** | Location, time of day, environment | "Where does this take place? What time of day? Interior or exterior?" |
+| **Duration** | Single clip or multi-clip | "Is this a single 15s clip, or a longer piece?" |
+| **Dialogue** | Whether characters speak, what language | "Should characters speak? In what language?" |
+| **Reference materials** | Existing images, character photos, product shots | "Do you have any reference images, character art, or product photos?" |
 
-1. **Load style references**:
-   ```
-   Read ${CLAUDE_SKILL_DIR}/references/style-library.md
-   ```
-   If preferences exist, also load the relevant category section:
-   ```
-   Read ~/.claude/video-maker/style-profile.md
-   ```
+**For e-commerce** — these are almost always needed:
+- Product images (what does it look like?)
+- Key selling points (what makes it special?)
+- Target audience / platform (TikTok vertical? YouTube horizontal?)
 
-2. **Propose 2-3 style directions** adapted to the specific project. For each:
-   - **Style name** (from library or custom blend)
-   - **One-line pitch**: What this video would feel like
-   - **Visual tone**: Camera, lighting, color keywords
-   - **Opening hook**: A specific example first 3 seconds
-   - **Why this works**: Connection to the product/story
+**Budget check** before generating:
+```bash
+node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/renoise-cli.mjs credit me
+```
+Estimate: ~300 credits per 15s clip, ~50 per character sheet image. Inform user if budget is tight vs. plan.
 
-3. **If user has preferences**, rank familiar styles first but always include one fresh option.
+---
 
-4. **Wait for user choice**. Accept: a number, a name, "combine 1 and 3", or adjustment requests like "more cinematic" / "less salesy".
+## Two Paths
 
-## Phase 3 — Route & Generate
+### Path 1: Single Clip (≤15s)
 
-**Match the request to a specialized skill using `metadata.tags`:**
+```
+User brief → [Clarify if needed] → Write prompt → Confirm → Generate
+```
 
-- Tags match `[product, ecommerce, tiktok]` → Read and follow `${CLAUDE_PLUGIN_ROOT}/skills/tiktok-content-maker/SKILL.md`
-- Tags match `[short-film, multi-clip, narrative, story]` → Read and follow `${CLAUDE_PLUGIN_ROOT}/skills/short-film-editor/SKILL.md`
-- Tags match `[scene, background]` → Use `scene-generate` as a helper
-- No specialized match → Director generates directly (most common path)
+1. Check if the brief has enough detail. If not, ask targeted questions (see Intake above).
+2. Write one high-density prompt following prompt-craft.md
+3. Present to user, adjust on feedback
+4. Generate
 
-**When generating directly:**
+### Path 2: Multi-Clip (>15s)
 
-1. Read the prompt writing guide:
-   ```
-   Read ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/references/video-capabilities.md
-   ```
+```
+User brief → Script → Visual Dev → Write all prompts → Confirm → Generate → Assemble
+```
 
-2. **For videos ≤ 15s** — Generate a complete package directly:
-   - **Video prompt** (English, natural narrative, time-annotated for 15s)
-     - Apply chosen style's camera, lighting, and pacing
-     - Use advanced techniques: technical params prefix, negative prompting at end
-   - **Dialogue script** (if applicable): conversational American English, timestamped
-   - **BGM recommendation**: genre, tempo, energy level
-   - **Sound design notes**: key SFX moments
+1. **Script**: Write a logline + treatment.
+   - **Logline**: `When [INCITING INCIDENT], a [CHARACTER] must [GOAL], but [OBSTACLE] threatens [STAKES].`
+   - **Treatment**: 2-3 sentences per scene, prose narrative describing what the viewer SEES and FEELS. Embed dialogue naturally.
+   - Every scene transition must be THEREFORE (consequence) or BUT (complication), never AND THEN. At least 30% should be BUT.
+   - No two adjacent scenes should target the same viewer emotion.
+   - **For adaptations**: Select the most visual, emotional, self-contained scenes from the source material. Cut exposition-heavy scenes. See adaptation guidance in prompt-craft.md.
+   - Present to user for approval.
 
-3. **For videos > 15s** — Narrative planning before prompts:
+2. **Visual Dev**: See `Read ${CLAUDE_SKILL_DIR}/references/visual-dev.md` for full details.
+   - If user provided materials: ingest with `material-ingest.mjs`, match against needs
+   - **Consistency Analysis**: Before generating anything, identify what needs to stay consistent across segments:
+     - **Characters** recurring in 2+ segments → generate character sheet + register as User Asset
+     - **Locations** recurring in 2+ segments → generate scene concept image (environment only, no faces) + upload as material
+     - **Props/vehicles/objects** that are plot-critical → include in scene concept or describe in detail
+   - Not every segment needs every anchor. A segment with a new character in a new location may only need a scene ref. A continuation of the previous shot needs ref_video. Judge per segment.
+   - Build a **Shot Mapping** table showing what each segment needs and why
 
-   a. Read the pacing guide:
-      ```
-      Read ${CLAUDE_SKILL_DIR}/references/narrative-pacing.md
-      ```
+3. **Prompts**: Write one prompt per segment following prompt-craft.md. Same style line across all segments. Full character description copied verbatim every time. Each segment after S1 starts with `Continuing from the previous shot:` bridge. If the continuity method is tail-frame → `first_frame`, the described opening state must match the extracted frame exactly.
 
-   b. **Design the rhythm blueprint**:
-      - Determine total duration and segment count (N × 15s)
-      - Select the matching narrative arc template (30s/45s/60s/90s+)
-      - For each segment, assign: narrative goal, energy curve (start→mid→end), primary camera movement
-      - Design transitions between every pair of adjacent segments (choose from the 7 transition types)
-      - Validate the energy curve: no flat lines, drop before climax, breathing after peaks
-      - Mark the 4 key moments: Hook, Midpoint, Climax, Final Image
+4. **Generate**: Assemble `--materials` per segment based on the Shot Mapping:
+   - Character in frame → `asset:ID:reference_image`
+   - Exact carried-over opening pose/composition/state needed → extract the previous segment tail frame with ffmpeg, upload it, use `ID:first_frame`
+   - Motion/style carryover from previous segment needed → `PREV_ID:ref_video` (use `task chain <id>` to get material)
+   - Recurring or visually specific location → `SCENE_ID:ref_image`
+   - Sequential segments: serial chain. Independent segments: parallel.
 
-   c. **Present the rhythm blueprint** to the user using the format from narrative-pacing.md. Wait for confirmation or adjustments before proceeding.
+5. **Assemble**: Concatenate clips, strip AI audio, overlay unified BGM.
 
-   d. **Generate a visual anchor** (concept art) to lock the style across all segments:
-      ```bash
-      node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/renoise-cli.mjs task generate \
-        --model nano-banana-2 --resolution 2k --ratio 16:9 \
-        --prompt "Concept art sheet for [project]. Key visual elements: [color palette], [material textures], [character appearance], [environment], [lighting]. Multiple vignettes in unified style."
-      ```
-      Upload the result as material:
-      ```bash
-      node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/renoise-cli.mjs material upload <concept-art-url>
-      ```
-      Note the material ID — this will be passed to EVERY segment as `--materials "ID:ref_image"`.
+---
 
-      Write a **visual anchor prefix** (2-3 lines) summarizing the core visual DNA — color palette, material textures, lighting mood. This prefix goes at the start of every segment prompt.
+## Anchoring Strategy
 
-      For realistic human characters, prefer `--characters "ID"` over ref_image (use `renoise-cli.mjs character list` to browse preset characters).
+Anchors are tools, not a checklist. Analyze what each segment needs to stay consistent, then pick the right combination.
 
-   e. **Write segment prompts** following the approved blueprint:
-      - Each prompt starts with the **visual anchor prefix** (same text in every segment)
-      - Each prompt includes an energy/transition comment header
-      - All segments generated **in parallel** with `--materials "CONCEPT_ID:ref_image"` for visual consistency
-      - Apply the assigned camera movement and pacing for that energy level
-      - Repeat full character appearance description in every segment where they appear
-      - Include dialogue and sound design aligned to the energy curve
+### Available Anchors
 
-   e. Generate the supporting package:
-      - **Dialogue script**: timestamped across all segments, emotional arc matches energy curve
-      - **BGM recommendation**: specify tempo changes or build/drop moments matching the energy curve
-      - **Sound design notes**: key SFX moments, silence beats, sound bridges between segments
+| Anchor | `--materials` syntax | What it locks | When to use |
+|--------|---------------------|---------------|-------------|
+| Character asset | `asset:ID:reference_image` | Face, body, wardrobe | Character appears in 2+ segments |
+| Previous segment end frame | `ID:first_frame` | Exact opening composition/state | Next segment must start exactly where the previous one lands |
+| Previous segment | `ID:ref_video` | Motion continuity, scene flow | Segment continues from the previous one |
+| Scene concept | `ID:ref_image` | Environment, lighting, palette | Location recurs or has specific visual requirements |
+| Character Library | `--characters "ID"` | Face/body (platform characters) | Pre-existing platform characters |
+| Text-only | Full description in prompt | Nothing locked visually | One-off segments, or no visual reference available |
 
-   f. **Music continuity strategy** — ask the user before generating:
-      - If the user provides a BGM track → analyze BPM/beats, align segment time splits to beat drops
-      - If no BGM provided → each segment generates its own audio. Warn the user that cross-segment music may not match perfectly. Offer to strip audio and overlay a unified BGM track in post-processing.
+These combine freely within multimodal reference mode — use as many or as few as the segment requires.
 
-4. Present the full script. Iterate based on user feedback.
+### Deciding What Each Segment Needs
 
-**When routing to a specialized skill:**
+Ask per segment:
+1. **Does a recurring character appear?** → add their asset
+2. **Does the next segment need an exact opening frame from the previous one?** → extract tail frame and add `first_frame`
+3. **Does it continue from the previous segment's motion/style?** → add ref_video
+4. **Is the location visually specific or shared with other segments?** → add scene ref_image
+5. **Is it a standalone establishing shot or B-roll?** → text-only may suffice
 
-Read that skill's SKILL.md and follow its workflow from the appropriate phase (skip intake since we already did Phase 1-2). Pass along: analyzed materials, chosen style, user preferences.
+Example Shot Mapping:
+```
+Shot  What's needed                           --materials
+S1    Maya + her apartment (first appearance)  "asset:27:reference_image,201:ref_image"
+S2    Maya + continues S1 + same apartment     "asset:27:reference_image,V1:ref_video,201:ref_image"
+S3    City skyline B-roll (no characters)      "202:ref_image"  (or text-only)
+S4    Maya + new location (café)               "asset:27:reference_image,203:ref_image"
+```
 
-## Phase 4 — Submit & Learn
+**Register a character asset:**
+```bash
+# 1. Generate character sheet with nano-banana-2
+node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/renoise-cli.mjs task generate \
+  --model nano-banana-2 --resolution 2k --ratio 16:9 \
+  --prompt "<character sheet prompt>"
 
-1. **Submit the video** using the Renoise CLI:
+# 2. Download and upload
+curl -s -o char.png "<image_url>"
+node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/renoise-cli.mjs material upload char.png
 
-   ```bash
-   # Check balance first
-   node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/renoise-cli.mjs credit me
-   ```
+# 3. Register as asset (~30-60s)
+node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/renoise-cli.mjs asset register <material_id> --name "Character Name"
+```
 
-   **For single-segment videos (≤ 15s):**
-   ```bash
-   node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/renoise-cli.mjs task generate \
-     --prompt "<video-prompt>" --duration 15 --ratio 9:16 \
-     [--materials "ID:ref_image"] [--tags "project-tag"]
-   ```
+---
 
-   **For multi-segment videos (> 15s) — PARALLEL with VISUAL ANCHOR:**
+## Generation Commands
 
-   All segments are generated in parallel using the concept art as `ref_image` for visual consistency. This takes ~8 minutes regardless of segment count.
+**Single clip:**
+```bash
+node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/renoise-cli.mjs task generate \
+  --prompt "<prompt>" --duration 15 --ratio <ratio> \
+  [--materials "asset:ID:reference_image"] [--tags "project-tag"]
+```
 
-   ```bash
-   # Submit all segments in parallel, each with the concept art ref_image
-   # (CONCEPT_ID from Phase 3 step d)
-   node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/renoise-cli.mjs task create \
-     --prompt "<S1-prompt with visual anchor prefix>" --duration 15 --ratio 16:9 \
-     --materials "CONCEPT_ID:ref_image" --tags "project-tag,s1"
+**Serial continuity option A — exact opening frame:**
+```bash
+# S1: generate the previous segment first
+node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/renoise-cli.mjs task generate \
+  --prompt "<S1 prompt>" --duration 15 --ratio <ratio> \
+  --materials "asset:ASSET_ID:reference_image,SCENE1_MAT_ID:ref_image"
 
-   node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/renoise-cli.mjs task create \
-     --prompt "<S2-prompt with visual anchor prefix>" --duration 15 --ratio 16:9 \
-     --materials "CONCEPT_ID:ref_image" --tags "project-tag,s2"
+# Extract a clean tail frame from the completed segment
+ffmpeg -sseof -0.2 -i generated/shots/S1.mp4 -frames:v 1 -q:v 2 -y generated/keyframes/S1-end.jpg
 
-   # ... repeat for all segments
-   ```
+# Upload the extracted frame and use it as S2 first_frame
+node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/renoise-cli.mjs material upload generated/keyframes/S1-end.jpg
+# → returns material ID, e.g. 91
+node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/renoise-cli.mjs task generate \
+  --prompt "Continuing from the previous shot: <S2 prompt>" --duration 15 --ratio <ratio> \
+  --materials "asset:ASSET_ID:reference_image,91:first_frame,SCENE2_MAT_ID:ref_image"
+```
 
-   Wait for all tasks to complete (~8 minutes), then download and concatenate:
-   ```bash
-   # Download all segment videos, then concatenate with ffmpeg
-   ffmpeg -f concat -safe 0 -i <concat-list> -c copy final-output.mp4
-   ```
+**Serial continuity option B — motion/style carryover:**
+```bash
+# Chain S1 output → material in one step (download + upload)
+node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/renoise-cli.mjs task chain <S1_TASK_ID>
+# → prints material ID for ref_video
 
-2. **Update preference system** after video is delivered:
+# S2: character asset + ref_video (S1) + scene ref
+node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/renoise-cli.mjs task generate \
+  --prompt "Continuing from the previous shot: <S2 prompt>" --duration 15 --ratio <ratio> \
+  --materials "asset:ASSET_ID:reference_image,S1_MAT_ID:ref_video,SCENE2_MAT_ID:ref_image"
+```
 
-   **Layer 1 — Core preferences** (`~/.claude/video-maker/preferences.json`):
-   Update preferred_styles (frequency-sorted), ratio, dialogue_tone, avoid list, session count.
-   Write the entire JSON file (overwrite, not append).
+> **Timeout note**: Multi-anchor generations take 8–12 minutes per segment. If `task generate` times out, use `task create` + `task wait --timeout 900` separately.
 
-   **Layer 2 — Style profile** (`~/.claude/video-maker/style-profile.md`):
-   If the user expressed a new preference or custom style blend, update the relevant category section.
-   Only write extracted insights, not raw conversation.
+**Assemble:**
+```bash
+cd "${PROJECT_DIR}/videos"
+printf "file '%s'\n" S1.mp4 S2.mp4 S3.mp4 > concat.txt
+ffmpeg -y -f concat -safe 0 -i concat.txt -c copy final.mp4
+# Strip AI audio, add BGM:
+ffmpeg -i final.mp4 -an -c:v copy silent.mp4
+ffmpeg -i silent.mp4 -i bgm.mp3 -c:v copy -c:a aac -shortest final-with-bgm.mp4
+```
 
-   **Layer 3 — History** (`~/.claude/video-maker/history/YYYY-MM.md`):
-   Append a brief entry (5 lines max): date, project name, category, style chosen, result.
+**Check balance:**
+```bash
+node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/renoise-cli.mjs credit me
+```
 
-   **Initialize preference files** if they don't exist:
-   ```bash
-   mkdir -p ~/.claude/video-maker/history
-   [ -f ~/.claude/video-maker/preferences.json ] || echo '{}' > ~/.claude/video-maker/preferences.json
-   [ -f ~/.claude/video-maker/style-profile.md ] || echo '# Style Profile' > ~/.claude/video-maker/style-profile.md
-   ```
+---
 
-## Examples
+## When Things Go Wrong
 
-### Example 1: Product video (common)
-User: "I have photos of my new sneakers, help me make a video"
-1. Phase 1: Analyze sneaker images via `gemini-gen` skill → extract product type, colors, selling points
-2. Phase 2: Suggest Minimal Showcase / Dynamic Sports / Lifestyle Vlog with adapted descriptions
-3. User picks "Dynamic Sports"
-4. Phase 3: Generate 15s video prompt with fast tracking, high-energy BGM, beat-synced cuts
-5. Phase 4: Upload product image, submit task, wait for result
-
-### Example 2: Short drama (no specialized skill)
-User: "I want a 15-second suspense clip about a mysterious package"
-1. Phase 1: No images — text-only creative brief, discover no matching specialized skill
-2. Phase 2: Suggest Suspense & Twist / Dramatic Conflict / Warm & Heartfelt
-3. User picks "Suspense & Twist"
-4. Phase 3: Director generates video prompt directly (cold tones, slow push-in, surprise ending)
-5. Phase 4: Submit text-to-video task
-
-### Example 3: User has style preferences
-User: "Make another product video for my candle" (returning user)
-1. Phase 1: Read preferences.json → user historically prefers "Calm & Aesthetic", dislikes "hard-sell tone"
-2. Phase 2: Rank "Calm & Aesthetic" first, also suggest "Premium Commercial" and "Lifestyle Vlog"
-3. Faster iteration because preferences pre-filter the options
-
-## Troubleshooting
-
-### PrivacyInformation error
-**Cause**: Uploaded image contains realistic human face.
-**Solution**: Switch to text-to-video. Describe the person's appearance in the prompt instead of uploading their photo.
-
-### Insufficient credits (402)
-**Cause**: Renoise balance too low.
-**Solution**: Run `renoise-cli.mjs credit me` to check balance, inform user of current balance and estimated cost.
-
-### Skill routing confusion
-**Cause**: User intent unclear between director vs specialized skill.
-**Solution**: Default to director flow. If the user specifically mentions "TikTok" or "ecommerce", route to tiktok-content-maker.
-
-### Video generation takes too long
-**Cause**: 15s videos typically need 5-10 minutes.
-**Solution**: Set `--timeout 600` (10 min). For longer waits, use `--timeout 900`.
-
-## Performance Notes
-
-- Take your time to analyze the user's materials thoroughly
-- Quality of style suggestions is more important than speed
-- Do not skip the preference system read/write steps
-- Always read the full video-capabilities.md before writing prompts
+| Problem | Fix |
+|---------|-----|
+| `PrivacyInformation` error | Register face image as User Asset first |
+| 402 insufficient credits | `credit me`, inform user, suggest top-up at https://www.renoise.ai |
+| Character drifts between segments | Use User Asset + copy full character description verbatim |
+| Video ignores actions in prompt | Prompt too dense — reduce to 3-4 actions per 5s window |
+| Video looks incoherent | Simplify: 2 camera stages, one mood, fewer actions |
+| Segments don't connect | Re-check the continuity choice: use tail-frame → next `first_frame` for exact opening-state matches, or `ref_video` for motion carryover; add cross-dissolve in post if needed |

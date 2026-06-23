@@ -72,7 +72,7 @@ node renoise-cli.mjs task generate \
   --prompt "<Video Prompt above>" \
   --model renoise-2.0 --duration 15 --ratio 9:16 \
   --tags ecom,keep,resistance-band \
-  --materials "194:image1"
+  --materials "194:ref_image"
 ```
 
 ## Multi-Scene Batch Generation

@@ -127,7 +127,59 @@ AI-generated via Suno with prompt: "Cinematic suspense, slow build, mysterious p
 | continuity_in | Standing up from desk (chair pushed back), both hands cupping the glowing watch at chest level, entire room bathed in warm golden light with floating particles, Maya's face illuminated gold, expression of awe and wonder, eyes reflecting golden light |
 | continuity_out | Standing 2 steps back from desk, hands at sides, warm amber room lighting restored, gold pocket watch on desk pulsing with gentle glow, expression of wonder and quiet excitement, evening twilight through window |
 
-## Phase 4 — Seedance Prompts
+## Phase 3.5 — Visual Prep (Anchoring)
+
+### Character Asset
+
+```bash
+# Generate character reference sheet
+node renoise-cli.mjs task generate \
+  --model nano-banana-2 --resolution 2k --ratio 1:1 \
+  --prompt "Character reference sheet for Maya. East Asian woman, late 20s, shoulder-length black hair with subtle auburn highlights, warm ivory skin, almond-shaped dark brown eyes, slim build. Wearing oversized cream-colored chunky-knit wool cardigan over a fitted charcoal cotton turtleneck, high-waisted dark indigo straight-leg jeans, brown leather ankle boots. Small gold hoop earrings, thin gold chain bracelet on left wrist. Multiple angles: front, 3/4, profile. Clean white background."
+
+# Download → upload → register
+curl -s -o maya.png "<image_url>"
+node renoise-cli.mjs material upload maya.png
+# → material #101
+node renoise-cli.mjs asset register 101 --name "maya"
+# → asset #27
+```
+
+### Scene Concept Images (parallel — no dependencies)
+
+```bash
+# S1 scene: apartment hallway
+node renoise-cli.mjs task create --model nano-banana-2 --resolution 2k --ratio 16:9 \
+  --prompt "Dimly lit apartment hallway, warm pendant light overhead, beige walls, mailboxes on left wall, wooden door at end of hall, small brown package on doormat, grocery bags nearby. Warm amber tones, cool blue shadows. Photorealistic, cinematic. No people." \
+  --tags mystery,scene-s1
+
+# S2/S3/S4 scene: apartment living room (reuse for all 3 — same location)
+node renoise-cli.mjs task create --model nano-banana-2 --resolution 2k --ratio 16:9 \
+  --prompt "Cozy apartment living room at twilight. Wooden desk with warm table lamp, large window showing blue twilight sky, bookshelves, potted plants, worn leather chair. Warm amber side-lighting, cool blue from window. Photorealistic, cinematic, shallow depth of field. No people." \
+  --tags mystery,scene-living-room
+```
+
+Download and upload each:
+```bash
+curl -s -o scene-hallway.png "<url>" && node renoise-cli.mjs material upload scene-hallway.png
+# → material #201
+curl -s -o scene-living.png "<url>" && node renoise-cli.mjs material upload scene-living.png
+# → material #202 (reused for S2, S3, S4)
+```
+
+### Shot Mapping
+
+```
+Shot  Character    Scene Ref    Prev Video   --materials
+S1    asset #27    #201         (none)       "asset:27:reference_image,201:ref_image"
+S2    asset #27    #202         #V1          "asset:27:reference_image,V1:ref_video,202:ref_image"
+S3    asset #27    #202         #V2          "asset:27:reference_image,V2:ref_video,202:ref_image"
+S4    asset #27    #202         #V3          "asset:27:reference_image,V3:ref_video,202:ref_image"
+```
+
+S2-S4 share the same scene ref #202 (same living room location).
+
+## Phase 4 — Prompts
 
 ### S1 Prompt
 
@@ -205,26 +257,56 @@ Character: East Asian woman, late 20s, shoulder-length black hair with subtle au
 Avoid: No cartoon, no anime, no oversaturated colors, no dutch angles, no text overlays, no watermarks, no horror, no jump scares.
 ```
 
-## Phase 5 — Generation
+## Phase 5 — Generation (Serial Chain)
 
 ### Cost Estimate
 
 ```
-S1 (8s):  ~4 credits
-S2 (13s): ~6 credits
-S3 (12s): ~6 credits
-S4 (12s): ~6 credits
-Total:    ~22 credits
+Character sheet:  ~12 credits
+Scene refs (x2):  ~24 credits
+S1 (8s):  ~160 credits
+S2 (13s): ~260 credits
+S3 (12s): ~240 credits
+S4 (12s): ~240 credits
+Total:    ~936 credits
 ```
 
-### Batch Command
+### Serial Chain Commands
 
 ```bash
-bash batch-generate.sh \
-  --project mystery-package \
-  --ratio 16:9 \
-  --prompts-file prompts.json
+# S1 — character asset + scene ref (no ref_video for first segment)
+node renoise-cli.mjs task generate --prompt "<S1 prompt>" --duration 8 --ratio 16:9 \
+  --materials "asset:27:reference_image,201:ref_image"
+# → task #500
+
+# Chain S1 → material
+node renoise-cli.mjs task chain 500
+# → material #V1
+
+# S2 — character + ref_video + scene ref
+node renoise-cli.mjs task generate --prompt "<S2 prompt>" --duration 13 --ratio 16:9 \
+  --materials "asset:27:reference_image,V1:ref_video,202:ref_image"
+# → task #501
+
+# Chain S2 → material
+node renoise-cli.mjs task chain 501
+# → material #V2
+
+# S3 — character + ref_video + scene ref
+node renoise-cli.mjs task generate --prompt "<S3 prompt>" --duration 12 --ratio 16:9 \
+  --materials "asset:27:reference_image,V2:ref_video,202:ref_image"
+# → task #502
+
+# Chain S3 → material
+node renoise-cli.mjs task chain 502
+# → material #V3
+
+# S4 — character + ref_video + scene ref
+node renoise-cli.mjs task generate --prompt "<S4 prompt>" --duration 12 --ratio 16:9 \
+  --materials "asset:27:reference_image,V3:ref_video,202:ref_image"
 ```
+
+> **Note**: Multi-anchor generations take ~8-12 minutes per segment. Use `task create` + `task wait --timeout 900` if the default timeout is insufficient.
 
 ## Phase 6 — Assembly Guide
 

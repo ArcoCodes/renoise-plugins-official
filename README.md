@@ -1,20 +1,15 @@
 # renoise-plugins-official
 
-AI video production skills by Renoise — creative direction, generation, editing, and e-commerce content.
+AI video production skills by Renoise — creative direction, generation, analysis, e-commerce content, and download.
 
 ## Skills
 
 | Skill | Description |
 |-------|-------------|
-| **director** | Creative director — main entry point for all video requests |
-| **gemini-gen** | Visual understanding & multimodal analysis via Gemini 3.1 Pro |
-| **renoise-gen** | AI video & image generation engine (renoise-cli) |
-| **tiktok-content-maker** | TikTok & e-commerce short video specialist |
-| **scene-generate** | Background/environment image generation |
-| **product-sheet-generate** | Multi-angle product design sheet |
-| **short-film-editor** | Short film & drama editing |
-| **video-download** | Video downloader (yt-dlp) |
-| **file-upload** | Upload files to Renoise for use with gemini-gen |
+| **director** | Creative director — single entry point for all video creation (product ads, short films, TikTok e-commerce, drama, comedy) |
+| **gemini-gen** | Visual understanding & multimodal analysis via Gemini 3.1 Pro (product analysis, video script extraction, style extraction) |
+| **renoise-gen** | AI video & image generation engine — renoise-cli, material pool, product design sheets, scene backgrounds |
+| **video-download** | Video downloader (yt-dlp + Douyin/TikTok fallback) |
 
 ## Installation
 
@@ -29,7 +24,7 @@ claude plugin marketplace add ArcoCodes/renoise-plugins-official
 2. Install the plugin:
 
 ```bash
-claude plugin install video-maker@renoise-plugins-official
+claude plugin install renoise@renoise-plugins-official
 ```
 
 3. Run the setup command to connect your Renoise account:
@@ -41,7 +36,7 @@ claude plugin install video-maker@renoise-plugins-official
 ### OpenClaw
 
 ```bash
-openclaw plugins install @renoise/video-maker
+openclaw plugins install @renoise/plugin
 ```
 
 ### Codex (≥ 0.117.0)

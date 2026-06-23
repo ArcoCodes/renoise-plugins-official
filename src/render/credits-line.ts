@@ -30,9 +30,9 @@ function formatCredits(n: number): string {
 // ── Main Renderer ───────────────────────────────────────────────────────
 
 export interface RenderOptions {
-  /** Slash command name for add-credits. Default: /video-maker:add-credits */
+  /** Slash command name for add-credits. Default: /renoise:add-credits */
   addCreditsCmd?: string
-  /** Slash command name for setup. Default: /video-maker:setup */
+  /** Slash command name for setup. Default: /renoise:setup */
   setupCmd?: string
 }
 
@@ -44,12 +44,12 @@ export function renderCreditsLine(
   data: CreditsData | null,
   opts: RenderOptions = {},
 ): string {
-  const addCreditsCmd = opts.addCreditsCmd ?? '/video-maker:add-credits'
-  const setupCmd = opts.setupCmd ?? '/video-maker:setup'
+  const addCreditsCmd = opts.addCreditsCmd ?? '/renoise:add-credits'
+  const setupCmd = opts.setupCmd ?? '/renoise:setup'
 
   // No cache / not logged in
   if (!data) {
-    return colorize(`🎬 Renoise Video Maker — type ${setupCmd} to complete setup`, GRAY)
+    return colorize(`🎬 Renoise — type ${setupCmd} to complete setup`, GRAY)
   }
 
   const { credits } = data
