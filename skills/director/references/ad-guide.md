@@ -72,45 +72,44 @@ After receiving the user's request, confirm the following in order:
 
 If the user's brief is incomplete, **only ask for missing critical information** — don't throw all questions at once. Infer what you can from the assets first.
 
-### Phase 1.5: Tone-Setting Image (Scenario D only)
+### Phase 1.5: Asset Upload (Scenario D)
 
-**Why**: Video generation is expensive (~300 credits) and takes minutes. A tone-setting image costs ~50 credits and returns in seconds. For live-presenter videos (Scenario D), generate a tone-setting image first so the user can validate the visual direction — presenter appearance in scene, lighting, product placement, overall vibe — before committing to video.
+Upload all assets before writing the prompt. This step is quick and ensures material IDs are ready for prompt construction.
 
 **Steps:**
 
-1. **Upload assets early** — upload the person image and register as User Asset (face detection requires it). Upload product images as materials. Record all IDs.
+1. **Upload person image and register as User Asset** (face detection requires it).
 
-```bash
-# Upload person image
-node skills/renoise-gen/renoise-cli.mjs material upload <person_image_path>
-# Register as asset (required for face)
-node skills/renoise-gen/renoise-cli.mjs asset register <material_id> --name "<name>"
+   **If the user did NOT provide a presenter face image**: ask the user what kind of presenter they want (e.g. gender, age range, style, vibe — "甜美少女风", "职场精英感", "邻家小姐姐" etc.). Then generate a character portrait with nano-banana-2, download it, upload as material, and register as User Asset. Present the generated character to the user for approval before proceeding — iterate until satisfied.
 
-# Upload product image
-node skills/renoise-gen/renoise-cli.mjs material upload <product_image_path>
-```
+   ```bash
+   # Generate presenter character portrait (no person image provided)
+   node skills/renoise-gen/renoise-cli.mjs task generate \
+     --model nano-banana-2 --resolution 2k --ratio 1:1 \
+     --prompt "<portrait prompt based on user's description>"
 
-2. **Generate tone-setting image** — write a concise image prompt describing the presenter in the target scene with the product, covering: person appearance, scene/environment, lighting, product placement, and overall mood. Use the same aspect ratio as the planned video.
+   # Download the generated portrait
+   curl -s -o presenter.png "<generated_image_url>"
 
-```bash
-node skills/renoise-gen/renoise-cli.mjs task generate \
-  --model nano-banana-2 --resolution 2k --ratio <same as video, e.g. 9:16> \
-  --prompt "<tone-setting image prompt>" \
-  --materials "asset:<asset_id>:reference_image,<product_material_id>:ref_image"
-```
+   # Upload and register as User Asset
+   node skills/renoise-gen/renoise-cli.mjs material upload presenter.png
+   node skills/renoise-gen/renoise-cli.mjs asset register <material_id> --name "<presenter name>"
+   ```
 
-3. **Present to user** — show the tone-setting image and ask: "This is the visual direction — presenter appearance, scene, lighting, and product placement. Want to adjust anything before I write the video prompt?"
+   **If the user provided a presenter face image**: upload and register directly.
 
-4. **Iterate** — if the user wants changes (different scene, lighting, outfit, product position, etc.), adjust the image prompt and regenerate. Loop until the user approves.
+   ```bash
+   node skills/renoise-gen/renoise-cli.mjs material upload <person_image_path>
+   node skills/renoise-gen/renoise-cli.mjs asset register <material_id> --name "<name>"
+   ```
 
-5. **Lock the visual direction** — once approved, the tone-setting image establishes the visual contract. Upload it as a material for use as `ref_image` in the video generation step (Phase 4), anchoring the video's scene and tone to the approved image.
+2. **Upload product images**.
 
-```bash
-# Upload approved tone-setting image as material (if not already a material)
-node skills/renoise-gen/renoise-cli.mjs material upload <tone_setting_image_path>
-```
+   ```bash
+   node skills/renoise-gen/renoise-cli.mjs material upload <product_image_path>
+   ```
 
-**After user approves the tone-setting image**, proceed to Phase 2 to write the video prompt. The video prompt should describe actions and dialogue that match the approved visual direction.
+3. Record all material IDs and asset IDs, then proceed directly to Phase 2 (Prompt Construction).
 
 ### Phase 2: Prompt Construction
 
@@ -184,7 +183,7 @@ After user confirmation, execute the following steps. Report the result after ea
 
 **Step 1 — Upload assets & auto-register faces**
 
-> **Scenario D note**: If Phase 1.5 was executed, person assets and product materials are already uploaded and registered — skip re-uploading them. Only upload any NEW materials not handled in Phase 1.5 (e.g., additional scene references). Also add the approved tone-setting image as a material (`ref_image`) to anchor the video's visual direction.
+> **Scenario D note**: If Phase 1.5 was executed, person assets and product materials are already uploaded and registered — skip re-uploading them. Only upload any NEW materials not handled in Phase 1.5 (e.g., additional scene references).
 
 For each asset file (skip if already uploaded in Phase 1.5):
 
@@ -369,7 +368,7 @@ Before assembly, ask the user: **"Do you have a BGM file? If not, I can deliver 
 
 **Difference from Scenario C**: Scenario C is cinematic and emotion-driven (no dialogue). Scenario D is driven by a live presenter speaking on camera (with dialogue and choreographed actions).
 
-**Tone-setting image workflow**: Scenario D requires a **tone-setting image (定调图)** step before writing the video prompt. Video generation is expensive (~300 credits) and slow — a tone-setting image is cheap (~50 credits) and fast, letting the user validate the visual direction (presenter appearance, scene, lighting, product placement, overall vibe) before committing to video. See **Phase 1.5** in the Workflow section for full details.
+**Asset upload**: Scenario D requires uploading person and product assets before writing the prompt. Person images must be registered as User Assets (face detection). See **Phase 1.5** in the Workflow section for details. After assets are ready, proceed directly to prompt writing and user confirmation.
 
 **How the six dimensions adapt for this scenario**:
 
@@ -379,7 +378,7 @@ Before assembly, ask the user: **"Do you have a BGM file? If not, I can deliver 
 | Selling-Point Action | **Second-by-second action script**: choreograph person's actions, gestures, and product interactions along a timeline | Must specify start/end seconds, body posture, hand gestures, and which product is being interacted with |
 | Scene & Tone | May contain multiple sub-scenes, each described individually | Annotate which time segment each sub-scene appears in; ensure scene transitions align with the action script |
 | Camera Language | Primarily fixed camera position, with medium shot / close-up / extreme close-up switching | Annotate each shot-type transition's timestamp, synchronized with the action script |
-| Audio | **Dialogue script**: write out the presenter's lines segment by segment | Lip-sync must be consistent with dialogue throughout; voice timbre and speaking pace must be uniform; explicitly annotate silent segments |
+| Audio | **On-camera dialogue**: all lines must be spoken by the presenter on camera — NOT as background voiceover or narration. Write each line as "人物对着镜头说：'...'" to make the speaker explicit. | Lip-sync must be consistent with dialogue throughout; voice timbre and speaking pace must be uniform; explicitly annotate silent segments. The prompt must include a constraint like "全程由人物本人口播发声，不使用旁白或背景配音" |
 | Post-Production | Person consistency + product consistency + lip-sync | Facial features stable and undistorted throughout; product appearance / packaging text clearly readable; outfit unchanged |
 
 **Prompt structure template (live-presenter specific)**:
@@ -389,16 +388,20 @@ Unlike other scenarios, live-presenter prompts are organized along a **second-by
 ```
 [Person & product anchoring: all @ references declared upfront, with consistency constraints] [Subject]
 
-[0~Ns: action + dialogue + shot type] [Selling-Point Action + Audio + Camera Language]
-[N~Ms: action + dialogue + shot type] [Selling-Point Action + Audio + Camera Language]
+[0~Ns: action + "人物对着镜头说：'台词'" + shot type] [Selling-Point Action + Audio + Camera Language]
+[N~Ms: action + "人物对着镜头说：'台词'" + shot type] [Selling-Point Action + Audio + Camera Language]
 ...(choreographed segment by segment)
 
 [Scene environment description, with sub-scene breakdown] [Scene & Tone]
 
 [Shot-type switching rules] [Camera Language]
 
+全程由人物本人口播发声，不使用旁白或背景配音。人物嘴唇动作必须与所说台词完全同步。[Audio Constraints]
+
 [Consistency constraints + prohibitions] [Post-Production Constraints]
 ```
+
+**Critical rule**: Every dialogue line in the timeline MUST be written as the person speaking on camera (e.g. "人物对着镜头说：'...'" or "Person speaks to camera: '...'"), never as a detached "台词：'...'" or "Dialogue: '...'" — the latter can cause the model to render it as background voiceover instead of lip-synced on-camera speech. The audio constraints section must explicitly state "全程由人物本人口播发声，不使用旁白或背景配音".
 
 ---
 
@@ -476,17 +479,17 @@ Unlike other scenarios, live-presenter prompts are organized along a **second-by
 
 > The person from @Image 1 wears a fixed outfit that remains unchanged throughout. Products include a black packaging bag, a silver box @Image 2, and a T-shirt @Image 3 — visual details must stay sharp and undistorted throughout. **[Subject]**
 >
-> 0\~1s: Person holds multiple products with both hands and places them on a metal table surface, looking directly at the camera. Dialogue: "Let's unbox these new items I just received." **[Selling-Point Action + Audio]**
+> 0\~1s: Person holds multiple products with both hands and places them on a metal table surface, looking directly at the camera. Person speaks to camera: "Let's unbox these new items I just received." **[Selling-Point Action + Audio]**
 >
-> 1\~8s: Person stands at the table, left hand resting on the table edge, right hand gesturing along with the narration, body leaning slightly forward. Dialogue: "The design and features of these products are really impressive…" **[Selling-Point Action + Audio]**
+> 1\~8s: Person stands at the table, left hand resting on the table edge, right hand gesturing along with the narration, body leaning slightly forward. Person speaks to camera: "The design and features of these products are really impressive…" **[Selling-Point Action + Audio]**
 >
-> 8\~9s: Person stands by the window, right hand raised toward the camera. Dialogue: "Now let's take a look at this T-shirt." **[Selling-Point Action + Audio]**
+> 8\~9s: Person stands by the window, right hand raised toward the camera. Person speaks to camera: "Now let's take a look at this T-shirt." **[Selling-Point Action + Audio]**
 >
-> 9\~12s: Person gently touches the T-shirt on their chest with both hands while describing its features, then an extreme close-up of fingers pinching the fabric to showcase texture. Dialogue: "This T-shirt is made of lightweight fabric with great elasticity…" **[Selling-Point Action + Audio]**
+> 9\~12s: Person gently touches the T-shirt on their chest with both hands while describing its features, then an extreme close-up of fingers pinching the fabric to showcase texture. Person speaks to camera: "This T-shirt is made of lightweight fabric with great elasticity…" **[Selling-Point Action + Audio]**
 >
-> 12\~14s: Person's hands drop naturally to their sides, expression relaxed, narration concludes. No background audio. **[Selling-Point Action + Audio]**
+> 12\~14s: Person's hands drop naturally to their sides, expression relaxed. No speech, no background audio. **[Selling-Point Action + Audio]**
 >
-> Lip-sync must remain consistent with dialogue throughout. Voice timbre and speaking pace are warm, moderate, and uniform across the entire video. **[Audio Constraints]**
+> All dialogue is spoken on camera by the person — no voiceover or background narration. Lip-sync must remain consistent with dialogue throughout. Voice timbre and speaking pace are warm, moderate, and uniform across the entire video. **[Audio Constraints]**
 >
 > Modern indoor setting with two sub-scenes: a minimalist area (wooden wall panels, white bench, wooden floor); a beige marble-walled room (small wooden table, decorative objects). Primary light source is natural light, environment is clean and comfortable. **[Scene & Tone]**
 >
