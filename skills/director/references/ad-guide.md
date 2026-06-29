@@ -115,6 +115,8 @@ Upload all assets before writing the prompt. This step is quick and ensures mate
 
 Build the prompt according to the structure defined in the matched scenario. Each scenario specifies its own prompt format — follow it exactly. The six-dimension formula still applies, but how the dimensions are organized (paragraph-per-dimension vs. shot-by-shot timeline vs. second-by-second script) is determined by the scenario.
 
+**Language rule**: Draft the prompt in the user's language. Translation to English happens in Phase 4 Step 3 only — never before user confirmation. The user reviews and edits in their own language; the API receives English.
+
 Writing rules that apply to all scenarios:
 
 **DO:**
@@ -362,46 +364,145 @@ ffmpeg -y -i final-silent.mp4 -i bgm.mp3 -c:v copy -c:a aac -shortest final-with
 
 Before assembly, ask the user: **"Do you have a BGM file? If not, I can deliver the silent version for you to add music in post."**
 
-### D. Live-Presenter Product Showcase (Unboxing / Review / Talking-Head)
+### D. Live-Presenter Product Showcase (UGC / Review / Talking-Head)
 
-**Trigger**: The user needs a video with a real person presenting products on camera — unboxing, review, talking-head product endorsement. Has explicit requirements for a person, dialogue/voiceover, and multi-product display.
+**Trigger**: The user needs a video with a real person presenting products on camera — review, testing, talking-head endorsement. The goal is authentic UGC (User-Generated Content) feel, not a polished commercial.
 
-**Difference from Scenario C**: Scenario C is cinematic and emotion-driven (no dialogue). Scenario D is driven by a live presenter speaking on camera (with dialogue and choreographed actions).
+**Difference from Scenario C**: Scenario C is cinematic and emotion-driven (no dialogue). Scenario D is driven by a live presenter speaking on camera with dialogue and choreographed demo actions — and crucially, it must feel like a genuine user sharing their experience, not an actor reading a script.
 
 **Asset upload**: Scenario D requires uploading person and product assets before writing the prompt. Person images must be registered as User Assets (face detection). See **Phase 1.5** in the Workflow section for details. After assets are ready, proceed directly to prompt writing and user confirmation.
 
-**How the six dimensions adapt for this scenario**:
+---
 
-| Dimension | Emphasis | Special requirements |
-|-----------|----------|---------------------|
-| Subject | Person `@person image` + multiple products `@product images` coexist | Person's outfit must remain unchanged throughout; each product anchored with its own `@` reference, visual details must stay sharp and undistorted |
-| Selling-Point Action | **Second-by-second action script**: choreograph person's actions, gestures, and product interactions along a timeline | Must specify start/end seconds, body posture, hand gestures, and which product is being interacted with |
-| Scene & Tone | May contain multiple sub-scenes, each described individually | Annotate which time segment each sub-scene appears in; ensure scene transitions align with the action script |
-| Camera Language | Primarily fixed camera position, with medium shot / close-up / extreme close-up switching | Annotate each shot-type transition's timestamp, synchronized with the action script |
-| Audio | **On-camera dialogue**: all lines must be spoken by the presenter on camera — NOT as background voiceover or narration. Write each line as "人物对着镜头说：'...'" to make the speaker explicit. | Lip-sync must be consistent with dialogue throughout; voice timbre and speaking pace must be uniform; explicitly annotate silent segments. The prompt must include a constraint like "全程由人物本人口播发声，不使用旁白或背景配音" |
-| Post-Production | Person consistency + product consistency + lip-sync | Facial features stable and undistorted throughout; product appearance / packaging text clearly readable; outfit unchanged |
+**Core Mindset — UGC vs. Commercial**
 
-**Prompt structure template (live-presenter specific)**:
+The single biggest failure mode for Scenario D is writing prompts that sound like TV commercials. The table below shows the shift:
+
+| Commercial (avoid) | UGC (target) |
+|--------------------|--------------|
+| "这款粉底持妆一整天，效果非常棒！" | "比我想象的稀一点…但上脸居然不错诶" |
+| Perfect skin, flawless lighting | Natural skin texture, pores and blemishes visible |
+| Professional fixed-camera setup | Handheld phone selfie, slight sway, ring light or window light |
+| Smooth scripted delivery | Fast, casual, with hesitations and real reactions |
+| Only highlights benefits | Mentions 1–2 honest flaws — this actually increases trust |
+| Vague: "展示产品" | Specific demo action: pump product onto cheek, half-face apply, press finger to skin |
+
+---
+
+**Hook Strategy — Choose One for the Opening 3 Seconds**
+
+| Hook Type | Best for | How to describe in prompt |
+|-----------|----------|---------------------------|
+| **Pain-point visual** | Products that solve a visible problem | Person opens with the problem state — bare face with skin issues (makeup), ill-fitting clothes held up, a cheap dupe next to the real thing (accessories) — then holds the product and states the test ("我要用它做一个12小时带妆测试" / "我一直找不到合适的版型，这次来试试") |
+| **Social-proof reply** | Trending / much-requested products | An on-screen comment sticker appears with a viewer question ("你试过XX吗？" / "求测评！") + person responds directly to camera ("你们让我测，我来了") — signals: real people asked for this |
+| **Skeptic-to-believer** | Products with bold or hard-to-believe claims | Person raises product, voice skeptical, immediately starts using it ("它说能撑一整天？" / "这个版型真的显腿长？" / "面料真的不皱？我们来看看") — the doubt IS the hook |
+
+---
+
+**Demo Action Framework** (replace vague "shows product" with 2–3 concrete actions)
+
+The rule: every selling-point claim must map to one **physical, visible action** the presenter performs on camera. Never describe a claim abstractly — show the proof.
+
+Organize by claim type, then pick the action that fits your product:
+
+| Claim Type | Universal Demo Action | Product Examples |
+|------------|----------------------|-----------------|
+| **质地 / 材质** | Touch, stretch, scrunch, or pour the product; show its physical behavior | Foundation: pump onto cheek, let it flow. Fabric: scrunch in fist then release, show it recovers. Skincare: spread on back of hand, show absorption speed |
+| **显色 / 遮瑕 / 色彩** | Apply to one side only; leave the other side bare as in-frame contrast | Foundation: half-face. Blush: single cheek swatch vs. bare cheek. Lipstick: half-lip. Clothing: hold garment against skin in natural light vs. artificial light |
+| **持妆 / 耐久 / 不变形** | Timestamp reveal + show product/outfit condition after elapsed time | Foundation: wrist watch close-up after 12h. Clothing: same-day outfit after a full day out. Bag: show interior/exterior after heavy use |
+| **版型 / 贴合 / 尺码** | Wear it and move — sit down, spin, stretch, raise arms, walk away from camera | Clothing: full 360° spin + squat. Shoes: walk in frame, flex foot. Pants: raise arms to test waistband rise |
+| **细节 / 工艺 / 做工** | Extreme close-up while fingers explore the surface, seam, hardware, or finish | Clothing: fingers running along stitching. Bag: open/close zipper, press hardware. Jewelry: rotate under light to show facets |
+| **效果对比 / 改变** | Before ↔ after in the same continuous shot, no cut | Styling: outfit flat-lay vs. worn on body. Skincare: arm without vs. with product. Hair tool: one section before, one section after |
+| **使用感受 / 真实反应** | Capture the first-use reaction — surprise, hesitation, discovery | First bite of food product. First smell of fragrance. Feeling fabric for the first time and reacting. Putting on shoes and walking for the first time |
+
+> **⚠️ Physical Continuity Rule (applies to all products)**
+>
+> The model cannot generate implicit state transitions — it will teleport between states (cap on → product applied; sealed bag → open bag; folded clothing → worn). Any product that moves from a **packaged/stored state** to an **in-use state** must follow one of two strategies:
+>
+> - **Skip the transition**: begin the timeline with the product already in its in-use state (product already open, already applied, already worn). Never mention the packaged state in the same or adjacent time segment.
+> - **Make the transition explicit**: dedicate a full separate time segment to the preparation action ("presenter unscrews the cap and sets it aside"), then start the demo in the next segment.
+>
+> This applies universally: bottle caps, sealed pouches, cardboard boxes, clothing tags, zip-lock bags, foil wrappers, shoe boxes — any packaging.
+
+---
+
+> **⚠️ Action Granularity Rule (applies to all application demos)**
+>
+> Never compress a multi-step physical process into one sentence. The model renders a single sentence as a single instantaneous event — a blob of product will teleport from "just pumped" to "fully blended" in one frame.
+>
+> **Minimum 3 sub-steps per demo action**, each on its own sentence, each describing the **mid-action / incomplete state** — not the end state:
+>
+> | ❌ Compressed (avoid) | ✅ Granular (target) |
+> |---|---|
+> | "pumps foundation onto cheek and blends it in" | ① A small pump of product lands on the cheekbone. ② One fingertip gently taps the center — product not yet spread. ③ Slow outward circles; edges still unblended at frame edge. |
+> | "scrubs the serum onto her arm and it absorbs" | ① Drops serum onto the back of the hand, lets it pool. ② Fingertip spreads it across half the skin — other half still bare. ③ Presses palm flat; skin slowly drinks it in. |
+> | "tries on the jacket and zips it up" | ① Slides one arm in, sleeve hanging loose. ② Pulls the other side across the chest, fabric slightly bunched. ③ Zipper drawn up slowly, jacket settling into shape. |
+>
+> Add pace qualifiers to each sub-step: *slowly*, *gently*, *just barely*, *one corner at a time*. The goal is to give the model a continuous journey, not a jump cut.
+
+---
+
+**UGC Authenticity Principles** (apply all that fit; product-agnostic)
+
+1. **Lead with a relatable imperfection**: open on a real problem the target audience has — not a perfect setup. Acne for makeup, poor fit history for clothing, cheap-looking alternatives for accessories. The viewer must think "that's me."
+2. **Embed one honest flaw**: have the presenter name a real drawback ("会有点氧化" / "版型稍微宽一点点" / "比我预期的稀") — this single admission dramatically raises trust in everything else they say
+3. **Keep unscripted reactions**: write micro-reactions like "比我想象的…" / "没想到居然…" / "等等，这个…" instead of smooth promotional copy — the hesitation IS the credibility
+4. **Use third-party proof**: a watch timestamp, scale reading, measurement tape, or side-by-side size comparison is more convincing than any verbal claim
+5. **Mix other brands / context items**: show 1–2 non-promoted items (a different brand's primer, a basic wardrobe piece, an everyday bag) to signal "this is my real life, not a paid set"
+6. **Casual presenter appearance**: the presenter doesn't need to be perfectly styled — relatable hair, home clothes, or a simple backdrop reinforces "real person sharing a find"
+7. **English UGC dialogue: discovery over declaration** — English-language UGC dialogue must sound like the presenter is figuring it out in real time, not announcing a conclusion. Scripted commercial phrasing ("This foundation lasts all day") reads as fake. Use incomplete sentences, mid-action surprise, and understated reactions:
+
+   | ❌ Commercial (avoid) | ✅ UGC (target) |
+   |---|---|
+   | "They say this won't look chalky and lasts all day" | "Okay I keep hearing this one doesn't go white on you... let's actually check." |
+   | "It just melts into my skin" | "Oh wait — it's actually blending? Like, properly?" |
+   | "I'm actually convinced" | "Huh. Okay. That's... not bad at all." |
+   | "This fabric has amazing stretch and recovery" | "I'm gonna squat in this. Right now. — okay yeah that worked." |
+   | "The wear time on this is incredible" | "It's been like six hours. I keep checking and there's nothing. Nothing." |
+
+   The rule: **if the sentence could appear in a brand ad, rewrite it**. Real people don't narrate selling points — they notice things, react, and move on.
+
+---
+
+**How the Six Dimensions Adapt for UGC**
+
+| Dimension | UGC Emphasis | Requirements |
+|-----------|--------------|--------------|
+| Subject | Person appears natural, no heavy-beauty-filter feel; product held casually | Anchor person via `@person image` asset; anchor product via `@product image`; describe person's appearance as natural/no-filter |
+| Selling-Point Action | **Second-by-second demo timeline** using the vocabulary table above | Min. 2 concrete demo actions; at least one honest-flaw or unscripted-reaction moment embedded |
+| Scene & Tone | Bedroom, bathroom, well-lit home corner — lived-in and believable | No studio backdrop; natural light or ring light; may include deliberate harsh-light stress-test segment |
+| Camera Language | Handheld phone selfie perspective, slight natural sway; extreme close-up on demo moments | Write as "handheld phone selfie angle, slight natural camera movement" — not "professional fixed camera" |
+| Audio | Fast, conversational, genuinely reactive — NOT scripted commercial delivery | Every line as "人物对着镜头说：'...'" using UGC speech style; allow hesitations and reactions; one line max per time segment |
+| Post-Production | Face stability + product accuracy + lip-sync | Natural skin texture must remain visible (no smoothed-out skin described); product packaging text readable; lip-sync tight |
+
+---
+
+**Prompt Structure Template (UGC live-presenter)**
 
 Unlike other scenarios, live-presenter prompts are organized along a **second-by-second timeline**, with the six dimensions interwoven into the chronology:
 
 ```
-[Person & product anchoring: all @ references declared upfront, with consistency constraints] [Subject]
+[Person & product anchoring — natural appearance, no beauty-filter feel. All @ references declared upfront.] [Subject]
 
-[0~Ns: action + "人物对着镜头说：'台词'" + shot type] [Selling-Point Action + Audio + Camera Language]
-[N~Ms: action + "人物对着镜头说：'台词'" + shot type] [Selling-Point Action + Audio + Camera Language]
-...(choreographed segment by segment)
+[0~Ns: Hook — pain-point visual / social-proof reply / skeptic opener + shot type] [Hook]
+[N~Ms: demo action #1 (from Demo Action Framework, matched to claim type) + casual on-camera reaction + shot type] [Action + Audio + Camera]
+[M~Ls: demo action #2 + honest flaw or unscripted reaction embedded naturally + shot type] [Action + Audio + Camera]
+[L~end: proof moment (timestamp / transfer test / wear condition reveal / measurement) + closing line] [Proof + CTA]
 
-[Scene environment description, with sub-scene breakdown] [Scene & Tone]
+[Scene — home/bedroom/bathroom, specific lived-in detail] [Scene & Tone]
 
-[Shot-type switching rules] [Camera Language]
+手持手机自拍视角，轻微自然晃动；以怼脸近景为主，关键demo动作切换至极近特写。[Camera Language]
 
-全程由人物本人口播发声，不使用旁白或背景配音。人物嘴唇动作必须与所说台词完全同步。[Audio Constraints]
+全程由人物本人口播发声，不使用旁白或背景配音。语气口语化、快节奏，保留真实反应语气词。人物嘴唇动作必须与台词完全同步。[Audio Constraints]
 
-[Consistency constraints + prohibitions] [Post-Production Constraints]
+全程人物面部特征稳定不变形；保留自然肤质（不过度磨皮）；产品外观严格与 @Image 参考一致，瓶身文字清晰可读；嘴型与台词完全同步；画面无闪烁。[Post-Production Constraints]
 ```
 
-**Critical rule**: Every dialogue line in the timeline MUST be written as the person speaking on camera (e.g. "人物对着镜头说：'...'" or "Person speaks to camera: '...'"), never as a detached "台词：'...'" or "Dialogue: '...'" — the latter can cause the model to render it as background voiceover instead of lip-synced on-camera speech. The audio constraints section must explicitly state "全程由人物本人口播发声，不使用旁白或背景配音".
+**Critical rules**:
+- Every dialogue line MUST be written as "人物对着镜头说：'...'" — never "台词：" or "Dialogue:" (the latter renders as background voiceover, not lip-synced speech)
+- Audio constraints MUST include "全程由人物本人口播发声，不使用旁白或背景配音"
+- The prompt must stay in the user's language (matching the intended spoken dialogue) — do NOT translate to English for Scenario D
+- One dialogue line max per time segment — don't write full paragraphs of script
 
 ---
 
@@ -504,6 +605,45 @@ Unlike other scenarios, live-presenter prompts are organized along a **second-by
 - **Dialogue embedded in actions**: Each line of dialogue is placed directly next to the corresponding body posture and hand gestures — not described separately — ensuring lip-sync / action / content stay in three-way alignment
 - **Sub-scene + shot-type synchronization**: Scene transitions (minimalist area → window side → marble room) and shot-type transitions (medium → close-up → extreme close-up) are aligned on the same timeline
 - **Explicit silent segment**: 12\~14s annotates "no background audio," preventing the AI from filling in unwanted sound
+
+---
+
+### Example 4: UGC Foundation Long-Wear Review (Scenario D — UGC Style)
+
+**Original brief**:
+> 帮我生成一个博主测评粉底液持妆12小时的带货短视频，10秒，UGC风格，素颜开场，要有真实感
+
+**Provided assets**:
+- `@Image 1` (person photo — natural selfie, visible skin texture): lock presenter identity
+- `@Image 2` (foundation bottle product photo): lock product appearance
+
+**Rewritten prompt** (stays in Chinese — Scenario D with dialogue):
+
+> @Image 1 的女生主播，深棕色卷发、自然肤质（可见雀斑和轻微痘印），无美颜滤镜感，佩戴随意日常首饰，着简单居家上衣。产品为 @Image 2 的粉底液，金色细长瓶身，瓶身文字清晰可见，全程产品外观保持真实不失真。【主体】
+>
+> 0\~3s：人物素颜出镜，手持粉底液瓶举到脸旁，直视镜头，表情带着一点怀疑。人物对着镜头说："它说能持妆一整天？我来试试。"手持手机自拍近景，轻微晃动，环形灯打亮面部。【Hook + 镜头】
+>
+> 3\~6s：人物将粉底液直接泵一泵在脸颊上，让其自然流下，随即用手指轻轻推开，半张脸已上妆、半张脸素颜形成自然对比。人物对着镜头说："哇，比我想的稀一点点…不过上脸感觉还挺贴的。"镜头从中景缓缓推近至脸部极近特写，展示半脸遮瑕对比。【Demo动作 + 真实反应】
+>
+> 6\~10s：人物将腕部手表转向镜头，显示时间，随后再次面对镜头展示全脸妆效（在窗边自然光下）。人物对着镜头说："过了12小时了，妆还在——就是有一点点氧化，但整体真的还不错诶。"镜头在手表特写和脸部自然光特写之间切换。【持妆验证 + 坦承缺点】
+>
+> 场景为现代家居，浅色墙面，桌面整洁但随意，窗边自然光为主光源。6\~10s主动切至窗边利用自然光展示真实妆效。【场景】
+>
+> 手持手机自拍视角，轻微自然晃动；以怼脸近景为主，3\~6s推近至极近特写展示半脸对比，6\~10s切换手表特写与窗边脸部特写。【镜头语言】
+>
+> 全程由人物本人口播发声，不使用旁白或背景配音。语气口语化、快节奏，保留真实反应语气词（"哇""比我想的""诶"）。人物嘴唇动作必须与台词完全同步。【音频约束】
+>
+> 全程人物面部特征稳定不变形；保留自然肤质（不过度磨皮，保留雀斑和皮肤纹理）；产品外观严格与 @Image 2 一致，瓶身文字清晰可读；嘴型与台词完全同步；画面无闪烁无抖动。【后期约束】
+
+**Why it's good**:
+
+- **UGC Hook**: Opens with a skeptical "let me test this" framing rather than a commercial claim — immediately builds credibility
+- **Drip texture test**: Pumping product directly onto the cheek and letting it flow is a concrete demo action, not vague "holding the product"
+- **Half-face contrast**: Described naturally within the application action — no need for artificial "before/after" title cards
+- **Honest flaw embedded**: "有一点点氧化" is written into the dialogue — this single phrase makes the whole video feel genuine
+- **Third-party timestamp**: Watch face close-up is more convincing than any verbal claim about wear time
+- **Natural skin preserved**: Post-production constraints explicitly say "保留雀斑和皮肤纹理" — the opposite of a commercial beauty filter instruction
+- **Dialogue style**: Short, reactive lines with fillers ("哇", "诶") rather than polished promotional copy
 
 ---
 
