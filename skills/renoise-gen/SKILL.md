@@ -11,7 +11,7 @@ description: >
 allowed-tools: Bash, Read, Write, Glob
 metadata:
   author: renoise
-  version: 0.3.0
+  version: 0.4.0
   category: video-production
   tags: [general, video-generation, image-generation, material-pool]
 ---
@@ -47,6 +47,31 @@ node ${CLAUDE_SKILL_DIR}/renoise-cli.mjs task generate \
 node ${CLAUDE_SKILL_DIR}/renoise-cli.mjs task generate \
   --prompt "Hero product poster with bold headline 'MIDNIGHT BLOOM' in serif type, centered, minimalist layout" \
   --model gpt-image-2 --resolution 2k --ratio 16:9
+
+# Cheaper/faster video draft
+node ${CLAUDE_SKILL_DIR}/renoise-cli.mjs task generate \
+  --prompt "A cat dancing under twinkling stars, smooth orbit" \
+  --model renoise-2.0-mini --duration 10 --ratio 9:16
+
+# Image-to-video with a single reference image (I2V only)
+node ${CLAUDE_SKILL_DIR}/renoise-cli.mjs task generate \
+  --prompt "The person in the reference image turns to face the camera and smiles" \
+  --model grok-video-1.5 --materials "42:ref_image" --duration 8 --ratio 16:9
+
+# Gemini Omni Flash — video with synced audio (16:9/9:16 only, ≤10s)
+node ${CLAUDE_SKILL_DIR}/renoise-cli.mjs task generate \
+  --prompt "A chef plates a dessert in a warm, softly lit kitchen, gentle clinking sounds" \
+  --model gemini-omni-flash --duration 8 --ratio 16:9
+
+# Seedream 5.0 Lite image
+node ${CLAUDE_SKILL_DIR}/renoise-cli.mjs task generate \
+  --prompt "Editorial fashion photo, studio lighting, high-contrast shadows" \
+  --model seedream-5-0-lite --resolution 2k --ratio 3:4
+
+# Grok Image (xAI) — higher-quality tier
+node ${CLAUDE_SKILL_DIR}/renoise-cli.mjs task generate \
+  --prompt "A neon-lit cyberpunk alley, rain reflections, cinematic lighting" \
+  --model grok-image-quality --resolution 2k --ratio 16:9
 ```
 
 ## Supported Models
@@ -55,18 +80,38 @@ node ${CLAUDE_SKILL_DIR}/renoise-cli.mjs task generate \
 |-------|------|-----------------------|---------------|-------|
 | `renoise-2.0` / `sd-2.0` | Video | 4–15s, `720p`/`1080p` | `9:16`, `16:9`, `1:1`, `4:3`, `3:4`, `21:9` | Aliases: `seedance-2.0`, `youmeng-2.0`; refs image ≤9, video ≤3, audio ≤3; supports watermark/audio generation |
 | `renoise-2.0-fast` / `sd-2.0-fast` | Video | 4–15s, `720p` only | `9:16`, `16:9`, `1:1`, `4:3`, `3:4`, `21:9` | Aliases: `seedance-2.0-fast`, `youmeng-2.0-fast`; refs image ≤9, video ≤3, audio ≤3 |
+| `renoise-2.0-mini` / `sd-2.0-mini` | Video | 4–15s, `720p` only | `9:16`, `16:9`, `1:1`, `4:3`, `3:4`, `21:9` | Aliases: `seedance-2.0-mini`, `youmeng-2.0-mini`; refs image ≤9, video ≤3, audio ≤3; cheapest Seedance tier, no 1080p |
 | `happyhorse-1.0` | Video | 3–15s, `720p`/`1080p` | `16:9`, `9:16`, `1:1`, `4:3`, `3:4` | Alias typo accepted: `happyhourse-1.0`; refs image ≤9, video 0; no `last_frame` |
 | `kling-3.0-omni` | Video | 3/5/10/15s, `720p`/`1080p` | `16:9`, `9:16`, `1:1`, `4:3`, `3:4` | refs image ≤7, video ≤1, audio unsupported; prompt ≤2500 chars; ref video 3–10s, dimensions 720–2160px |
+| `grok-video` | Video | 1–15s (R2V clamped to ≤10s), `480p`/`720p` | `1:1`, `16:9`, `9:16`, `4:3`, `3:4`, `3:2`, `2:3` | xAI Grok Imagine; supports T2V/I2V/R2V; refs image ≤7 (R2V mode); 1080p not yet available upstream |
+| `grok-video-1.5` | Video | 1–15s, `480p`/`720p` | `1:1`, `16:9`, `9:16`, `4:3`, `3:4`, `3:2`, `2:3` | xAI Grok Imagine; **I2V only** — requires exactly 1 reference image, no text-only generation |
+| `gemini-omni-flash` | Video | 3–10s, `720p` only (fixed) | `16:9`, `9:16` only | Google Vertex Interactions API; ratio is **required** (no default); refs image ≤6, `first_frame` + `ref_image` can combine; no ref video/audio |
 | `nano-banana-2` | Image | `1k`, `2k`, `4k` | `1:1`, `2:3`, `3:2`, `3:4`, `4:3`, `4:5`, `5:4`, `9:16`, `16:9`, `21:9`, `1:4`, `4:1`, `1:8`, `8:1` | Google Vertex; widest ratio set |
+| `nano-banana-2-lite` | Image | `1k` only | Same ratio set as `nano-banana-2` | Google Vertex; cheaper/lite tier; max 14 ref images |
 | `nano-banana-pro` | Image | `1k`, `2k`, `4k` | `1:1`, `2:3`, `3:2`, `3:4`, `4:3`, `4:5`, `5:4`, `9:16`, `16:9`, `21:9` | Google Vertex; higher quality tier |
 | `midjourney-v7` | Image | _(no `--resolution`)_ | `1:1`, `4:3`, `3:4`, `16:9`, `9:16`, `3:2`, `2:3` | Max 4 ref images; alias `midjourney` |
+| `mj-v8.1` | Image | _(no `--resolution`)_ | `1:1`, `4:3`, `3:4`, `16:9`, `9:16`, `3:2`, `2:3` | Aliases: `midjourney-v8.1`, `mj-8.1`; max 4 ref images; latest Midjourney version |
 | `gpt-image-2` | Image | `1k`, `2k`, `4k` | `1:1`, `3:2`, `2:3`, `3:4`, `4:3`, `16:9`, `9:16`, `21:9` | Max 16 ref images; strongest at text/typography |
+| `seedream-5-0-lite` | Image | `2k`, `3k`, `4k` | `1:1`, `4:3`, `3:4`, `16:9`, `9:16`, `3:2`, `2:3`, `21:9` | Max 14 ref images |
+| `grok-image` | Image | `1k`, `2k` | `1:1`, `3:4`, `4:3`, `9:16`, `16:9`, `2:3`, `3:2` | xAI Grok Imagine; max 3 ref images |
+| `grok-image-quality` | Image | `1k`, `2k` | `1:1`, `3:4`, `4:3`, `9:16`, `16:9`, `2:3`, `3:2` | xAI Grok Imagine, higher-quality/higher-cost tier; max 3 ref images |
+
+**Choosing a video model:**
+- `renoise-2.0` — default, best quality/consistency, up to 1080p.
+- `renoise-2.0-mini` / `renoise-2.0-fast` — cheaper drafts, 720p only.
+- `kling-3.0-omni` / `happyhorse-1.0` — alternative providers, similar capability tier.
+- `grok-video` — flexible T2V/I2V/R2V from xAI; use for R2V-style continuity with up to 7 reference images.
+- `grok-video-1.5` — pure I2V, needs exactly one reference image.
+- `gemini-omni-flash` — video with synchronized audio; only for 16:9/9:16 clips ≤10s.
 
 **Choosing an image model:**
 - `nano-banana-2` — default, cheapest, flexible ratios (incl. extreme 8:1 / 1:8 banners).
+- `nano-banana-2-lite` — cheapest Nano Banana tier, fixed `1k`.
 - `nano-banana-pro` — higher fidelity; use for hero / final frames.
-- `midjourney-v7` — strongest stylization; pass `--ratio` only (no resolution).
+- `midjourney-v7` / `mj-v8.1` — strongest stylization; pass `--ratio` only (no resolution). Prefer `mj-v8.1` for the latest Midjourney model.
 - `gpt-image-2` — best prompt-following for text/logos/typography in image.
+- `seedream-5-0-lite` — alternative provider, up to `4k`, wide ratio set.
+- `grok-image` / `grok-image-quality` — xAI Grok Imagine; `-quality` for higher fidelity at higher cost, both capped at `2k` and 3 ref images.
 
 ---
 
@@ -329,7 +374,7 @@ Never pass raw face images as `ref_image` — privacy detection will block them.
 
 ## Quick Templates
 
-> Pick the model by job: `nano-banana-2` for drafts / banners / wide aspect ratios, `nano-banana-pro` for hero / final frames, `gpt-image-2` for anything with text/logos/typography, `midjourney-v7` for stylized illustration (no `--resolution`).
+> Pick the model by job: `nano-banana-2` for drafts / banners / wide aspect ratios, `nano-banana-2-lite` for cheapest drafts, `nano-banana-pro` for hero / final frames, `gpt-image-2` for anything with text/logos/typography, `midjourney-v7`/`mj-v8.1` for stylized illustration (no `--resolution`), `seedream-5-0-lite` as an alternative provider, `grok-image`/`grok-image-quality` as another stylization alternative.
 
 ### Product Design Sheet
 

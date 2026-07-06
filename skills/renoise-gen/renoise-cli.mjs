@@ -265,7 +265,7 @@ Set it via environment variable or .env file.`);
   return v;
 }
 var DEFAULT_BASE_URL = "https://www.renoise.ai/api/public/v1";
-var IMAGE_MODELS = /* @__PURE__ */ new Set(["gpt-image-2", "nano-banana-2", "nano-banana-pro", "midjourney-v7", "midjourney"]);
+var IMAGE_MODELS = /* @__PURE__ */ new Set(["gpt-image-2", "nano-banana-2", "nano-banana-2-lite", "nano-banana-pro", "midjourney-v7", "midjourney", "mj-v8.1", "midjourney-v8.1", "mj-8.1", "seedream-5-0-lite", "grok-image", "grok-image-quality"]);
 
 function createClient(baseUrlOverride) {
   loadEnv();
@@ -373,6 +373,11 @@ Examples:
   renoise task generate --prompt "cinematic hero frame of a lone astronaut on Mars" --model nano-banana-pro --resolution 2k --ratio 16:9
   renoise task generate --prompt "hero product shot with bold typography" --model gpt-image-2 --resolution 2k --ratio 16:9
   renoise task generate --prompt "stylized fantasy portrait" --model midjourney-v7 --ratio 3:4
+  renoise task generate --prompt "quick draft, cheaper tier" --model renoise-2.0-mini --duration 10 --ratio 9:16
+  renoise task generate --prompt "the character in the reference image turns to face the camera" --model grok-video-1.5 --materials "42:ref_image" --duration 8 --ratio 16:9
+  renoise task generate --prompt "a chef plating a dessert, warm kitchen lighting" --model gemini-omni-flash --duration 8 --ratio 16:9
+  renoise task generate --prompt "editorial fashion photo, studio lighting" --model seedream-5-0-lite --resolution 2k --ratio 3:4
+  renoise task generate --prompt "a neon-lit cyberpunk alley, rain reflections" --model grok-image-quality --resolution 2k --ratio 16:9
   renoise task create --prompt "epic scene" --duration 10 --ratio 16:9
   renoise task list --status completed --limit 5
   renoise task result 123

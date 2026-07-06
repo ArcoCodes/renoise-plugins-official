@@ -121,14 +121,25 @@ Response:
 ## Models
 
 **Video:**
-- `renoise-2.0` — Default video model (aliases: `seedance-2.0`, `youmeng-2.0`, `sd-2.0`)
-- `renoise-2.0-fast` — Faster/cheaper tier, 720p only
+- `renoise-2.0` — Default video model (aliases: `seedance-2.0`, `youmeng-2.0`, `sd-2.0`); up to 1080p
+- `renoise-2.0-fast` — Faster/cheaper tier, 720p only (aliases: `seedance-2.0-fast`, `sd-2.0-fast`)
+- `renoise-2.0-mini` — Cheapest Seedance tier, 720p only (aliases: `seedance-2.0-mini`, `sd-2.0-mini`)
+- `happyhorse-1.0` — Alibaba Bailian provider; `720p`/`1080p`
+- `kling-3.0-omni` — Tencent VOD AIGC provider; `720p`/`1080p`
+- `grok-video` — xAI Grok Imagine; T2V/I2V/R2V; `480p`/`720p`; R2V duration clamped to ≤10s
+- `grok-video-1.5` — xAI Grok Imagine; **I2V only** (exactly 1 reference image); `480p`/`720p`
+- `gemini-omni-flash` — Google Vertex Interactions API; fixed `720p`; **16:9/9:16 only**; 3–10s duration; ratio required (no default)
 
 **Image:**
-- `nano-banana-2` — Google Vertex; `1k`/`2k`/`4k`; widest aspect-ratio set incl. `1:4`, `4:1`, `1:8`, `8:1`
+- `nano-banana-2` — Google Vertex; `1k`/`2k`/`4k`; widest aspect-ratio set incl. `1:4`, `4:1`, `1:8`, `8:1`; max 14 reference images
+- `nano-banana-2-lite` — Google Vertex, cheaper tier; fixed `1k`; same ratio set as `nano-banana-2`; max 14 reference images
 - `nano-banana-pro` — Google Vertex, higher quality tier; `1k`/`2k`/`4k`
 - `midjourney-v7` — Midjourney (alias: `midjourney`); **no `resolution` param**; max 4 reference images
-- `gpt-image-2` — Colorist provider; `1k`/`2k`/`4k`; max 4 reference images; strongest at text/typography in image
+- `mj-v8.1` — Midjourney, latest version (aliases: `midjourney-v8.1`, `mj-8.1`); **no `resolution` param**; max 4 reference images
+- `gpt-image-2` — Tencent Cloud AI Art provider; `1k`/`2k`/`4k`; max 16 reference images; strongest at text/typography in image
+- `seedream-5-0-lite` — Seedream provider; `2k`/`3k`/`4k`; max 14 reference images
+- `grok-image` — xAI Grok Imagine; `1k`/`2k`; max 3 reference images
+- `grok-image-quality` — xAI Grok Imagine, higher-quality/higher-cost tier; `1k`/`2k`; max 3 reference images
 
 Per-model aspect-ratio and resolution constraints are validated server-side; see `skills/renoise-gen/SKILL.md` for the full matrix.
 
@@ -141,12 +152,21 @@ Per-model aspect-ratio and resolution constraints are validated server-side; see
 
 ## Aspect Ratios
 
-Supported set varies by model. Common ratios: `1:1` (default), `16:9`, `9:16`, `4:3`, `3:4`, `3:2`, `2:3`, `21:9`. `nano-banana-2` additionally supports extreme banner ratios `1:4`, `4:1`, `1:8`, `8:1`. See model table in `SKILL.md`.
+Supported set varies by model. Common ratios: `1:1` (default), `16:9`, `9:16`, `4:3`, `3:4`, `3:2`, `2:3`, `21:9`. `nano-banana-2`/`nano-banana-2-lite` additionally support extreme banner ratios `1:4`, `4:1`, `1:8`, `8:1`. `gemini-omni-flash` only accepts `16:9`/`9:16` and requires the ratio to be explicitly set. See model table in `SKILL.md`.
 
 ## Image Resolutions
 
 - `1k`
 - `2k`
+- `3k` (`seedream-5-0-lite` only)
 - `4k`
 
-`midjourney-v7` does **not** accept a resolution parameter.
+`midjourney-v7` and `mj-v8.1` do **not** accept a resolution parameter. `nano-banana-2-lite` only accepts `1k`.
+
+## Video Resolutions
+
+- `720p`
+- `1080p` (not available on `renoise-2.0-fast`, `renoise-2.0-mini`, `grok-video`, `grok-video-1.5`, or `gemini-omni-flash`)
+- `480p` (`grok-video`/`grok-video-1.5` only)
+
+`gemini-omni-flash` is fixed at `720p` — no resolution parameter needed.
