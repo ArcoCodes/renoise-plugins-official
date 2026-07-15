@@ -70,8 +70,7 @@ node renoise-cli.mjs material upload <product-image-path>
 # 2. Submit task (with product image material, all-in-one)
 node renoise-cli.mjs task generate \
   --prompt "<Video Prompt above>" \
-  --model renoise-2.0 --duration 15 --ratio 9:16 \
-  --tags ecom,keep,resistance-band \
+  --model seedance-2.0 --duration 15 --ratio 9:16 \
   --materials "194:ref_image"
 ```
 

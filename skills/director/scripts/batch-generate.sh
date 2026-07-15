@@ -53,7 +53,7 @@ fi
 
 # ---- Check balance ----
 echo "=== Checking balance ==="
-node "$CLI" me
+node "$CLI" credit me
 echo ""
 
 # ---- Read prompts ----
@@ -75,18 +75,12 @@ for i in $(seq 0 $((SHOT_COUNT - 1))); do
 
   echo "--- [$((i + 1))/$SHOT_COUNT] $SHOT_ID (${DURATION}s) ---"
 
-  # Build tags
-  TAGS="$SHOT_ID"
-  if [[ -n "$PROJECT" ]]; then
-    TAGS="$PROJECT,$SHOT_ID"
-  fi
-
-  # Create task
-  CREATE_OUTPUT=$(node "$CLI" create \
+  # Create task (segment task IDs are recorded locally in the project manifest below —
+  # no server-side tags: the Renoise app does not filter by tag).
+  CREATE_OUTPUT=$(node "$CLI" task create \
     --prompt "$PROMPT" \
     --duration "$DURATION" \
-    --ratio "$RATIO" \
-    --tags "$TAGS" 2>&1) || {
+    --ratio "$RATIO" 2>&1) || {
     echo "[FAILED] $SHOT_ID — create error:"
     echo "$CREATE_OUTPUT"
     FAILED=$((FAILED + 1))
@@ -110,18 +104,18 @@ for i in $(seq 0 $((SHOT_COUNT - 1))); do
   echo "Task created: #$TASK_ID"
 
   # Wait for completion
-  WAIT_OUTPUT=$(node "$CLI" wait "$TASK_ID" --timeout "$TIMEOUT" 2>&1) || {
+  WAIT_OUTPUT=$(node "$CLI" task wait "$TASK_ID" --timeout "$TIMEOUT" 2>&1) || {
     echo "[FAILED] $SHOT_ID (task #$TASK_ID) — wait error:"
     echo "$WAIT_OUTPUT"
     FAILED=$((FAILED + 1))
     RESULTS+=("$SHOT_ID|FAILED|#$TASK_ID|wait timeout/error")
     echo ""
-    echo "Stopping batch — the task may still be running. Check with: node renoise-cli.mjs get $TASK_ID"
+    echo "Stopping batch — the task may still be running. Check with: node renoise-cli.mjs task get $TASK_ID"
     break
   }
 
   # Get result
-  RESULT_OUTPUT=$(node "$CLI" result "$TASK_ID" 2>&1)
+  RESULT_OUTPUT=$(node "$CLI" task result "$TASK_ID" 2>&1)
   VIDEO_URL=$(echo "$RESULT_OUTPUT" | jq -r '.result.videoUrl // .videoUrl // "unknown"' 2>/dev/null || echo "unknown")
 
   echo "[SUCCESS] $SHOT_ID → $VIDEO_URL"
@@ -141,6 +135,20 @@ for entry in "${RESULTS[@]}"; do
   IFS='|' read -r shot status task url <<< "$entry"
   printf "%-8s %-10s %-10s %s\n" "$shot" "$status" "$task" "$url"
 done
+
+# ---- Local manifest ----
+# Record the project's shot → task-id → url mapping locally (replaces server-side
+# tags, which the Renoise app does not use). Written next to the prompts file.
+MANIFEST="$(dirname "$PROMPTS_FILE")/${PROJECT:-batch}-tasks.tsv"
+{
+  printf "shot\tstatus\ttask\turl\n"
+  for entry in "${RESULTS[@]}"; do
+    IFS='|' read -r shot status task url <<< "$entry"
+    printf "%s\t%s\t%s\t%s\n" "$shot" "$status" "$task" "$url"
+  done
+} > "$MANIFEST"
+echo ""
+echo "Manifest written: $MANIFEST"
 
 echo ""
 echo "Total: ${#RESULTS[@]}/$SHOT_COUNT completed, $FAILED failed"
