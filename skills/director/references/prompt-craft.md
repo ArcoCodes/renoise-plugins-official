@@ -195,6 +195,8 @@ Linking techniques: **match-cut composition** (same framing/shape), **motion mat
 
 **Good-transition reference — S3→S4**: when S3 ended on a warm-gold, centered, symmetric hero composition and S4 opened on the *same* gold grade and the *same* centered symmetric hero framing, the join was seamless. Match the out-frame's grade **and** composition to the next in-frame; that combination (tonal carry + match-cut) is the strongest continuous-narrative join.
 
+The Transition Table is also what backs the default continuity chain: when the next segment opens on the previous tail frame carried as `ref_image:0` + a "Use @Image1 as the first frame." prompt declaration (see "Serial continuity routing" below), that declaration is a soft lock — the out-frame/in-frame match recorded here is what makes it hold.
+
 ### Ending strategy (holds steady is last-segment only)
 
 `frame holds steady` is **not** a per-segment default — using it on every segment produces a video that is four endings stapled together (and, paired with an establishing open on every segment, four beginnings too).
@@ -226,13 +228,20 @@ Design the **ending of each segment** to set up the next:
 | **Time Jump** | Visual time indicators (light change, seasons) | Montage, passage of time |
 | **Spatial Flow** | Camera moves through a door/window into new space | Exploration, journey |
 
-### Serial continuity routing: first-frame chain is the default
+### Serial continuity routing: reference-image-as-first-frame is the default
 
-**For continuous narrative, default to the first-frame chain** (previous segment's tail frame → next segment's `first_frame`). This is the strongest guarantee that the next shot opens exactly where the last one landed, and it makes cuts vanish. Reach for the alternative — a shared `ref_image` + color anchor + a match-cut hook — only when you deliberately want **free composition** per shot (new angles, new blocking) rather than an exact opening-frame handoff. State this trade-off to yourself per cut: **continuous-flow priority → first-frame chain; free-composition priority → shared ref_image + match-cut.** Use `ref_video` when motion/style carryover matters more than pinning the opening frame.
+**For continuous narrative, default to the tail-frame chain carried in reference mode** (previous segment's tail frame → next segment's `ref_image:0` + an explicit first-frame declaration in the prompt). This keeps the next shot opening where the last one landed, and it makes cuts vanish. Reach for the alternative — a shared `ref_image` + color anchor + a match-cut hook — only when you deliberately want **free composition** per shot (new angles, new blocking) rather than an opening-frame handoff. State this trade-off to yourself per cut: **continuous-flow priority → tail-frame chain; free-composition priority → shared ref_image + match-cut.** Use `ref_video` when motion/style carryover matters more than pinning the opening frame.
+
+**Why not native `first_frame`? (constraint → technique → soft-lock reminder)**
+- **Constraint**: on the seedance series, frame mode (`first_frame`/`last_frame`) and multimodal reference mode (`ref_image`) are **mutually exclusive** — a segment cannot attach both (only `gemini-omni-flash` allows `first_frame` + `ref_image`). Nearly every narrative segment already carries `ref_image`s (character sheet, scene anchor), so native `first_frame` is unavailable exactly where continuity matters most.
+- **Technique (reference-image-as-first-frame / 全能参考首帧法)**: extract the tail frame, upload it, attach it as a `ref_image` **pinned to index 0** (`TAIL_ID:ref_image:0` → it is `@Image1`), and make the prompt's **first sentence** "Use @Image1 as the first frame." (Chinese-spoken segments: 「以@图片1为首帧」), immediately followed by the `Continuing from the previous shot:` bridge describing the opening state exactly. The tail frame combines freely with the character/scene refs inside reference mode (seedance ≤9 images).
+- **Soft-lock reminder**: the prompt-declared first frame is a **soft lock** — weaker than native `first_frame`. Reinforce it with (a) the verbatim opening-state description, (b) a match-cut / composition match recorded in the Transition Table, and (c) if the join still shows, a 0.3–0.5s cross-dissolve in post.
+
+Native `ID:first_frame` remains valid **only when the segment has no other image reference at all** (e.g. a pure landscape B-roll continuation with no character/scene refs) — there it is the hard lock and needs no prompt declaration.
 
 For continuity blocks in the same location, choose the method based on what must stay fixed:
 
-**Use tail-frame → next `first_frame` when:**
+**Use the tail-frame chain when:**
 - The next shot must open on an exact composition from the previous shot
 - Pose, gaze, lighting state, or prop placement needs to match precisely
 - You want a clean visual handoff, but the next shot can develop new motion after the opening frame
@@ -241,7 +250,7 @@ Workflow:
 1. End the current segment on a clean, readable composition
 2. Generate the segment
 3. Extract the previous segment's tail frame with ffmpeg
-4. Upload that extracted image and use it as the next segment's `first_frame`
+4. Upload the extracted image, then route: segment has other `ref_image`s → attach as `TAIL_ID:ref_image:0` + open the prompt with "Use @Image1 as the first frame."; no other image reference → use it as `ID:first_frame`
 
 Recommended extraction command:
 ```bash

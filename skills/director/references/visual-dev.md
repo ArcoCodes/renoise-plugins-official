@@ -153,7 +153,12 @@ Character `ref_image`, `ref_video`, and scene `ref_image` **combine freely**. Us
 
 # Environment only (B-roll, no characters)
 --materials "99:ref_image"
+
+# Character + environment + carried-over opening frame (tail frame pinned as @Image1)
+--materials "27:ref_image,91:ref_image:0,99:ref_image"
 ```
+
+**Carried-over opening frame rides in reference mode**: native `ID:first_frame` is frame mode and cannot be combined with any `ref_image` — so when a segment needs both a carried-over opening frame **and** character/scene refs (the usual case), attach the extracted tail frame as `TAIL_ID:ref_image:0` (index 0 → it is `@Image1`) and make the prompt's first sentence "Use @Image1 as the first frame." (中文口播段：「以@图片1为首帧」). This is a soft lock — back it with an exact opening-state description after the `Continuing from the previous shot:` bridge. Reserve native `first_frame` for segments with no other image reference. See the director SKILL.md Hard Rule and prompt-craft.md "Serial continuity routing".
 
 **Example workflow for a 3-segment project:**
 ```

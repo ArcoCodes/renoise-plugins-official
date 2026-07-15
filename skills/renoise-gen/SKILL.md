@@ -266,6 +266,8 @@ Syntax: `--materials "ID:role"` or `--materials "ID:role:INDEX"`, comma-separate
 | **source_video** | `ID:source_video` | `gemini-omni-flash` edit source — the model consumes the source's first ~10s; output frame size and duration **follow the source**, so `--ratio`/`--duration` are ignored. Different semantics from `ref_video`. | Exactly 1 per task |
 
 > **Mode exclusion**: `first_frame`/`last_frame` cannot be mixed with `ref_image` (except `gemini-omni-flash`, which allows `first_frame` + `ref_image`). `last_frame` requires a `first_frame`. `reference_image` and `reference_audio` are mutually exclusive on `seed-audio-1.0`.
+>
+> **Tip — pin an opening frame on a segment that also needs `ref_image`s**: attach the frame in reference mode instead of frame mode — `FRAME_ID:ref_image:0` (the `:0` index makes it `@Image1`) — and make the prompt's first sentence "Use @Image1 as the first frame." (中文口播段：「以@图片1为首帧」). This coexists with the other `ref_image`s. It is a **soft lock** (weaker than native `first_frame`), so pair it with an exact description of the opening state.
 
 `ref_image` + `ref_video` combine freely for a normal reference generation:
 ```bash
@@ -358,7 +360,7 @@ Finished Cut is the default. Use Clip Stock when the user needs individual shots
 
 > **Route narrative / recurring-character multi-segment work through the director skill first.** A story, or any multi-segment video with a character that reappears across segments, is a **creative decision** and must go through the director skill's two gates — **Gate 1 (story confirmation)** and **Gate 2 (consistency manifest: characters, props, scenes, style bible, transition table, spoken language)**. renoise-gen is the tool layer; do **not** bypass those gates by firing off independent per-segment text-to-video (T2V) here. Pure T2V per segment is exactly what makes the character and art style collapse across segments.
 
-The methodology — which anchors each segment needs, first-frame chain vs `ref_video`, when pure T2V is acceptable, style bible, ending strategy — lives in the **director** skill (Hard Rules + `prompt-craft.md`). Follow it even when driving the CLI directly. What follows here is only the **tool mechanics**.
+The methodology — which anchors each segment needs, tail-frame chain vs `ref_video`, when pure T2V is acceptable, style bible, ending strategy — lives in the **director** skill (Hard Rules + `prompt-craft.md`). Follow it even when driving the CLI directly. What follows here is only the **tool mechanics**.
 
 Mechanics for any multi-segment split:
 
@@ -366,18 +368,27 @@ Mechanics for any multi-segment split:
 2. **Tasks are stateless** — nothing carries over between generations. Any shared consistency text (character block, style bible — see director `prompt-craft.md`) must be repeated **verbatim** in every segment prompt, and any shared visual anchor must be re-attached via `--materials` (reuse the same material ID).
 3. Start each segment after S1 with "Continuing from the previous shot: [ending state of prev segment]"
 4. Two continuity mechanisms are available (which to pick is a director-skill decision):
-   - Pin the next opening state → extract the previous segment tail frame with ffmpeg, upload it, use `ID:first_frame`
+   - Pin the next opening state → extract the previous segment tail frame with ffmpeg, upload it, then route by what else the segment carries (frame mode and reference mode are mutually exclusive — see [Material Roles](#material-roles)): segment has any other `ref_image` (character/scene — the usual case) → attach the tail frame as `ID:ref_image:0` and declare `@Image1` as the first frame in the prompt; segment has **no** other image reference → native `ID:first_frame`
    - Carry motion/style → use `task chain <id>` to turn a completed segment into `ref_video` material for the next
 
-#### Tail-frame → next first-frame
+#### Tail-frame → next opening frame
 
 ```bash
 ffmpeg -sseof -0.2 -i generated/shots/S1.mp4 -frames:v 1 -q:v 2 -y generated/keyframes/S1-end.jpg
 node ${CLAUDE_SKILL_DIR}/renoise-cli.mjs material upload generated/keyframes/S1-end.jpg
-# Use returned material ID as S2 first_frame
+# → returns material ID, e.g. TAIL_ID
+
+# Default — the segment also carries other ref_images (character/scene):
+# tail frame rides as ref_image pinned to index 0 → it is @Image1; declare it in the prompt
+node ${CLAUDE_SKILL_DIR}/renoise-cli.mjs task generate \
+  --prompt "Use @Image1 as the first frame. Continuing from the previous shot: <S2 prompt>" \
+  --duration 15 --ratio 16:9 \
+  --materials "FACE_ID:ref_image,TAIL_ID:ref_image:0,SCENE_ID:ref_image"
+
+# Only when the segment has NO other image reference: native first_frame
 node ${CLAUDE_SKILL_DIR}/renoise-cli.mjs task generate \
   --prompt "Continuing from the previous shot: <S2 prompt>" \
-  --duration 15 --ratio 16:9 --materials "ID:first_frame"
+  --duration 15 --ratio 16:9 --materials "TAIL_ID:first_frame"
 ```
 
 #### ref_video chaining

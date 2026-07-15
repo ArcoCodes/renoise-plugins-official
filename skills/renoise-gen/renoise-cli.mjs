@@ -394,7 +394,7 @@ async function validateBeforeSubmit(params, client) {
         throw new Error(`Last frame requires a first frame`);
       }
       if ((hasFirstFrame || hasLastFrame) && hasRefImage && !c.allowFramesWithRefs) {
-        throw new Error(`Frames and reference images cannot be used together`);
+        throw new Error(`Frames and reference images cannot be used together. Tip: pass the frame as another ref_image (e.g. "ID:ref_image:0") and open the prompt with "Use @Image1 as the first frame" / "以@图片1为首帧" instead.`);
       }
       if (c.noLastFrame && hasLastFrame) {
         throw new Error(`HappyHorse does not support last frame`);

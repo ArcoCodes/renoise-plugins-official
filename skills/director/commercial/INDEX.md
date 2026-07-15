@@ -253,7 +253,7 @@ node renoise-cli.mjs credit estimate --model seedance-2.0 --duration 10
 | Character drifts between segments | Reuse the same face/character-sheet material ID as `ref_image` in every segment + copy full character description verbatim |
 | Video ignores actions in prompt | Prompt too dense — reduce to 3–4 actions per 5s window |
 | Video looks incoherent | Simplify: 2 camera stages, one mood, fewer actions |
-| Segments don't connect | Use tail-frame → `first_frame` for exact state handoff, or `ref_video` for motion carryover |
+| Segments don't connect | Tail-frame handoff: if the segment carries any other `ref_image` (product/scene — the usual case), attach the tail frame as `TAIL_ID:ref_image:0` + open the prompt with "Use @Image1 as the first frame." (`first_frame` is mutually exclusive with `ref_image`); use native `first_frame` only when there is no other image reference; or `ref_video` for motion carryover |
 
 **Content-moderation errors** (`INPUT_*` / `OUTPUT_*`): the seedance/seedream pipelines are relatively permissive, but four categories are hard blocks that rewording will not pass — political content, religiously sensitive content, sexual content involving minors, and copyrighted content (well-known IP / recognizable public figures). If the prompt or materials touch these, tell the user the platform does not support it rather than retrying; otherwise adjust wording / swap materials and retry.
 

@@ -49,7 +49,7 @@ You are a creative director for AI video production. Default language: English. 
   - A text-only description of a recurring character is **not acceptable**, and you must **never** tell the user to simply "expect some drift." Prevent drift by locking the reference up front.
 - **Inline conversation images cannot be uploaded to Renoise.** When the user pastes images directly into the conversation (no local file path), you can view them but cannot upload them. Tell the user: "I can see your image, but uploading it to Renoise requires a local file path. Please save it to your computer and share the path."
 - **STYLE BIBLE is mandatory for multi-shot.** Before splitting into segments, produce one STYLE BIBLE string (`art style + camera language + color grade + NEGATIVE line`) and **prepend it verbatim to every segment prompt**. This is what stops a live-action piece from drifting into 3D-cartoon / game-CG mid-sequence and stops color temperature from jumping between segments. It is a Gate 2 line item. See "Style Bible" in `prompt-craft.md`.
-- **Continuous narrative defaults to the first-frame chain.** For a continuous story, the default continuity method is the first-frame chain (previous segment's tail frame → next segment's `first_frame`); use a shared `ref_image` + color anchor + match-cut hook only when you deliberately want free composition per shot. Only the **final** segment ends on `frame holds steady`; every intermediate segment must end on a motion/composition hook the next segment can catch (see the Transition Table in Gate 2). Use `ref_video` when motion/style carryover matters more than pinning the next opening frame.
+- **Continuous narrative defaults to the reference-image-as-first-frame chain (全能参考首帧法).** Platform constraint: on the seedance series, frame mode (`first_frame`/`last_frame`) and multimodal reference mode (`ref_image`) are **mutually exclusive** — a segment cannot carry both (`gemini-omni-flash` is the only exception that allows `first_frame` + `ref_image`). Since nearly every narrative segment already carries a `ref_image` (character sheet, scene anchor), the default chain is: extract the previous segment's tail frame with ffmpeg, upload it, and attach it **as a `ref_image` pinned to index 0** (`TAIL_ID:ref_image:0` → it becomes `@Image1`), coexisting freely with the character/scene refs (seedance ≤9 images); then the prompt's **first sentence explicitly declares it the opening frame** — "Use @Image1 as the first frame." (Chinese-spoken segments: 「以@图片1为首帧」) — immediately followed by the exact opening-state description via the existing `Continuing from the previous shot:` bridge. Native `ID:first_frame` is the **fallback only**, used when the segment has **no other image reference at all** (e.g. pure landscape B-roll continuation). Note the prompt-declared first frame is a **soft lock** — weaker than native `first_frame` — so always pair it with a verbatim opening-state description and a match-cut composition in the Transition Table; if the join still shows, add a 0.3–0.5s cross-dissolve in post. Only the **final** segment ends on `frame holds steady`; every intermediate segment must end on a motion/composition hook the next segment can catch (see the Transition Table in Gate 2). Use `ref_video` when motion/style carryover matters more than pinning the next opening frame — `ref_video` combines with `ref_image` as usual and is unaffected by the frame-mode exclusion.
 - Read video model capabilities before every prompt session: `Read ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/references/video-capabilities.md`
 
 ---
@@ -141,13 +141,15 @@ Preparation notes for Gate 2:
 
 #### Prompts (part of Gate 2's output)
 
-Write one prompt per segment following prompt-craft.md. The Style Bible prepends every segment; the full character block is copied verbatim every time; each segment after S1 starts with a `Continuing from the previous shot:` bridge. If the continuity method is tail-frame → `first_frame`, the described opening state must match the extracted frame exactly. Dialogue lines stay in the confirmed spoken language.
+Write one prompt per segment following prompt-craft.md. The Style Bible prepends every segment; the full character block is copied verbatim every time; each segment after S1 starts with a `Continuing from the previous shot:` bridge. If the continuity method is the tail-frame chain — whether `TAIL_ID:ref_image:0` + the "Use @Image1 as the first frame." declaration (the default), or native `first_frame` (no-other-image-refs fallback) — the described opening state must match the extracted frame exactly. Dialogue lines stay in the confirmed spoken language.
 
 #### Generate
 
 Assemble `--materials` per segment based on the Shot Mapping:
 - Character in frame → `FACE_MAT_ID:ref_image` (reuse the same material ID in every segment)
-- Exact carried-over opening pose/composition/state needed → extract the previous segment tail frame with ffmpeg, upload it, use `ID:first_frame` (the **default** for continuous narrative — see the first-frame-chain Hard Rule)
+- Exact carried-over opening pose/composition/state needed → extract the previous segment tail frame with ffmpeg, upload it, then route by what else the segment carries (frame mode and reference mode are mutually exclusive — see the reference-image-as-first-frame Hard Rule):
+  - Segment has **any other `ref_image`** (character/scene — the usual case) → attach the tail frame as `TAIL_ID:ref_image:0` (index 0 makes it `@Image1`) and open the prompt with "Use @Image1 as the first frame." — the **default** for continuous narrative
+  - Segment has **no other image reference** (e.g. pure landscape B-roll) → native `ID:first_frame`
 - Motion/style carryover from previous segment needed → `PREV_ID:ref_video` (use `task chain <id>` to get material)
 - Recurring or visually specific location → `SCENE_ID:ref_image`
 - Sequential segments: serial chain. Independent segments: parallel.
@@ -194,18 +196,19 @@ Anchors are tools, not a checklist. Analyze what each segment needs to stay cons
 | Anchor | `--materials` syntax | What it locks | When to use |
 |--------|---------------------|---------------|-------------|
 | Character face / sheet | `FACE_MAT_ID:ref_image` | Face, body, wardrobe | Character appears in 2+ segments — reuse the same material ID each time |
-| Previous segment end frame | `ID:first_frame` | Exact opening composition/state | Next segment must start exactly where the previous one lands |
+| Previous segment end frame (segment also has other image refs — the usual case) | `TAIL_ID:ref_image:0` + prompt opens "Use @Image1 as the first frame." | Opening composition/state (soft lock — back it with the verbatim opening-state description) | **Default** for continuous narrative; coexists with character/scene `ref_image`s (frame mode would not) |
+| Previous segment end frame (segment has **no** other image refs) | `ID:first_frame` | Exact opening composition/state (hard lock) | Only when no `ref_image` is attached — frame mode and reference mode are mutually exclusive |
 | Previous segment | `ID:ref_video` | Motion continuity, scene flow | Segment continues from the previous one |
 | Scene concept | `ID:ref_image` | Environment, lighting, palette | Location recurs or has specific visual requirements |
 | Text-only | Full description in prompt | Nothing locked visually | **Only** for a subject that appears in a single segment (B-roll, one-off extra). **Never** for a character recurring across segments — lock those with a character-sheet `ref_image`, generating the sheet first if none exists. |
 
-These combine freely within multimodal reference mode — use as many or as few as the segment requires.
+All `ref_*` roles combine freely within multimodal reference mode — use as many or as few as the segment requires. `ID:first_frame` is **frame mode** and cannot be combined with any `ref_image` (platform mode exclusion; `gemini-omni-flash` is the only model that allows the combination) — which is exactly why the tail frame rides as `ref_image:0` by default.
 
 ### Deciding What Each Segment Needs
 
 Ask per segment:
 1. **Does a recurring character appear?** → add their face/character-sheet material ID as `ref_image` (same ID every segment)
-2. **Does the next segment need an exact opening frame from the previous one?** → extract tail frame and add `first_frame`
+2. **Does the next segment need an exact opening frame from the previous one?** → extract the tail frame; if the segment carries any other `ref_image`, attach it as `TAIL_ID:ref_image:0` and open the prompt with "Use @Image1 as the first frame."; only if there is no other image reference, use `ID:first_frame`
 3. **Does it continue from the previous segment's motion/style?** → add ref_video
 4. **Is the location visually specific or shared with other segments?** → add scene ref_image
 5. **Is it a standalone establishing shot or B-roll?** → text-only may suffice
@@ -244,7 +247,7 @@ node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/renoise-cli.mjs task generate \
   [--materials "FACE_MAT_ID:ref_image"]
 ```
 
-**Serial continuity option A — exact opening frame:**
+**Serial continuity option A — carried-over opening frame (reference-image-as-first-frame):**
 ```bash
 # S1: generate the previous segment first
 node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/renoise-cli.mjs task generate \
@@ -254,12 +257,23 @@ node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/renoise-cli.mjs task generate \
 # Extract a clean tail frame from the completed segment
 ffmpeg -sseof -0.2 -i generated/shots/S1.mp4 -frames:v 1 -q:v 2 -y generated/keyframes/S1-end.jpg
 
-# Upload the extracted frame and use it as S2 first_frame
+# Upload the extracted frame
 node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/renoise-cli.mjs material upload generated/keyframes/S1-end.jpg
-# → returns material ID, e.g. 91
+# → returns material ID, e.g. TAIL_ID = 91
+
+# S2 (default): the tail frame rides as ref_image pinned to index 0 (`ID:role:index`
+# syntax) so it is @Image1; it coexists with the character/scene refs — native
+# first_frame would not (frame mode × reference mode are mutually exclusive).
+# The prompt's FIRST sentence declares it the opening frame.
+node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/renoise-cli.mjs task generate \
+  --prompt "Use @Image1 as the first frame. Continuing from the previous shot: <S2 prompt>" \
+  --duration 15 --ratio <ratio> \
+  --materials "FACE_MAT_ID:ref_image,TAIL_ID:ref_image:0,SCENE2_MAT_ID:ref_image"
+
+# S2 (fallback, ONLY if the segment has no other image reference — e.g. pure B-roll):
 node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/renoise-cli.mjs task generate \
   --prompt "Continuing from the previous shot: <S2 prompt>" --duration 15 --ratio <ratio> \
-  --materials "FACE_MAT_ID:ref_image,91:first_frame,SCENE2_MAT_ID:ref_image"
+  --materials "TAIL_ID:first_frame"
 ```
 
 **Serial continuity option B — motion/style carryover:**
@@ -302,7 +316,7 @@ node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/renoise-cli.mjs credit me
 | Character drifts between segments | Reuse the same face/character-sheet material ID as `ref_image` in every segment + copy the full character description verbatim |
 | Video ignores actions in prompt | Prompt too dense — reduce to 3-4 actions per 5s window |
 | Video looks incoherent | Simplify: 2 camera stages, one mood, fewer actions |
-| Segments don't connect | Re-check the continuity choice: use tail-frame → next `first_frame` for exact opening-state matches, or `ref_video` for motion carryover; add cross-dissolve in post if needed |
+| Segments don't connect | Re-check the continuity choice: tail frame as `ref_image:0` + "Use @Image1 as the first frame." declaration (default when the segment has other image refs), native `first_frame` (only when it has none), or `ref_video` for motion carryover; add a 0.3–0.5s cross-dissolve in post if needed |
 
 ### Content-moderation error guidance
 

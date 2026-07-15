@@ -145,12 +145,13 @@ With ref_image, keep the text anchor minimal — the image already provides styl
 
 ### Available anchors (combinable)
 
-These combine freely within multimodal reference mode. Pick per segment based on what needs to stay consistent.
+All `ref_*` anchors combine freely within multimodal reference mode. Pick per segment based on what needs to stay consistent. The exception is `ID:first_frame` (frame mode): it cannot be combined with any `ref_image` — which is why a carried-over opening frame defaults to riding as `ref_image:0` instead (see the routing section below).
 
 | Anchor | Strength | What it locks |
 |--------|----------|---------------|
 | `FACE_MAT_ID:ref_image` (face image, seedance) | Strong | Face, body, wardrobe identity — reuse the same material ID across segments |
-| `ID:first_frame` (extracted tail frame) | Strong | Exact opening composition/state of the next segment |
+| Tail frame as `TAIL_ID:ref_image:0` + prompt opens "Use @Image1 as the first frame." | Strong (soft lock) | Opening composition/state — combines with the other refs here; the default when the segment carries any other `ref_image` |
+| `ID:first_frame` (extracted tail frame) | Strong (hard lock) | Exact opening composition/state — **frame mode, cannot combine with any `ref_image`**; only for segments with no other image reference |
 | `ID:ref_video` | Strong | Motion continuity from previous segment |
 | `ID:ref_image` (concept art) | Medium | Environment, lighting, color palette |
 | Text-only description | Weak | Nothing locked visually — model may drift |
@@ -161,10 +162,15 @@ More anchors = stronger consistency, but also longer generation time (8-12 min w
 
 For sequential segments, choose the method based on the scene goal:
 
-**Use previous end frame → next `first_frame` when:**
+**Use the previous end frame as the next opening frame when:**
 - The next segment must open on an exact carried-over pose/composition/state
 - You need a clean visual handoff of gaze, props, or lighting
 - The next segment can develop fresh motion after the opening frame
+
+How to attach the end frame depends on what else the segment carries — frame mode (`first_frame`/`last_frame`) and reference mode (`ref_image`) are **mutually exclusive** on the seedance series (`gemini-omni-flash` is the only exception):
+
+- **Segment carries any other `ref_image`** (character sheet, scene ref — the usual case) → attach the tail frame as `ID:ref_image:0` (the `:0` index makes it `@Image1`) and make the prompt's first sentence "Use @Image1 as the first frame." This is a **soft lock** — weaker than native `first_frame` — so pair it with an exact opening-state description, and fall back to a 0.3-0.5s cross-dissolve in post if a join still shows.
+- **Segment has no other image reference** (e.g. pure landscape B-roll continuation) → native `ID:first_frame` (hard lock, no prompt declaration needed).
 
 ```bash
 # Generate S1
@@ -173,7 +179,14 @@ renoise-cli.mjs task generate --prompt "<S1>" --duration 15 --ratio 16:9
 ffmpeg -sseof -0.2 -i S1.mp4 -frames:v 1 -q:v 2 -y S1-end.jpg
 # Upload S1 tail frame
 renoise-cli.mjs material upload S1-end.jpg  # → MATERIAL_ID_1
-# S2
+
+# S2 default — segment also carries character/scene refs:
+renoise-cli.mjs task generate \
+  --prompt "Use @Image1 as the first frame. Continuing from the previous shot: <S2 new content>" \
+  --duration 15 --ratio 16:9 \
+  --materials "FACE_ID:ref_image,MATERIAL_ID_1:ref_image:0,SCENE_ID:ref_image"
+
+# S2 fallback — no other image reference on this segment:
 renoise-cli.mjs task generate \
   --prompt "Continuing from the previous shot: <S2 new content>" \
   --duration 15 --ratio 16:9 --materials "MATERIAL_ID_1:first_frame"
@@ -184,7 +197,7 @@ renoise-cli.mjs task generate \
 - The transition itself is dynamic and a single extracted still is not enough
 - You want the prior segment's movement to influence the next one
 
-When using `ref_video`, focus transition design on the last 2-3 seconds of each segment because the model physically continues from the prior clip.
+When using `ref_video`, focus transition design on the last 2-3 seconds of each segment because the model physically continues from the prior clip. `ref_video` is reference mode — it combines freely with `ref_image` and is unaffected by the frame-mode exclusion.
 
 ## Style Keywords Cheat Sheet
 
