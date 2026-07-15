@@ -265,7 +265,7 @@ Set it via environment variable or .env file.`);
   return v;
 }
 var DEFAULT_BASE_URL = "https://www.renoise.ai/api/public/v1";
-var IMAGE_MODELS = /* @__PURE__ */ new Set(["gpt-image-2", "nano-banana-2", "nano-banana-2-lite", "nano-banana-pro", "midjourney-v7", "midjourney", "mj-v8.1", "midjourney-v8.1", "mj-8.1", "seedream-5-0-lite", "grok-image", "grok-image-quality"]);
+var IMAGE_MODELS = /* @__PURE__ */ new Set(["gpt-image-2", "nano-banana-2", "nano-banana-2-lite", "nano-banana-pro", "midjourney-v7", "midjourney", "mj-v8.1", "midjourney-v8.1", "mj-8.1", "seedream-5-0-lite", "seedream-5-0-pro", "grok-image", "grok-image-quality"]);
 
 function createClient(baseUrlOverride) {
   loadEnv();

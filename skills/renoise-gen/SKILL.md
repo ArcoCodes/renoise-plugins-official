@@ -93,6 +93,7 @@ node ${CLAUDE_SKILL_DIR}/renoise-cli.mjs task generate \
 | `mj-v8.1` | Image | _(no `--resolution`)_ | `1:1`, `4:3`, `3:4`, `16:9`, `9:16`, `3:2`, `2:3` | Aliases: `midjourney-v8.1`, `mj-8.1`; max 4 ref images; latest Midjourney version |
 | `gpt-image-2` | Image | `1k`, `2k`, `4k` | `1:1`, `3:2`, `2:3`, `3:4`, `4:3`, `16:9`, `9:16`, `21:9` | Max 16 ref images; strongest at text/typography |
 | `seedream-5-0-lite` | Image | `2k`, `3k`, `4k` | `1:1`, `4:3`, `3:4`, `16:9`, `9:16`, `3:2`, `2:3`, `21:9` | Max 14 ref images |
+| `seedream-5-0-pro` | Image | `1k`, `2k` | `1:1`, `4:3`, `3:4`, `16:9`, `9:16`, `3:2`, `2:3`, `21:9` | Max 10 ref images; higher quality Seedream tier |
 | `grok-image` | Image | `1k`, `2k` | `1:1`, `3:4`, `4:3`, `9:16`, `16:9`, `2:3`, `3:2` | xAI Grok Imagine; max 3 ref images |
 | `grok-image-quality` | Image | `1k`, `2k` | `1:1`, `3:4`, `4:3`, `9:16`, `16:9`, `2:3`, `3:2` | xAI Grok Imagine, higher-quality/higher-cost tier; max 3 ref images |
 
@@ -111,6 +112,7 @@ node ${CLAUDE_SKILL_DIR}/renoise-cli.mjs task generate \
 - `midjourney-v7` / `mj-v8.1` — strongest stylization; pass `--ratio` only (no resolution). Prefer `mj-v8.1` for the latest Midjourney model.
 - `gpt-image-2` — best prompt-following for text/logos/typography in image.
 - `seedream-5-0-lite` — alternative provider, up to `4k`, wide ratio set.
+- `seedream-5-0-pro` — higher quality Seedream tier; `1k`/`2k` only, max 10 ref images.
 - `grok-image` / `grok-image-quality` — xAI Grok Imagine; `-quality` for higher fidelity at higher cost, both capped at `2k` and 3 ref images.
 
 ---

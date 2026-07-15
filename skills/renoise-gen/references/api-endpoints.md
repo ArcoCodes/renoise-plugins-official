@@ -138,6 +138,7 @@ Response:
 - `mj-v8.1` — Midjourney, latest version (aliases: `midjourney-v8.1`, `mj-8.1`); **no `resolution` param**; max 4 reference images
 - `gpt-image-2` — Tencent Cloud AI Art provider; `1k`/`2k`/`4k`; max 16 reference images; strongest at text/typography in image
 - `seedream-5-0-lite` — Seedream provider; `2k`/`3k`/`4k`; max 14 reference images
+- `seedream-5-0-pro` — Seedream provider; `1k`/`2k`; max 10 reference images; higher quality tier
 - `grok-image` — xAI Grok Imagine; `1k`/`2k`; max 3 reference images
 - `grok-image-quality` — xAI Grok Imagine, higher-quality/higher-cost tier; `1k`/`2k`; max 3 reference images
 
