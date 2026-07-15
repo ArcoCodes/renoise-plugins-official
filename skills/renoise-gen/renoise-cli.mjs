@@ -796,7 +796,8 @@ async function creditMe(client) {
 }
 async function creditEstimate(client, flags) {
   // 应用 byteplus 映射（seedance 系列 → byteplus；废弃别名附 deprecation warning），否则估到非 byteplus 档的价。
-  const model = flags.model ? toSubmitModel(flags.model) : void 0;
+  // 缺省 model 与 task create 保持一致（视频默认 → byteplus），避免估价与实扣走到不同档。
+  const model = toSubmitModel(flags.model);
   const isAudio = !!model && AUDIO_MODELS.has(model);
   const variant = !flags.variant && model && IMAGE_MODELS.has(model) && flags.resolution
     ? flags.resolution
