@@ -97,7 +97,7 @@ Present all shots together so the user sees the complete video in one view:
 @Image 1 → [filename] → ref_image (all shots)
 
 --- Generation Parameters ---
-Model: renoise-2.0 | Ratio: W:H | Total estimated cost: ~N×M credits
+Model: seedance-2.0 | Ratio: W:H | Total estimated cost: run `credit estimate` per segment and sum
 Note: Each shot is a separate segment, assembled by ffmpeg.
 ---
 ```

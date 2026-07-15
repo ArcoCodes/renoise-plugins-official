@@ -10,15 +10,17 @@
 
 Upload all assets **before writing the prompt**. Material IDs must be known before prompt construction.
 
-**1. Person image → register as User Asset**
+**1. Person image → upload as material**
+
+The presenter face is used directly as `ID:ref_image` — on the seedance series it is auto-facepassed on submit, so there is no registration step. Reuse the **same material ID** across every segment to keep the presenter consistent.
 
 If the user provided a presenter face image:
 ```bash
 node renoise-cli.mjs material upload <person_image_path>
-node renoise-cli.mjs asset register <material_id> --name "<presenter name>"
+# → returns material_id; use as ID:ref_image
 ```
 
-If the user did NOT provide a presenter image: ask what kind of presenter they want (gender, age, style, vibe — e.g. "甜美少女风", "职场精英感", "邻家小姐姐"). Generate a portrait with nano-banana-2, download it, upload, and register. Present to user for approval before proceeding.
+If the user did NOT provide a presenter image: ask what kind of presenter they want (gender, age, style, vibe — e.g. "甜美少女风", "职场精英感", "邻家小姐姐"). Generate a portrait with nano-banana-2, download it, and upload it. Present to user for approval before proceeding.
 
 ```bash
 node renoise-cli.mjs task generate \
@@ -26,7 +28,7 @@ node renoise-cli.mjs task generate \
   --prompt "<portrait prompt>"
 curl -s -o presenter.png "<generated_image_url>"
 node renoise-cli.mjs material upload presenter.png
-node renoise-cli.mjs asset register <material_id> --name "<name>"
+# → returns material_id; use as ID:ref_image
 ```
 
 **2. Product images → upload as material**

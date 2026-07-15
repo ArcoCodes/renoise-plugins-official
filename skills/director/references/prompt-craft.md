@@ -1,6 +1,6 @@
 # Prompt Craft - Writing High-Density Video Prompts
 
-This is the most important reference in the director skill. **The quality of the video is determined by the quality of the prompt.** Everything else (pipeline, asset registration, assembly) is infrastructure. This document teaches you how to write prompts that make renoise-2.0 produce cinematic results.
+This is the most important reference in the director skill. **The quality of the video is determined by the quality of the prompt.** Everything else (pipeline, material uploads, assembly) is infrastructure. This document teaches you how to write prompts that make seedance-2.0 produce cinematic results.
 
 ---
 
@@ -20,17 +20,18 @@ The model responds to **specificity and physical detail**. Every action should h
 
 A complete prompt has these sections, in this order:
 
-### 1. Style & Camera Foundation (2-3 lines)
+### 1. Style & Camera Foundation (2-3 lines) — the STYLE BIBLE
 
-Persistent visual DNA. Film stock, lens, grade, aspect ratio. This stays **identical across all segments** of a multi-clip project.
+Persistent visual DNA. Film stock, lens, grade, aspect ratio. This stays **identical across all segments** of a multi-clip project — it *is* the STYLE BIBLE (see the dedicated section below).
 
 ```
 Cinematic 16:9 widescreen. Shot on ARRI Alexa 65, Cooke vintage cinema lenses.
 35mm film grain, Kodak Vision3 500T grade - bleached desert, blown-out sky, brutal noon heat.
 Hyperrealistic skin, zero retouching. Hard overhead sun, ink-black shadows.
+NEGATIVE: anime, 3D cartoon render, video-game CG, plastic skin.
 ```
 
-Not a checklist - a **visual world declaration**. The model should feel the texture of the image from this alone.
+Not a checklist - a **visual world declaration**. The model should feel the texture of the image from this alone. For any multi-shot project the foundation **must** carry a NEGATIVE line and be prepended verbatim to every segment — see below.
 
 ### 2. Characters (full block per character)
 
@@ -110,7 +111,7 @@ Notice: no camera instructions mixed in. The action is pure narrative. Camera ca
 
 ### 6. Sound Design (per-segment, not a footnote)
 
-Sound design is **not optional**. renoise-2.0 generates audio with the video. Specific sound descriptions improve both the audio AND the visual output - they help the model understand the physical reality of the scene.
+Sound design is **not optional**. seedance-2.0 generates audio with the video. Specific sound descriptions improve both the audio AND the visual output - they help the model understand the physical reality of the scene.
 
 **Bad** (what the old framework did):
 ```
@@ -162,6 +163,46 @@ This section does two things:
 
 ## Multi-Clip: Structure & Continuity
 
+### Style Bible (prepend to every segment)
+
+Before splitting into segments, freeze one **STYLE BIBLE** string and prepend it **verbatim** to the top of every segment prompt. It has four parts:
+
+`art style + camera language + color grade + NEGATIVE line`
+
+```
+STYLE BIBLE (prepend every segment): photorealistic live-action cinematic wuxia film,
+shot on ARRI, shallow depth of field, teal-and-gold grade, volumetric light.
+NEGATIVE: anime, 3D cartoon render, video-game CG, plastic skin.
+```
+
+Why it matters:
+- **Style drift**: without a shared, repeated style declaration the model wanders — a live-action piece can flip to 3D-cartoon / game-CG mid-sequence. The Style Bible pins it every segment.
+- **VFX-heavy segments are the highest drift risk.** Segments dense with effects ("golden energy pouring into the body", energy bursts, transformations) pull hardest toward cartoon/CG rendering. **Never drop the NEGATIVE line on these segments** — it is the guardrail.
+- **Color-temperature jumps**: put ONE color grade in the Bible ("teal-and-gold grade") and repeat it. Do not let each segment invent its own grade — that is what makes the color temperature leap between shots.
+
+The Style Bible is a locked line item of the director skill's **Gate 2 Consistency Manifest**.
+
+### Transition Table (design cuts before you generate)
+
+For a multi-shot piece, plan the **cut points** explicitly and get them confirmed as part of Gate 2. For every boundary record three things:
+
+| Cut | Prev segment OUT-frame | Next segment IN-frame | Linking technique |
+|-----|------------------------|-----------------------|-------------------|
+| S1→S2 | hero stands, sword lowered, dusk amber | hero mid-stride, same amber light | motion match + tonal carry |
+| S3→S4 | golden light peaks, hero centered & symmetric | hero centered & symmetric, same gold grade | match-cut composition + tonal carry |
+
+Linking techniques: **match-cut composition** (same framing/shape), **motion match** (movement continues across the cut), **tonal carry** (same grade/light state across the cut), **action continuation** (a gesture begun in one shot completes in the next). The out-frame and in-frame states here must agree with what the segment prompts actually describe.
+
+**Good-transition reference — S3→S4**: when S3 ended on a warm-gold, centered, symmetric hero composition and S4 opened on the *same* gold grade and the *same* centered symmetric hero framing, the join was seamless. Match the out-frame's grade **and** composition to the next in-frame; that combination (tonal carry + match-cut) is the strongest continuous-narrative join.
+
+### Ending strategy (holds steady is last-segment only)
+
+`frame holds steady` is **not** a per-segment default — using it on every segment produces a video that is four endings stapled together (and, paired with an establishing open on every segment, four beginnings too).
+
+- **Final segment only** → may settle into `frame holds steady` for a clean button.
+- **Every intermediate segment** → must end on a **hook the next segment can catch**: an in-progress motion, a gaze lead, or a held composition that the next in-frame matches. Design the last 1-2 seconds as the out-frame recorded in the Transition Table.
+- Likewise, only S1 needs a full establishing open; later segments open on the carried continuity state, not a fresh establishing shot.
+
 ### Narrative Arc Templates
 
 Use these as starting structures, then let the story reshape them:
@@ -185,7 +226,9 @@ Design the **ending of each segment** to set up the next:
 | **Time Jump** | Visual time indicators (light change, seasons) | Montage, passage of time |
 | **Spatial Flow** | Camera moves through a door/window into new space | Exploration, journey |
 
-### Serial continuity routing: choose based on the scene goal
+### Serial continuity routing: first-frame chain is the default
+
+**For continuous narrative, default to the first-frame chain** (previous segment's tail frame → next segment's `first_frame`). This is the strongest guarantee that the next shot opens exactly where the last one landed, and it makes cuts vanish. Reach for the alternative — a shared `ref_image` + color anchor + a match-cut hook — only when you deliberately want **free composition** per shot (new angles, new blocking) rather than an exact opening-frame handoff. State this trade-off to yourself per cut: **continuous-flow priority → first-frame chain; free-composition priority → shared ref_image + match-cut.** Use `ref_video` when motion/style carryover matters more than pinning the opening frame.
 
 For continuity blocks in the same location, choose the method based on what must stay fixed:
 
@@ -215,7 +258,7 @@ When you design segment endings for this workflow, the final 1-2 seconds should 
 When using `ref_video` serial chain, the model physically continues from the previous segment's ending frame — focus transition design on the **last 2-3 seconds** of each segment.
 
 ### Same style line everywhere
-Copy your style foundation block (Section 1) identically into every segment.
+Copy your STYLE BIBLE / style foundation block (Section 1) identically into every segment — including its NEGATIVE line. See "Style Bible" above.
 
 ### Full character block everywhere
 Copy the entire character description (Section 2) verbatim into every segment. Never abbreviate "East Asian woman, late 20s, shoulder-length black hair with subtle auburn highlights" to "the woman" or "Maya."
@@ -251,11 +294,13 @@ What to include: character position + pose, prop state, emotional expression, li
 What NOT to include: camera angles (new shot may differ), music cues, dialogue.
 
 ### Continuity tracking
-Track prop/wardrobe state changes across segments. If her vest pockets are full in S1 and half-empty in S3, say so. If his tape roll is smaller, say so. These micro-details make the video feel like one continuous world.
+Track prop/wardrobe state changes across segments in the **Props & Wardrobe Continuity Table** (see visual-dev.md), and copy each key prop's fixed description (material + color + form) verbatim into every segment it appears in. A prop must not silently mutate — e.g. a jade token that is a "translucent green jade shard" stays that, it does not become white porcelain in one segment and raw green stone in another. Distinguish **constant traits** (locked every segment) from **plot-driven changes** (a costume/prop upgrade the plot requires): a plot change must be staged as its **own explicit transformation shot**, never an untransitioned jump between adjacent segments. Small continuity micro-details still help — if her vest pockets are full in S1 and half-empty in S3, say so; if his tape roll is smaller, say so.
 
-### Hiding inevitable inconsistency
-AI clips will have ~80% visual consistency at best. Design transitions to mask the remaining 20%:
-- **Whip pan / motion blur** at segment boundaries hides appearance jumps
+### Smoothing residual variance (after you've locked the reference)
+**Consistency is engineered, not hoped for.** For any character in 2+ segments, first lock their look with a character-sheet `ref_image` reused in every segment (see `visual-dev.md`) — that is what holds the face, hair, and wardrobe steady. The verbatim character block above and the transition techniques below sit **on top of** that reference lock to smooth any residual frame-to-frame variance between independently generated clips; they are **not** a substitute for locking, and you should never present drift to the user as an expected outcome.
+
+Once the reference is locked, these editing choices absorb the small remaining differences:
+- **Whip pan / motion blur** at segment boundaries softens appearance jumps
 - **Close-up → Wide** scale change between segments masks small differences
 - **Cut on action** (end mid-movement, start completing it) - the viewer follows the action, not appearance
 - **Cross-dissolve** (0.3-0.5s) in post-production softens visual jumps between parallel-generated clips
@@ -290,7 +335,7 @@ When adapting existing material (novels, screenplays, manga):
 - **Don't write generic actions**: "She interacts with the object" → write exactly what she does with her hands
 - **Don't summarize**: "They argue about whose fault it is" → write the specific pointing gestures, clipboard grabs, stepping patterns
 - **Don't front-load camera instructions**: action first, camera second. The model needs to understand the scene before knowing how to film it
-- **Don't use energy numbers**: "⚡ Energy: 7" means nothing to renoise-2.0. Write the actual pacing - fast cuts, slow holds, motion blur
+- **Don't use energy numbers**: "⚡ Energy: 7" means nothing to seedance-2.0. Write the actual pacing - fast cuts, slow holds, motion blur
 - **Don't put BGM instructions for narrative videos**: if the video should have diegetic audio only, say so. BGM instructions are for e-commerce/product videos.
 - **Don't skip sound design**: every silent prompt is a wasted opportunity to improve the visual output
 
@@ -300,23 +345,18 @@ When adapting existing material (novels, screenplays, manga):
 
 When you attach reference images (character photos, product shots, scene refs) as materials, you **must** also reference them in the prompt text using `@name`. This tells the model which uploaded image corresponds to which character or object in your prompt.
 
-### Setup: Upload → Register → Write `@name` in prompt
+### Setup: Upload → Write `@name` in prompt
 
-**Step 1: Upload and register materials** (see visual-dev.md for details)
+**Step 1: Upload materials** (see visual-dev.md for details)
 
 ```bash
-# Upload character image
+# Upload character image (faces included — seedance auto-facepasses on submit, no registration)
 node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/renoise-cli.mjs material upload avatar_girl.png
 # → material ID #101
 
-# Register as asset (required for images with faces)
-node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/renoise-cli.mjs asset register 101 --name "avatar_girl"
-# → asset ID #27
-
 # Same for second character
 node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/renoise-cli.mjs material upload avatar_boy.png
-node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/renoise-cli.mjs asset register 102 --name "avatar_boy"
-# → asset ID #28
+# → material ID #102
 ```
 
 **Step 2: Use `@name` in the prompt** to bind each reference to its character.
@@ -342,36 +382,38 @@ She hands it to @avatar_boy with the energy of someone presenting a solution.
 ```bash
 node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/renoise-cli.mjs task generate \
   --prompt "<prompt with @avatar_girl and @avatar_boy references>" \
-  --materials "asset:27:reference_image,asset:28:reference_image" \
+  --materials "101:ref_image,102:ref_image" \
   --duration 15 --ratio 16:9
 ```
 
-The `@name` in the prompt is matched to the attached materials by name. The model uses the reference images to maintain the character's visual identity throughout the video.
+The `@name` in the prompt is matched to the attached materials by file name (the server rewrites `@<filename>` to `@ImageN`/`@VideoN` in materials order). The model uses the reference images to maintain the character's visual identity throughout the video.
 
 ### Rules
 
-- **`@name` must match the material/asset name** you registered (e.g. `--name "avatar_girl"` → `@avatar_girl` in prompt). Do NOT include file extensions.
+- **`@name` must match the material's file name** (e.g. `avatar_girl.png` → `@avatar_girl` in prompt). Do NOT include file extensions.
 - **Use `@name` every time the character appears** - not just in the character definition block. In the timeline, write `@avatar_girl reaches into the case` so the model knows which face to apply to that action.
-- **Multiple characters**: each gets their own `@name` and their own asset entry in the comma-separated `--materials` flag: `--materials "asset:27:reference_image,asset:28:reference_image"`
+- **Multiple characters**: each gets their own `@name` and their own material entry in the comma-separated `--materials` flag: `--materials "101:ref_image,102:ref_image"`
 - **Works for non-face materials too**: product shots, scene references, etc. Upload as material, reference with `@name` in the prompt.
-- **For face-containing images**: always register as User Asset first (`asset register`), then use `--materials "asset:ID:reference_image"`. Raw face materials will be blocked by privacy detection.
+- **Face-containing images (seedance)**: pass the face image directly as `ID:ref_image` — it is auto-facepassed on submit, no registration. Reuse the same material ID for a character that recurs across segments. On non-seedance models a face may be blocked by provider review — prefer a seedance model.
 
 ### Without `@name` (weaker)
 
-If you pass `--materials "asset:27:reference_image"` but don't use `@name` in the prompt, the model receives the reference image but doesn't know which character it maps to. It may apply the reference randomly or ignore it. **Always use `@name` in the prompt when attaching reference materials.**
+If you pass `--materials "101:ref_image"` but don't use `@name` in the prompt, the model receives the reference image but doesn't know which character it maps to. It may apply the reference randomly or ignore it. **Always use `@name` in the prompt when attaching reference materials.**
 
 ---
 
 ## Dialogue Format
 
-When a character speaks, use the forced lip-sync format:
+**First, the Spoken-language Hard Rule (see SKILL.md):** any segment with dialogue / voiceover / narration requires you to **confirm the spoken language with the user before writing prompts**, and to write the dialogue line **verbatim in that confirmed language** — the model speaks whatever language the line text is in, so translating the line changes the voice. For a dialogue-dense segment, keep the whole segment prompt in the spoken language so a large English block does not drag the speech toward English. Label the spoken language of each dialogue segment in the Gate 2 preview ("S4 口播：中文").
+
+When a character speaks, write the line in the confirmed language and mark the mouth as visible:
 
 ```
-Spoken dialogue (say EXACTLY, word-for-word): "Stop scrolling - I threw out all my gym equipment for these three bands."
-Mouth clearly visible when speaking, lip-sync aligned.
+Spoken dialogue (say EXACTLY, word-for-word): "别刷了——我把家里的健身器材全扔了，就为了这三条弹力带。"
+Mouth clearly visible when speaking.
 ```
 
-This format significantly improves lip-sync accuracy. Follow each dialogue line with the lip-sync instruction. Keep dialogue lines under 15 words each, max 3-4 lines per 15s segment.
+This format improves mouth-motion accuracy. Follow each dialogue line with the visible-mouth instruction. Keep dialogue lines short (roughly under 15 words / a short spoken clause), max 3-4 lines per 15s segment. Note the model's lip-sync is best when the spoken text is in the segment's dominant language; a short line in a language different from the surrounding prompt text is less reliable (see video-capabilities.md).
 
 ---
 

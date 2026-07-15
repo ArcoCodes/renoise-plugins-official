@@ -54,17 +54,10 @@ function loadImageBase64(imagePath) {
   }
 }
 
-// ── Estimate credits per shot ───────────────────────────────────────────
-function estimateCredits(durationS) {
-  // Rough estimate: ~0.5 credits per second
-  return Math.ceil(durationS * 0.5);
-}
-
 // ── Generate HTML ───────────────────────────────────────────────────────
 function generateHTML(project, shots, characters, styleGuide, images, materialMapping) {
   const title = project.title || "Untitled Project";
   const totalDuration = shots.reduce((sum, s) => sum + (s.duration_s || 0), 0);
-  const totalCredits = shots.reduce((sum, s) => sum + estimateCredits(s.duration_s || 0), 0);
   const ratio = project.ratio || "16:9";
   const music = project.music;
 
@@ -165,7 +158,7 @@ function generateHTML(project, shots, characters, styleGuide, images, materialMa
       <div class="stat"><div class="stat-label">Duration</div><div class="stat-value">${totalDuration}s</div></div>
       <div class="stat"><div class="stat-label">Shots</div><div class="stat-value">${shots.length}</div></div>
       <div class="stat"><div class="stat-label">Ratio</div><div class="stat-value">${ratio}</div></div>
-      <div class="stat"><div class="stat-label">Est. Cost</div><div class="stat-value">~${totalCredits} credits</div></div>
+      <div class="stat"><div class="stat-label">Est. Cost</div><div class="stat-value">credit estimate</div></div>
     </div>
     <div style="margin-top:12px;">
       <div class="stat-label">Characters</div>

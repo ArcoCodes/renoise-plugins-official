@@ -6,7 +6,7 @@ allowed-tools: Bash
 Open the Renoise pricing page for the user to add credits:
 
 ```bash
-open "https://renoise.ai/pricing"
+open "https://www.renoise.ai/pricing"
 ```
 
 Then tell the user:

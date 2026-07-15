@@ -137,12 +137,10 @@ node renoise-cli.mjs task generate \
   --model nano-banana-2 --resolution 2k --ratio 1:1 \
   --prompt "Character reference sheet for Maya. East Asian woman, late 20s, shoulder-length black hair with subtle auburn highlights, warm ivory skin, almond-shaped dark brown eyes, slim build. Wearing oversized cream-colored chunky-knit wool cardigan over a fitted charcoal cotton turtleneck, high-waisted dark indigo straight-leg jeans, brown leather ankle boots. Small gold hoop earrings, thin gold chain bracelet on left wrist. Multiple angles: front, 3/4, profile. Clean white background."
 
-# Download → upload → register
+# Download → upload (face used directly as ref_image; seedance auto-facepasses on submit)
 curl -s -o maya.png "<image_url>"
 node renoise-cli.mjs material upload maya.png
-# → material #101
-node renoise-cli.mjs asset register 101 --name "maya"
-# → asset #27
+# → material #101 (reuse this same ID in every segment Maya appears in)
 ```
 
 ### Scene Concept Images (parallel — no dependencies)
@@ -150,13 +148,11 @@ node renoise-cli.mjs asset register 101 --name "maya"
 ```bash
 # S1 scene: apartment hallway
 node renoise-cli.mjs task create --model nano-banana-2 --resolution 2k --ratio 16:9 \
-  --prompt "Dimly lit apartment hallway, warm pendant light overhead, beige walls, mailboxes on left wall, wooden door at end of hall, small brown package on doormat, grocery bags nearby. Warm amber tones, cool blue shadows. Photorealistic, cinematic. No people." \
-  --tags mystery,scene-s1
+  --prompt "Dimly lit apartment hallway, warm pendant light overhead, beige walls, mailboxes on left wall, wooden door at end of hall, small brown package on doormat, grocery bags nearby. Warm amber tones, cool blue shadows. Photorealistic, cinematic. No people."
 
 # S2/S3/S4 scene: apartment living room (reuse for all 3 — same location)
 node renoise-cli.mjs task create --model nano-banana-2 --resolution 2k --ratio 16:9 \
-  --prompt "Cozy apartment living room at twilight. Wooden desk with warm table lamp, large window showing blue twilight sky, bookshelves, potted plants, worn leather chair. Warm amber side-lighting, cool blue from window. Photorealistic, cinematic, shallow depth of field. No people." \
-  --tags mystery,scene-living-room
+  --prompt "Cozy apartment living room at twilight. Wooden desk with warm table lamp, large window showing blue twilight sky, bookshelves, potted plants, worn leather chair. Warm amber side-lighting, cool blue from window. Photorealistic, cinematic, shallow depth of field. No people."
 ```
 
 Download and upload each:
@@ -171,10 +167,10 @@ curl -s -o scene-living.png "<url>" && node renoise-cli.mjs material upload scen
 
 ```
 Shot  Character    Scene Ref    Prev Video   --materials
-S1    asset #27    #201         (none)       "asset:27:reference_image,201:ref_image"
-S2    asset #27    #202         #V1          "asset:27:reference_image,V1:ref_video,202:ref_image"
-S3    asset #27    #202         #V2          "asset:27:reference_image,V2:ref_video,202:ref_image"
-S4    asset #27    #202         #V3          "asset:27:reference_image,V3:ref_video,202:ref_image"
+S1    #101         #201         (none)       "101:ref_image,201:ref_image"
+S2    #101         #202         #V1          "101:ref_image,V1:ref_video,202:ref_image"
+S3    #101         #202         #V2          "101:ref_image,V2:ref_video,202:ref_image"
+S4    #101         #202         #V3          "101:ref_image,V3:ref_video,202:ref_image"
 ```
 
 S2-S4 share the same scene ref #202 (same living room location).
@@ -261,22 +257,21 @@ Avoid: No cartoon, no anime, no oversaturated colors, no dutch angles, no text o
 
 ### Cost Estimate
 
-```
-Character sheet:  ~12 credits
-Scene refs (x2):  ~24 credits
-S1 (8s):  ~160 credits
-S2 (13s): ~260 credits
-S3 (12s): ~240 credits
-S4 (12s): ~240 credits
-Total:    ~936 credits
+Run `credit estimate` for each item (character sheet, the 2 scene refs, and each of S1–S4 at its model/duration/resolution), sum the returned `estimatedCredit` values, and compare the total against the `balance` from `credit me`. If the total exceeds the balance, reduce segment count or lower the resolution tier.
+
+```bash
+node renoise-cli.mjs credit estimate --model seedance-2.0 --duration 8 --resolution 1080p   # S1
+node renoise-cli.mjs credit estimate --model seedance-2.0 --duration 13 --resolution 1080p  # S2
+# ...repeat per segment, then sum
+node renoise-cli.mjs credit me
 ```
 
 ### Serial Chain Commands
 
 ```bash
-# S1 — character asset + scene ref (no ref_video for first segment)
+# S1 — character face + scene ref (no ref_video for first segment)
 node renoise-cli.mjs task generate --prompt "<S1 prompt>" --duration 8 --ratio 16:9 \
-  --materials "asset:27:reference_image,201:ref_image"
+  --materials "101:ref_image,201:ref_image"
 # → task #500
 
 # Chain S1 → material
@@ -285,7 +280,7 @@ node renoise-cli.mjs task chain 500
 
 # S2 — character + ref_video + scene ref
 node renoise-cli.mjs task generate --prompt "<S2 prompt>" --duration 13 --ratio 16:9 \
-  --materials "asset:27:reference_image,V1:ref_video,202:ref_image"
+  --materials "101:ref_image,V1:ref_video,202:ref_image"
 # → task #501
 
 # Chain S2 → material
@@ -294,7 +289,7 @@ node renoise-cli.mjs task chain 501
 
 # S3 — character + ref_video + scene ref
 node renoise-cli.mjs task generate --prompt "<S3 prompt>" --duration 12 --ratio 16:9 \
-  --materials "asset:27:reference_image,V2:ref_video,202:ref_image"
+  --materials "101:ref_image,V2:ref_video,202:ref_image"
 # → task #502
 
 # Chain S3 → material
@@ -303,7 +298,7 @@ node renoise-cli.mjs task chain 502
 
 # S4 — character + ref_video + scene ref
 node renoise-cli.mjs task generate --prompt "<S4 prompt>" --duration 12 --ratio 16:9 \
-  --materials "asset:27:reference_image,V3:ref_video,202:ref_image"
+  --materials "101:ref_image,V3:ref_video,202:ref_image"
 ```
 
 > **Note**: Multi-anchor generations take ~8-12 minutes per segment. Use `task create` + `task wait --timeout 900` if the default timeout is insufficient.

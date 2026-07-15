@@ -1,17 +1,20 @@
 ---
 name: renoise-gen
 description: >
-  Renoise platform CLI — generate AI videos and images, upload materials,
-  register assets, browse characters, poll results. This is the tool layer.
+  Renoise platform CLI — generate AI videos, images, and audio, upload materials,
+  poll results. This is the tool layer.
   For creative direction (story, prompts, visual development, anchoring strategy),
   use the director skill.
   Use when user asks to "generate video", "create video", "text to video",
-  "image to video", "generate image", "AI video", "AI image", "product design sheet",
-  "scene background", "material pool", "ingest materials", or needs direct CLI access.
+  "image to video", "generate image", "generate audio", "AI video", "AI image",
+  "product design sheet", "scene background", "material pool", "ingest materials",
+  or Chinese phrasings like "生成视频", "文生视频", "图生视频", "生成图片",
+  "AI 视频", "AI 图片", "生成音乐", "配乐", "画质增强", "超分", "上传素材",
+  or needs direct CLI access.
 allowed-tools: Bash, Read, Write, Glob
 metadata:
   author: renoise
-  version: 0.4.0
+  version: 0.5.0
   category: video-production
   tags: [general, video-generation, image-generation, material-pool]
 ---
@@ -51,7 +54,7 @@ node ${CLAUDE_SKILL_DIR}/renoise-cli.mjs task generate \
 # Cheaper/faster video draft
 node ${CLAUDE_SKILL_DIR}/renoise-cli.mjs task generate \
   --prompt "A cat dancing under twinkling stars, smooth orbit" \
-  --model renoise-2.0-mini --duration 10 --ratio 9:16
+  --model seedance-2.0-mini --duration 10 --ratio 9:16
 
 # Image-to-video with a single reference image (I2V only)
 node ${CLAUDE_SKILL_DIR}/renoise-cli.mjs task generate \
@@ -78,14 +81,15 @@ node ${CLAUDE_SKILL_DIR}/renoise-cli.mjs task generate \
 
 | Model | Type | Duration / Resolution | Aspect Ratios | Notes |
 |-------|------|-----------------------|---------------|-------|
-| `renoise-2.0` / `sd-2.0` | Video | 4–15s, `720p`/`1080p` | `9:16`, `16:9`, `1:1`, `4:3`, `3:4`, `21:9` | Aliases: `seedance-2.0`, `youmeng-2.0`; refs image ≤9, video ≤3, audio ≤3; supports watermark/audio generation |
-| `renoise-2.0-fast` / `sd-2.0-fast` | Video | 4–15s, `720p` only | `9:16`, `16:9`, `1:1`, `4:3`, `3:4`, `21:9` | Aliases: `seedance-2.0-fast`, `youmeng-2.0-fast`; refs image ≤9, video ≤3, audio ≤3 |
-| `renoise-2.0-mini` / `sd-2.0-mini` | Video | 4–15s, `720p` only | `9:16`, `16:9`, `1:1`, `4:3`, `3:4`, `21:9` | Aliases: `seedance-2.0-mini`, `youmeng-2.0-mini`; refs image ≤9, video ≤3, audio ≤3; cheapest Seedance tier, no 1080p |
-| `happyhorse-1.0` | Video | 3–15s, `720p`/`1080p` | `16:9`, `9:16`, `1:1`, `4:3`, `3:4` | Alias typo accepted: `happyhourse-1.0`; refs image ≤9, video 0; no `last_frame` |
-| `kling-3.0-omni` | Video | 3/5/10/15s, `720p`/`1080p` | `16:9`, `9:16`, `1:1`, `4:3`, `3:4` | refs image ≤7, video ≤1, audio unsupported; prompt ≤2500 chars; ref video 3–10s, dimensions 720–2160px |
-| `grok-video` | Video | 1–15s (R2V clamped to ≤10s), `480p`/`720p` | `1:1`, `16:9`, `9:16`, `4:3`, `3:4`, `3:2`, `2:3` | xAI Grok Imagine; supports T2V/I2V/R2V; refs image ≤7 (R2V mode); 1080p not yet available upstream |
-| `grok-video-1.5` | Video | 1–15s, `480p`/`720p` | `1:1`, `16:9`, `9:16`, `4:3`, `3:4`, `3:2`, `2:3` | xAI Grok Imagine; **I2V only** — requires exactly 1 reference image, no text-only generation |
-| `gemini-omni-flash` | Video | 3–10s, `720p` only (fixed) | `16:9`, `9:16` only | Google Vertex Interactions API; ratio is **required** (no default); refs image ≤6, `first_frame` + `ref_image` can combine; no ref video/audio |
+| `seedance-2.0` | Video | 4–15s, `480p`/`720p`/`1080p`/`4k` (default `720p`) | `9:16`, `16:9`, `1:1`, `4:3`, `3:4`, `21:9` | Default video model; refs image ≤9, video ≤3, audio ≤3; supports watermark/audio generation. Submits/executes as `seedance-2.0-byteplus` — a face image can be passed straight as `ref_image` (auto-facepass on submit). |
+| `seedance-2.0-fast` | Video | 4–15s, `480p`/`720p` (default `720p`) | `9:16`, `16:9`, `1:1`, `4:3`, `3:4`, `21:9` | Faster tier; refs image ≤9, video ≤3, audio ≤3; no 1080p/4k. Executes as `seedance-2.0-fast-byteplus`. |
+| `seedance-2.0-mini` | Video | 4–15s, `480p`/`720p` (default `720p`) | `9:16`, `16:9`, `1:1`, `4:3`, `3:4`, `21:9` | Cheapest Seedance tier; refs image ≤9, video ≤3, audio ≤3; no 1080p/4k. Executes as `seedance-2.0-mini-byteplus`. |
+| `happyhorse-1.0` | Video | `720p`/`1080p` (default `1080p`) | `16:9`, `9:16`, `1:1`, `4:3`, `3:4` | Alibaba Bailian; alias typo accepted `happyhourse-1.0`; refs image ≤9, video 0; no `last_frame` |
+| `kling-3.0-omni` | Video | `720p`/`1080p` (default `720p`) | `16:9`, `9:16`, `1:1`, `4:3`, `3:4` | Default 5s; with a reference video ≤10s; otherwise 3–15s (validated server-side). refs image ≤7, video ≤1, audio unsupported; prompt ≤2500 chars |
+| `grok-video` | Video | 1–15s (R2V clamped ≤10s), `480p`/`720p` (default `720p`) | `1:1`, `16:9`, `9:16`, `4:3`, `3:4`, `3:2`, `2:3` | xAI Grok Imagine; T2V/I2V/R2V; refs image ≤7 (R2V mode) |
+| `grok-video-1.5` | Video | 1–15s, `480p`/`720p` (default `720p`) | `1:1`, `16:9`, `9:16`, `4:3`, `3:4`, `3:2`, `2:3` | xAI Grok Imagine; **I2V only** — requires exactly 1 reference image, no text-only generation |
+| `gemini-omni-flash` | Video | ≤10s, `720p` only (fixed) | `16:9`, `9:16` only | Google Vertex Interactions API; ratio is **required** (no default); refs image ≤6, video ≤1 (`source_video` edit); `first_frame` + `ref_image` can combine; no ref audio |
+| `upscale-video-volcano-mediakit` | Video | `1080p`/`2k`/`4k` (default `1080p`) | _(follows source)_ | Video quality enhancement (super-resolution). Source clip via `ID:ref_video`; `--prompt` optional; no watermark. See [Quality Enhancement](#quality-enhancement-upscale--super-resolution). |
 | `nano-banana-2` | Image | `1k`, `2k`, `4k` | `1:1`, `2:3`, `3:2`, `3:4`, `4:3`, `4:5`, `5:4`, `9:16`, `16:9`, `21:9`, `1:4`, `4:1`, `1:8`, `8:1` | Google Vertex; widest ratio set |
 | `nano-banana-2-lite` | Image | `1k` only | Same ratio set as `nano-banana-2` | Google Vertex; cheaper/lite tier; max 14 ref images |
 | `nano-banana-pro` | Image | `1k`, `2k`, `4k` | `1:1`, `2:3`, `3:2`, `3:4`, `4:3`, `4:5`, `5:4`, `9:16`, `16:9`, `21:9` | Google Vertex; higher quality tier |
@@ -93,16 +97,22 @@ node ${CLAUDE_SKILL_DIR}/renoise-cli.mjs task generate \
 | `mj-v8.1` | Image | _(no `--resolution`)_ | `1:1`, `4:3`, `3:4`, `16:9`, `9:16`, `3:2`, `2:3` | Aliases: `midjourney-v8.1`, `mj-8.1`; max 4 ref images; latest Midjourney version |
 | `gpt-image-2` | Image | `1k`, `2k`, `4k` | `1:1`, `3:2`, `2:3`, `3:4`, `4:3`, `16:9`, `9:16`, `21:9` | Max 16 ref images; strongest at text/typography |
 | `seedream-5-0-lite` | Image | `2k`, `3k`, `4k` | `1:1`, `4:3`, `3:4`, `16:9`, `9:16`, `3:2`, `2:3`, `21:9` | Max 14 ref images |
+| `seedream-5-0-pro` | Image | `1k`, `2k` (default `1k`) | `1:1`, `4:3`, `3:4`, `16:9`, `9:16`, `3:2`, `2:3`, `21:9` | Higher-fidelity Seedream tier; max 10 ref images; direct-image model (only `ref_image`, prompt required) |
 | `grok-image` | Image | `1k`, `2k` | `1:1`, `3:4`, `4:3`, `9:16`, `16:9`, `2:3`, `3:2` | xAI Grok Imagine; max 3 ref images |
 | `grok-image-quality` | Image | `1k`, `2k` | `1:1`, `3:4`, `4:3`, `9:16`, `16:9`, `2:3`, `3:2` | xAI Grok Imagine, higher-quality/higher-cost tier; max 3 ref images |
+| `upscale-image-volcano-mediakit` | Image | `1080p`/`2k`/`4k` (default `2k`) | _(follows source)_ | Image quality enhancement (super-resolution). Source image via `ID:ref_image`; `--prompt` optional. See [Quality Enhancement](#quality-enhancement-upscale--super-resolution). |
+| `lyria-clip` | Audio | ~30s mp3 | — | Text/image-to-music; optional 1 guide image `ID:ref_image`; no duration/ratio/resolution. See [Audio Generation](#audio-generation). |
+| `seed-audio-1.0` | Audio | ≤120s mp3 | — | Multi-speaker director-style TTS; `ID:ref_audio` ≤3 (mutually exclusive with `ID:ref_image` ≤1); prompt ≤2048 chars. See [Audio Generation](#audio-generation). |
+
+> **Deprecated model aliases**: `renoise-2.0*`, `sd-2.0*`, and `youmeng-2.0*` are deprecated aliases of the `seedance-2.0` series. The CLI still accepts them but prints a deprecation warning and maps them to the `seedance-2.0` series; they will be removed in the next major version. Use the `seedance-2.0` series names instead.
 
 **Choosing a video model:**
-- `renoise-2.0` — default, best quality/consistency, up to 1080p.
-- `renoise-2.0-mini` / `renoise-2.0-fast` — cheaper drafts, 720p only.
+- `seedance-2.0` — default, best quality/consistency, up to `4k`.
+- `seedance-2.0-mini` / `seedance-2.0-fast` — cheaper drafts, up to `720p`.
 - `kling-3.0-omni` / `happyhorse-1.0` — alternative providers, similar capability tier.
 - `grok-video` — flexible T2V/I2V/R2V from xAI; use for R2V-style continuity with up to 7 reference images.
 - `grok-video-1.5` — pure I2V, needs exactly one reference image.
-- `gemini-omni-flash` — video with synchronized audio; only for 16:9/9:16 clips ≤10s.
+- `gemini-omni-flash` — video with synchronized audio; only for 16:9/9:16 clips ≤10s; also drives `source_video` editing.
 
 **Choosing an image model:**
 - `nano-banana-2` — default, cheapest, flexible ratios (incl. extreme 8:1 / 1:8 banners).
@@ -110,8 +120,51 @@ node ${CLAUDE_SKILL_DIR}/renoise-cli.mjs task generate \
 - `nano-banana-pro` — higher fidelity; use for hero / final frames.
 - `midjourney-v7` / `mj-v8.1` — strongest stylization; pass `--ratio` only (no resolution). Prefer `mj-v8.1` for the latest Midjourney model.
 - `gpt-image-2` — best prompt-following for text/logos/typography in image.
-- `seedream-5-0-lite` — alternative provider, up to `4k`, wide ratio set.
+- `seedream-5-0-lite` / `seedream-5-0-pro` — alternative provider; `-lite` up to `4k`, `-pro` for higher fidelity at `1k`/`2k`.
 - `grok-image` / `grok-image-quality` — xAI Grok Imagine; `-quality` for higher fidelity at higher cost, both capped at `2k` and 3 ref images.
+
+---
+
+## Audio Generation
+
+Two audio models produce `.mp3` output. A completed audio task returns an `audioUrl` from `task result`. Both bill flat (per-run); quote cost from `credit estimate`.
+
+**`lyria-clip`** — text/image-to-music. Generates a fixed ~30s stereo music clip. Optionally guide it with a single reference image (`ID:ref_image`). Does **not** take `--duration`, `--ratio`, or `--resolution` (they are stripped automatically if passed). Prompt with mood / genre / instrumentation; specify "no vocals" for background music.
+
+```bash
+node ${CLAUDE_SKILL_DIR}/renoise-cli.mjs task generate \
+  --model lyria-clip --prompt "warm acoustic folk, fingerpicked guitar, gentle, no vocals"
+```
+
+**`seed-audio-1.0`** — multi-speaker director-style TTS, single run ≤120s. Reference audio (`ID:ref_audio`, up to 3) is **mutually exclusive** with a reference image (`ID:ref_image`, up to 1). Prompt ≤2048 characters; reference audio is cited in the prompt in order as `@音频N` (i.e. `@Audio1`, `@Audio2`, …). Speaker voice IDs are not exposed.
+
+```bash
+node ${CLAUDE_SKILL_DIR}/renoise-cli.mjs material upload voice-sample.mp3 --type audio
+node ${CLAUDE_SKILL_DIR}/renoise-cli.mjs task generate \
+  --model seed-audio-1.0 --type audio \
+  --prompt "Narrator: welcome back. Use the voice in @音频1 for the host lines." \
+  --materials "77:ref_audio"
+```
+
+## Quality Enhancement (Upscale / Super-Resolution)
+
+These tools **increase the resolution and visual quality** of an existing image or video (super-resolution via Volcano MediaKit). They do **not** change the picture content — this is not outpainting/extend. Content-changing edits (outpaint / inpaint / local repaint) go through `gpt-image-2` edit + surface and are not supported here.
+
+- `upscale-video-volcano-mediakit` — target `1080p`/`2k`/`4k` (default `1080p`). Source clip via `ID:ref_video`. Watermark not supported.
+- `upscale-image-volcano-mediakit` — target `1080p`/`2k`/`4k` (default `2k`). Source image via `ID:ref_image`.
+
+`--prompt` is optional for both (the CLI sends `surface=upscale` automatically). Exactly one source material per task. Billed flat (per-run); different target resolutions have different prices — quote cost from `credit estimate`.
+
+```bash
+# Enhance a finished video to 2k
+node ${CLAUDE_SKILL_DIR}/renoise-cli.mjs material upload final-cut.mp4
+node ${CLAUDE_SKILL_DIR}/renoise-cli.mjs task generate \
+  --model upscale-video-volcano-mediakit --resolution 2k --materials "88:ref_video"
+
+# Enhance an image to 4k
+node ${CLAUDE_SKILL_DIR}/renoise-cli.mjs task generate \
+  --model upscale-image-volcano-mediakit --resolution 4k --materials "42:ref_image"
+```
 
 ---
 
@@ -121,7 +174,7 @@ node ${CLAUDE_SKILL_DIR}/renoise-cli.mjs task generate \
 node ${CLAUDE_SKILL_DIR}/renoise-cli.mjs <domain> <action> [options]
 ```
 
-Domains: `task`, `material`, `asset`, `character`, `credit`
+Domains: `task`, `material`, `credit`
 
 ### Credit
 
@@ -131,13 +184,15 @@ node ${CLAUDE_SKILL_DIR}/renoise-cli.mjs credit estimate --duration 15 # Estimat
 node ${CLAUDE_SKILL_DIR}/renoise-cli.mjs credit history                # Transaction history
 ```
 
+`credit estimate` accepts `--model`, `--duration`, `--resolution` (image `1k`/`2k`/`3k`/`4k`; video `480p`/`720p`/`1080p`/`2k`/`4k`), `--hasVideoRef`, and `--watermark`. The response includes `estimatedCredit`, `balance`, `sufficient`, and `discountPercent` (the applied discount — `max(watermark 10%, user-generation discount)`; `gpt-image-2` does not receive the generation discount). **Always quote cost from a live `credit estimate` — this documentation intentionally gives no fixed credit numbers, since pricing depends on model, resolution, duration, and discounts.**
+
 ### Task — Generate & Manage
 
 ```bash
 # Generate (create + wait + return result)
 node ${CLAUDE_SKILL_DIR}/renoise-cli.mjs task generate \
   --prompt "..." --duration 15 --ratio 16:9 \
-  [--materials "..."] [--characters "..."] [--tags "..."]
+  [--materials "..."]
 
 # Create only (returns immediately)
 node ${CLAUDE_SKILL_DIR}/renoise-cli.mjs task create \
@@ -154,7 +209,9 @@ node ${CLAUDE_SKILL_DIR}/renoise-cli.mjs task cancel <id>              # Pending
 node ${CLAUDE_SKILL_DIR}/renoise-cli.mjs task chain <id>
 # → prints new material ID, ready for --materials "ID:ref_video"
 
-# Tags
+# Tags (optional — the Renoise app does NOT filter by tag; tags only exist for your
+# own `task list --tag` re-querying. To group a project's segments, prefer a local
+# record in the project directory rather than tagging tasks on the server.)
 node ${CLAUDE_SKILL_DIR}/renoise-cli.mjs task tags
 node ${CLAUDE_SKILL_DIR}/renoise-cli.mjs task tag <id> --tags a,b,c
 ```
@@ -163,20 +220,19 @@ node ${CLAUDE_SKILL_DIR}/renoise-cli.mjs task tag <id> --tags a,b,c
 
 | Parameter | Description | Default |
 |-----------|-------------|---------|
-| `--prompt` | **(required)** English narrative prompt | — |
-| `--model` | Model name | `renoise-2.0` / `sd-2.0` (video) or `nano-banana-2` (image) |
-| `--type` | Optional `video` / `image`; must match model | inferred from model |
+| `--prompt` | **(required, except `upscale-*`)** English narrative prompt | — |
+| `--model` | Model name | `seedance-2.0` (video) or `nano-banana-2` (image) |
+| `--type` | Optional `video` / `image` / `audio`; must match model | inferred from model |
 | `--duration` | Video duration, model-specific | `5` |
 | `--ratio` | Aspect ratio — supported set varies per model (see [Supported Models](#supported-models)) | `1:1` |
-| `--resolution` | Image `1k`/`2k`/`4k`; video `720p`/`1080p`; omit for `midjourney-v7` | model default |
+| `--resolution` | Image `1k`/`2k`/`3k`/`4k`; video `480p`/`720p`/`1080p`/`2k`/`4k`; omit for `midjourney-v7`/`mj-v8.1` and audio models | model default |
 | `--watermark` | Add video watermark and apply 10% credit discount | off |
 | `--audio-generation 0|1`, `--no-audio-generation` | Toggle generated audio when model supports it | model default |
 | `--template-id` | Create from template | — |
-| `--tags` | Comma-separated tags | — |
-| `--materials` | Material refs, comma-separated (see [Material Roles](#material-roles)); role required | — |
-| `--characters` | Character refs: `id1,id2` or `id1:role,id2:role` | — |
+| `--tags` | Comma-separated tags (optional; not filtered by the Renoise app — for your own `task list --tag` only) | — |
+| `--materials` | Material refs, comma-separated (see [Material Roles](#material-roles)); role required, optional `:index` | — |
 
-**Task statuses:** user-facing statuses are `pending`, `assigned`, `running`, `completed`, `failed`, `cancelled`. Internal states such as `submitted`, `queued`, `assigning`, `archiving`, and `preparing_facepass` are collapsed to `running` by the public API.
+**Task statuses:** user-facing statuses are `pending`, `assigned`, `running`, `completed`, `failed`, `cancelled`. Internal states such as `submitted`, `queued`, `assigning`, `archiving`, and `preparing_facepass` are collapsed to `running` by the public API. Note: a `seedance-2.0`-series task reads back with `model` set to `seedance-2.0-*-byteplus` — this is the internal execution name of the `seedance-2.0` series and is expected.
 
 ### Material — Upload & Browse
 
@@ -187,94 +243,62 @@ node ${CLAUDE_SKILL_DIR}/renoise-cli.mjs material upload /path/to/audio.mp3 --ty
 node ${CLAUDE_SKILL_DIR}/renoise-cli.mjs material list [--type image|video|audio] [--search cat] [--ids 1,2] [--mine]
 ```
 
-### Asset — Register for Face/Character Use
-
-Register uploaded images as Ark assets so they bypass privacy detection when used as `reference_image`.
-
-```bash
-# One-step: create + wait until active (~30-60s)
-node ${CLAUDE_SKILL_DIR}/renoise-cli.mjs asset register <material_id> --name "Character Name"
-
-# Step by step
-node ${CLAUDE_SKILL_DIR}/renoise-cli.mjs asset create <material_id> --name "Character Name"
-node ${CLAUDE_SKILL_DIR}/renoise-cli.mjs asset wait <id>
-
-# Manage
-node ${CLAUDE_SKILL_DIR}/renoise-cli.mjs asset list
-node ${CLAUDE_SKILL_DIR}/renoise-cli.mjs asset get <id>
-node ${CLAUDE_SKILL_DIR}/renoise-cli.mjs asset delete <id>
-```
-
-**Asset statuses:** `pending` → `processing` → `active` / `failed`
-
-### Character — Browse Platform Library
-
-```bash
-node ${CLAUDE_SKILL_DIR}/renoise-cli.mjs character list [--category female] [--search Jasmine]
-node ${CLAUDE_SKILL_DIR}/renoise-cli.mjs character get <id>
-```
+Files under 50 MB upload directly; files ≥50 MB are uploaded automatically via the presigned-URL flow (request upload URL → PUT → register). No extra flags needed.
 
 ---
 
 ## Material Roles
 
-Three mutually exclusive **modes** for visual input. Do NOT mix modes.
+Syntax: `--materials "ID:role"` or `--materials "ID:role:INDEX"`, comma-separated. The role is required.
 
-| Mode | `--materials` value | Description |
-|------|---------------------|-------------|
-| **First frame only** | `ID:first_frame` | Pin the first frame; prompt drives the rest |
-| **First + last frame** | `ID1:first_frame,ID2:last_frame` | Pin start and end; model generates transition |
-| **Multimodal reference** | `ID:ref_image`, `ID:ref_video`, `asset:ID:reference_image` | References for style/content guidance |
-
-> **Mode-level exclusion**: `first_frame` cannot be mixed with `ref_image`.
->
-> **Within multimodal reference mode**, `ref_image` + `ref_video` + `asset:ID:reference_image` combine freely — they use different API fields (`id` vs `user_asset_id`).
-
-### Available roles in multimodal reference mode
+**Roles** (canonical names in bold; `ref_*` are accepted aliases):
 
 | Role | Syntax | What it does | Limit |
 |------|--------|-------------|-------|
-| Character asset | `asset:ID:reference_image` | Locks face/body identity. Bypasses privacy detection. | Multiple OK |
-| Reference video | `ID:ref_video` | Continues motion/scene from previous segment | Up to 3 |
-| Reference image | `ID:ref_image` | Style/environment/palette guidance. **No human faces.** | Up to 9 (`gpt-image-2`: 16, `midjourney-v7`: 4, `kling-3.0-omni`: 7) |
-| Reference audio | `ID:ref_audio` | Voice/audio reference where supported. Must be paired with image or video. | `sd-2.0`: up to 3; unsupported on Kling |
-| Character library | `--characters "ID"` | Platform character. Bypasses privacy detection. | Multiple OK |
+| **reference_image** (`ref_image`) | `ID:ref_image` | Style / environment / palette / face reference | Per-model, up to 9 (`gpt-image-2`: 16, `midjourney`: 4, `kling-3.0-omni`: 7, `seedream-5-0-pro`: 10) |
+| **reference_video** (`ref_video`) | `ID:ref_video` | Continues motion/scene from a previous clip | Up to 3 |
+| **reference_audio** (`ref_audio`) | `ID:ref_audio` | Voice/audio reference. Cannot be the only reference (except audio models). | `seedance-2.0`: up to 3; `seed-audio-1.0`: up to 3; unsupported on Kling |
+| **first_frame** | `ID:first_frame` | Pin the opening frame; prompt drives the rest | 1 |
+| **last_frame** | `ID:last_frame` | Pin the ending frame (requires `first_frame`) | 1 |
+| **source_video** | `ID:source_video` | `gemini-omni-flash` edit source — the model consumes the source's first ~10s; output frame size and duration **follow the source**, so `--ratio`/`--duration` are ignored. Different semantics from `ref_video`. | Exactly 1 per task |
 
-Combine as needed per segment:
+> **Mode exclusion**: `first_frame`/`last_frame` cannot be mixed with `ref_image` (except `gemini-omni-flash`, which allows `first_frame` + `ref_image`). `last_frame` requires a `first_frame`. `reference_image` and `reference_audio` are mutually exclusive on `seed-audio-1.0`.
+
+`ref_image` + `ref_video` combine freely for a normal reference generation:
 ```bash
-# Character + continuity + environment
---materials "asset:27:reference_image,42:ref_video,99:ref_image"
-
-# Character only
---materials "asset:27:reference_image"
+# Continuity + environment
+--materials "42:ref_video,99:ref_image"
 
 # Environment only (B-roll)
 --materials "99:ref_image"
 ```
 
-API representation:
-```json
-"materials": [
-  { "user_asset_id": 27, "role": "reference_image" },
-  { "id": 42, "role": "ref_video" },
-  { "id": 99, "role": "ref_image" }
-]
+### Ordering and `@` references
+
+`materials[].index` sets the user-facing ordering of materials. That order determines how the prompt's `@ImageN` / `@VideoN` slots are numbered. In the prompt you may also refer to a material by its **file name** — `@<filename>` — and the server rewrites it to `@ImageN`/`@VideoN` by materials order. Pass an explicit order with the `:INDEX` suffix:
+
+```bash
+# B renders first (index 0), A second (index 1)
+--materials "A_ID:ref_image:1,B_ID:ref_image:0"
 ```
+
+`INDEX` must be a plain number. When you omit it, the array order is used (server default).
+
+> **`asset:` prefix is deprecated.** `--materials "asset:ID:role"` no longer works — the CLI errors on it. Use the bare material ID (`ID:ref_image`); for `seedance-2.0`-series a face image is auto-facepassed on submit, so no separate asset registration is needed.
 
 ### Image requirements (for first/last frame and ref_image)
 
 - Format: jpeg, png, webp, bmp, tiff, gif
 - Aspect ratio (W/H): 0.4 – 2.5
 - Dimensions: 300 – 6000 px per side
-- Size: < 30 MB
+- Size: < 30 MB — this is the **reference-image file-size limit** (provider constraint), not the upload-channel limit. The `material upload` channel allows single files up to 50 MB directly (≥50 MB uses the presigned-URL flow automatically).
 
-### Privacy detection
+### Face handling
 
-Images with human faces passed as `ref_image` will be blocked with `PrivacyInformation` error. Two ways to bypass:
-- **User Asset**: `asset register` → `asset:ID:reference_image`
-- **Character Library**: `--characters "ID"`
+- **Seedance series** (`seedance-2.0` / `-fast` / `-mini`): pass the face image straight as `ID:ref_image` — it is auto-facepassed on submit. For cross-segment consistency, **reuse the same material ID** (references dedupe by material ID, so a second use is free).
+- **Other video models**: a face may be blocked by the provider's content review. Prefer the seedance series, or describe the character in text only.
 
-Never pass raw face images as `ref_image`.
+(Face-review can still fail at generation time — e.g. the reference image is rejected — surfacing as a failed task with an `INPUT_IMAGE_*` error code rather than a submit-time block. See [content-moderation guidance](#content-moderation-error-guidance).)
 
 ---
 
@@ -291,13 +315,13 @@ Auto-match materials to shots:
 node ${CLAUDE_SKILL_DIR}/scripts/match-materials.mjs --pool material-pool.json --shots project.json
 ```
 
-Face detection: materials with `has_face: true` are automatically excluded from `ref_image` matching.
+Face detection: the `material-ingest`/`match-materials` scripts exclude `has_face: true` materials from automatic `ref_image` matching by default (a conservative default). On the `seedance-2.0` series a face material is actually safe to use as `ref_image` (auto-facepassed on submit) — add it manually when you want it.
 
 ---
 
 ## Prompt Basics
 
-The renoise-2.0 model responds best to:
+The seedance-2.0 model responds best to:
 
 - **English only** — non-English text or tag lists degrade quality
 - **Narrative paragraphs** — complete descriptive sentences, not comma-separated keywords
@@ -310,7 +334,7 @@ The renoise-2.0 model responds best to:
 - 5s: 1 shot, single action + camera
 - 10s: 2–3 shots
 - 15s: 3–4 shots
-- End the last segment with "frame holds steady" for clean endings
+- "frame holds steady" is a **final-ending** device only. Use it to close a single clip, or to close the **last** segment of a multi-segment piece — never on every segment (intermediate segments must end on a hook the next one catches). See director `prompt-craft.md` "Ending strategy".
 
 For the full prompt writing guide, see the **director** skill's `prompt-craft.md`.
 
@@ -329,14 +353,18 @@ Finished Cut is the default. Use Clip Stock when the user needs individual shots
 
 ## Multi-Segment Basics
 
-When a video exceeds 15s, split into segments:
+> **Route narrative / recurring-character multi-segment work through the director skill first.** A story, or any multi-segment video with a character that reappears across segments, is a **creative decision** and must go through the director skill's two gates — **Gate 1 (story confirmation)** and **Gate 2 (consistency manifest: characters, props, scenes, style bible, transition table, spoken language)**. renoise-gen is the tool layer; do **not** bypass those gates by firing off independent per-segment text-to-video (T2V) here. Pure T2V per segment is exactly what makes the character and art style collapse across segments.
+
+The methodology — which anchors each segment needs, first-frame chain vs `ref_video`, when pure T2V is acceptable, style bible, ending strategy — lives in the **director** skill (Hard Rules + `prompt-craft.md`). Follow it even when driving the CLI directly. What follows here is only the **tool mechanics**.
+
+Mechanics for any multi-segment split:
 
 1. Each Renoise/Seedance segment is 4–15s (default 15s unless beat alignment or pacing requires otherwise). Kling uses discrete options `3`, `5`, `10`, `15`.
-2. Repeat full character description in every segment prompt
+2. **Tasks are stateless** — nothing carries over between generations. Any shared consistency text (character block, style bible — see director `prompt-craft.md`) must be repeated **verbatim** in every segment prompt, and any shared visual anchor must be re-attached via `--materials` (reuse the same material ID).
 3. Start each segment after S1 with "Continuing from the previous shot: [ending state of prev segment]"
-4. Choose the continuity method for the next segment:
-   - Exact carried-over opening state → extract the previous segment tail frame with ffmpeg, upload it, use `ID:first_frame`
-   - Motion/style carryover → use `task chain <id>` to turn a completed segment into `ref_video` material for the next
+4. Two continuity mechanisms are available (which to pick is a director-skill decision):
+   - Pin the next opening state → extract the previous segment tail frame with ffmpeg, upload it, use `ID:first_frame`
+   - Carry motion/style → use `task chain <id>` to turn a completed segment into `ref_video` material for the next
 
 #### Tail-frame → next first-frame
 
@@ -363,12 +391,8 @@ node ${CLAUDE_SKILL_DIR}/renoise-cli.mjs task generate \
 
 | Scenario | Approach |
 |----------|----------|
-| Character in platform library | `--characters "ID"` |
-| Custom character, have/can generate face image | `asset register` → `--materials "asset:ID:reference_image"` |
-| Quick one-off, no face image | Text-only description in prompt |
-| Product/landscape (no faces) | `--materials "ID:ref_image"` |
-
-Never pass raw face images as `ref_image` — privacy detection will block them.
+| Face on a seedance model | Pass the face image directly as `ID:ref_image` (auto-facepassed on submit). For 2+ segments, reuse the **same material ID** in every segment. |
+| Face on any non-seedance model | Face may be blocked by provider review — switch to a seedance model, or describe the character in text only. |
 
 ---
 
@@ -422,12 +446,31 @@ node ${CLAUDE_SKILL_DIR}/renoise-cli.mjs task generate \
 
 | Error | Cause | Fix |
 |-------|-------|-----|
-| `PrivacyInformation` | Face in `ref_image` | Use User Asset or Character Library instead |
+| `PrivacyInformation` | Only appears on non-seedance models or on output review — seedance input faces are auto-facepassed on submit | Switch to a seedance model, or describe the person in text only |
 | `Insufficient credits` (402) | Balance too low | `credit me`, top up at https://www.renoise.ai |
-| Task `failed` | Generation failed | `task get <id>` to check error. Adjust prompt and retry |
+| `Too many active tasks` (429) | Concurrent-task cap reached (default 50) | Wait for active tasks to finish; response includes `active`/`limit` |
+| `Pricing not configured for this model` (500) | Model/variant has no pricing row | Check the model name; report to platform ops if it persists |
+| Task `failed` | Generation failed | `task get <id>` to check the `error`/`errorCode`. Adjust prompt and retry |
 | `Auth Error` (401) | Invalid API Key | Check `RENOISE_API_KEY` env var |
 | `wait` timeout | Generation took too long | Multi-anchor tasks take 8–12 min. Use `--timeout 900` or `task create` + `task wait --timeout 900` |
-| Material upload fails | File too large / wrong format | < 30 MB, supported format (jpg, png, webp, mp4, mov, etc.) |
+| Material upload fails | Wrong format, or transient upload error | Files <50 MB upload directly; ≥50 MB use the presigned flow automatically. Supported format (jpg, png, webp, mp4, mov, mp3, etc.) |
+
+The structured `errorCode` field on a task (with an English `error` fallback) classifies failures; see the error-code overview in `references/api-endpoints.md`.
+
+### Content-moderation error guidance
+
+When a task fails with an input/output review error code (`INPUT_*` / `OUTPUT_*`), work through this before retrying:
+
+- **Baseline is permissive.** The byteplus (seedance series) and seedream pipelines have a relatively loose content scale — ordinary adult-oriented content usually passes.
+- **Four categories are hard blocks** (rewording will not get them through — do **not** send the user into repeated retries):
+  1. Political content;
+  2. Religiously sensitive content;
+  3. Sexual content involving minors;
+  4. Copyrighted content (well-known IP / recognizable public figures).
+- **Decision flow** on an `INPUT_*` / `OUTPUT_*` failure:
+  1. First check whether the prompt or materials touch any of the four categories above.
+  2. If they do → tell the user the platform does not support generating this kind of content (do **not** suggest workarounds to bypass it).
+  3. If they do not → then it's worth adjusting wording / swapping materials and retrying.
 
 ---
 

@@ -2,7 +2,7 @@
 """
 Beat analysis for short film editing.
 Analyzes audio to extract BPM, beat positions, section boundaries,
-and suggests clip cut points within renoise-2.0's 5-15s constraint.
+and suggests clip cut points within seedance-2.0's 4-15s constraint.
 
 Usage: python3 analyze-beats.py <audio_file>
 Output: JSON to stdout

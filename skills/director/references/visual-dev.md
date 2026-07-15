@@ -1,12 +1,12 @@
 # Visual Dev — Character & Scene Asset Setup
 
-Quick reference for creating and registering visual assets before writing prompts. Only needed for **multi-clip projects** (>15s) with recurring characters.
+Quick reference for creating visual assets before writing prompts. Only needed for **multi-clip projects** (>15s) with recurring characters.
 
 ---
 
 ## When to Use
 
-- Character appears in **2+ segments** → **must** generate and register a User Asset
+- Character appears in **2+ segments** → **you MUST lock the look with a character sheet**: generate one (below), get the user's OK, upload it once, and reuse the **same material ID** as `ref_image` in every segment. This holds **even for a fully invented character with no source photo** — the generated sheet *is* the reference. Do not settle for a text-only description of a recurring character (that is what causes face/wardrobe drift).
 - Character appears in **1 segment only** → text-only description in prompt is fine
 - Scene/environment anchoring → optional but helps consistency
 
@@ -49,14 +49,14 @@ No text labels. No background elements.
 ```bash
 node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/renoise-cli.mjs task generate \
   --model nano-banana-2 --resolution 2k --ratio 16:9 \
-  --prompt "<character sheet prompt>" --tags "<project>,char-<name>"
+  --prompt "<character sheet prompt>"
 ```
 
 ---
 
-## Register as User Asset
+## Upload the Character Sheet
 
-Any image with a human face **must** be registered before use in video generation.
+On the seedance series a face image is used directly as `ref_image` — it is auto-facepassed on submit, so there is no registration step.
 
 ```bash
 # Download the generated image
@@ -66,19 +66,36 @@ curl -s -o char.png "<image_url>"
 node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/renoise-cli.mjs material upload char.png
 # → Returns material ID (e.g. #101)
 
-# Register as asset (waits ~30-60s, returns asset ID when active)
-node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/renoise-cli.mjs asset register 101 --name "Character Name"
-# → Returns asset ID (e.g. #27)
-
-# Use in video prompts:
-# --materials "asset:27:reference_image"
+# Use in video prompts — reuse the SAME material ID in every segment:
+# --materials "101:ref_image"
 ```
 
-**Check existing assets:**
+**List your uploaded materials:**
 ```bash
-node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/renoise-cli.mjs asset list --status active
-node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/renoise-cli.mjs character list
+node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/renoise-cli.mjs material list --mine
 ```
+
+---
+
+## Props & Wardrobe Continuity Table
+
+Character sheets lock faces; this table locks the **props and wardrobe** that also drift or mutate across segments (a jade token turning from a white porcelain shard into a raw green stone; a hairstyle going from a bun to loose hair, or grey clothes to a black-and-gold robe, with no transition). It is a line item of the director skill's **Gate 2 Consistency Manifest**.
+
+For each key prop and each character's wardrobe, register a **fixed description** (`material + color + form`) and split traits into **constant vs plot-driven**:
+
+```
+Item                         Fixed description (material+color+form)                    Type
+Engagement token             translucent green jade, palm-sized, one clean broken shard  Constant (all segments)
+Hero robe (Act I)            coarse grey hemp, loose-fit, frayed hem                     Constant until S4
+Hero robe (Act II)           black silk with gold immortal embroidery, high collar       Plot-driven (from S4)
+Hair                         waist-length black, tied in a single high bun               Constant until S4
+Hair (Act II)                waist-length black, worn loose                              Plot-driven (from S4)
+```
+
+Rules:
+- **Copy the fixed description verbatim** into every segment prompt where the item appears — do not paraphrase it segment to segment (paraphrase is how "green jade shard" becomes "white porcelain fragment").
+- **Constant traits never change.** If it is not a deliberate plot beat, it stays identical every segment.
+- **A plot-driven change must be staged as its own explicit transformation shot** — a dedicated segment that shows the change happening (a transformation close-up: robe reforming, hair coming loose). Never let wardrobe/props jump between two adjacent segments with no on-screen transition. The transition itself becomes a segment in the shot list and a row in the Transition Table.
 
 ---
 
@@ -105,8 +122,7 @@ Scene images must NOT contain human faces (use wide shots, empty rooms, landscap
 # For each segment, generate a scene concept image
 node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/renoise-cli.mjs task generate \
   --model nano-banana-2 --resolution 2k --ratio 16:9 \
-  --prompt "<scene description, environment only, no people. Include: location, time of day, lighting, color palette, key props, atmosphere. Photorealistic, cinematic composition.>" \
-  --tags "<project>,scene-s<N>"
+  --prompt "<scene description, environment only, no people. Include: location, time of day, lighting, color palette, key props, atmosphere. Photorealistic, cinematic composition.>"
 
 # Download and upload
 curl -s -o scene-s1.png "<image_url>"
@@ -124,14 +140,14 @@ node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/renoise-cli.mjs material upload sc
 
 ## Combining Anchors
 
-Character assets, ref_video, and scene ref_image use different API fields and **combine freely** within multimodal reference mode. Use as many or as few as each segment requires.
+Character `ref_image`, `ref_video`, and scene `ref_image` **combine freely**. Use as many or as few as each segment requires.
 
 ```bash
 # All three (character + continuity + environment)
---materials "asset:27:reference_image,42:ref_video,99:ref_image"
+--materials "27:ref_image,42:ref_video,99:ref_image"
 
 # Character + environment only (no continuity needed)
---materials "asset:27:reference_image,99:ref_image"
+--materials "27:ref_image,99:ref_image"
 
 # Environment only (B-roll, no characters)
 --materials "99:ref_image"
@@ -140,15 +156,15 @@ Character assets, ref_video, and scene ref_image use different API fields and **
 **Example workflow for a 3-segment project:**
 ```
 Prep:
-  1. Generate character sheet → upload → register as asset #A
+  1. Generate character sheet → upload → note its material ID #A (reuse it every segment)
   2. Generate scene concepts for unique locations in parallel → upload → materials
 
 Generate (serial chain):
-  S1: task generate --materials "asset:A:reference_image,S1:ref_image"
+  S1: task generate --materials "A:ref_image,S1:ref_image"
   V1: task chain <S1_ID>                                          # downloads + uploads as material
-  S2: task generate --materials "asset:A:reference_image,V1:ref_video,S2:ref_image"
+  S2: task generate --materials "A:ref_image,V1:ref_video,S2:ref_image"
   V2: task chain <S2_ID>
-  S3: task generate --materials "asset:A:reference_image,V2:ref_video,S2:ref_image"  # same location as S2? reuse scene ref
+  S3: task generate --materials "A:ref_image,V2:ref_video,S2:ref_image"  # same location as S2? reuse scene ref
 ```
 
 S1 has no ref_video (nothing to continue from). Add ref_video only when continuing from a previous segment's action.
@@ -189,7 +205,7 @@ convert storyboard.png -crop 3x2@ +repage +adjoin panel_%d.png
 bash ${CLAUDE_SKILL_DIR}/scripts/split-grid.sh storyboard.png output_dir/ 2 3
 ```
 
-**Privacy warning**: Grid panels with close-up faces may trigger `PrivacyInformation`. Design grids with environment-focused wide shots and small figures. Use User Assets for face consistency, grids for style/palette anchoring.
+**Consistency note**: Use grids for style/palette anchoring. For face consistency across segments, reuse the same character-sheet material ID as `ref_image` in every segment. On non-seedance models, grid panels with close-up faces may be rejected by provider review — favor environment-focused wide shots there.
 
 **Generation order**: Character sheets first (review them), then reference those designs when writing the storyboard grid prompt. The grid will be more consistent because you've already locked the character look.
 
@@ -201,16 +217,15 @@ Before writing prompts, build a mapping of **all three anchors** for each shot:
 
 ```
 Shot  Character        Scene Ref    Prev Video   CLI --materials
-S1    asset #27        #S1          (none)       "asset:27:reference_image,S1:ref_image"
-S2    asset #27,#28    #S2          #V1          "asset:27:reference_image,asset:28:reference_image,V1:ref_video,S2:ref_image"
+S1    #27              #S1          (none)       "27:ref_image,S1:ref_image"
+S2    #27,#28          #S2          #V1          "27:ref_image,28:ref_image,V1:ref_video,S2:ref_image"
 S3    (no characters)  #S3          #V2          "V2:ref_video,S3:ref_image"
 S4    Elder (1-shot)   #S3          #V3          "V3:ref_video,S3:ref_image"  (+ text description for Elder)
 ```
 
 **Rules:**
-- Face images → `asset:ID:reference_image` (User Asset) or `--characters "ID"` (Character Library)
-- Scene/environment images (no faces) → `ID:ref_image`
+- Face images → `ID:ref_image` (seedance auto-facepasses on submit); reuse the same material ID for a recurring character
+- Scene/environment images → `ID:ref_image`
 - Previous segment output → `ID:ref_video`
 - Same location across segments → reuse the same scene ref material ID
-- Never use raw material ID for images containing close-up faces
 - S1 has no ref_video; all subsequent segments should chain from previous
