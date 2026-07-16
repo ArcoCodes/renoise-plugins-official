@@ -1,6 +1,6 @@
 {
   "name": "@renoise/plugin",
-  "version": "0.3.0",
+  "version": "1.0.0",
   "license": "Apache-2.0",
   "type": "module",
   "description": "AI video production skills — creative direction, generation, editing, and e-commerce content",

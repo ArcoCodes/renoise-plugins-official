@@ -27,7 +27,7 @@ var InsufficientCreditError = class extends ApiError {
 };
 
 // src/client.ts
-var PLUGIN_VERSION = "0.3.0";
+var PLUGIN_VERSION = "1.0.0";
 var RenoiseClient = class {
   baseUrl;
   apiKey;

@@ -30,7 +30,7 @@ claude plugin install renoise@renoise-plugins-official
 3. Run the setup command to connect your Renoise account:
 
 ```
-/video-maker:setup
+/renoise:setup
 ```
 
 ### OpenClaw
@@ -47,7 +47,7 @@ openclaw plugins install @renoise/plugin
 1. Clone the plugin:
 
 ```bash
-git clone https://github.com/ArcoCodes/renoise-plugins-official.git ~/.codex/plugins/video-maker
+git clone https://github.com/ArcoCodes/renoise-plugins-official.git ~/.codex/plugins/renoise
 ```
 
 2. Create or update `~/.agents/plugins/marketplace.json`:
@@ -57,10 +57,10 @@ git clone https://github.com/ArcoCodes/renoise-plugins-official.git ~/.codex/plu
   "name": "renoise-plugins",
   "plugins": [
     {
-      "name": "video-maker",
+      "name": "renoise",
       "source": {
         "source": "local",
-        "path": "./video-maker"
+        "path": "./renoise"
       },
       "policy": {
         "installation": "AVAILABLE",
@@ -72,7 +72,7 @@ git clone https://github.com/ArcoCodes/renoise-plugins-official.git ~/.codex/plu
 }
 ```
 
-> `source.path` is resolved relative to the marketplace root (`~/.agents/plugins/`). Since the plugin is at `~/.codex/plugins/video-maker`, you can also symlink it: `ln -s ~/.codex/plugins/video-maker ~/.agents/plugins/video-maker`
+> `source.path` is resolved relative to the marketplace root (`~/.agents/plugins/`). Since the plugin is at `~/.codex/plugins/renoise`, you can also symlink it: `ln -s ~/.codex/plugins/renoise ~/.agents/plugins/renoise`
 
 </details>
 
@@ -82,7 +82,7 @@ git clone https://github.com/ArcoCodes/renoise-plugins-official.git ~/.codex/plu
 1. Add the plugin to your project:
 
 ```bash
-git submodule add https://github.com/ArcoCodes/renoise-plugins-official.git plugins/video-maker
+git submodule add https://github.com/ArcoCodes/renoise-plugins-official.git plugins/renoise
 ```
 
 2. Create `$REPO_ROOT/.agents/plugins/marketplace.json`:
@@ -92,10 +92,10 @@ git submodule add https://github.com/ArcoCodes/renoise-plugins-official.git plug
   "name": "renoise-plugins",
   "plugins": [
     {
-      "name": "video-maker",
+      "name": "renoise",
       "source": {
         "source": "local",
-        "path": "./plugins/video-maker"
+        "path": "./plugins/renoise"
       },
       "policy": {
         "installation": "AVAILABLE",
@@ -109,7 +109,7 @@ git submodule add https://github.com/ArcoCodes/renoise-plugins-official.git plug
 
 </details>
 
-3. Restart Codex, run `/plugins` to find and install **video-maker**.
+3. Restart Codex, run `/plugins` to find and install **renoise**.
 
 ## Environment Variables
 
