@@ -1,0 +1,56 @@
+name: 💬 体验反馈 / Experience feedback
+description: 分享使用体验、生成质量、一致性或工作流建议 / Share experience, quality, consistency, or workflow suggestions
+title: "[Feedback] "
+labels: ["feedback"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感谢反馈！涉及生成时，附上 **Task ID**（`task get <id>` 可查）和产物链接/截图最有帮助。
+        Thanks! A **Task ID** + output link/screenshot help the most when it involves a generation.
+        > 账户 / 余额 / API Key 问题请到 https://www.renoise.ai/developer ，不在本仓库。
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: 反馈类别 / Area
+      description: 可多选 / Select all that apply
+      multiple: true
+      options:
+        - 生成质量 / Quality
+        - 跨镜头一致性 / Consistency
+        - 衔接 · 转场 / Transitions
+        - 工作流 · 交互 / Workflow
+        - 模型 · 默认 / Models & defaults
+        - 安装 · 配置 / Setup
+        - 文档 / Docs
+        - 其他 / Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: host
+    attributes:
+      label: 使用环境 / Host
+      options:
+        - Claude Code
+        - Codex
+        - OpenClaw
+        - 其他 / Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: feedback
+    attributes:
+      label: 你的反馈 / Your feedback
+      description: 做了什么、哪里不满意或惊喜、期望是什么 / What you did, what was off (or great), and what you expected
+      placeholder: "e.g. 让它做 1 分钟玄幻短剧，跨段人物脸不一致；期望全程同一张脸。"
+    validations:
+      required: true
+
+  - type: textarea
+    id: details
+    attributes:
+      label: 补充（可选）/ Details (optional)
+      description: 涉及生成请附 Task ID + 产物链接/截图，可写插件版本；图片可直接拖拽。/ Task ID(s), output link/screenshot, plugin version — drag & drop images here.
