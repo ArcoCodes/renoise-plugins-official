@@ -158,6 +158,13 @@ These tools **increase the resolution and visual quality** of an existing image 
 
 `--prompt` is optional for both (the CLI sends `surface=upscale` automatically). Exactly one source material per task. Billed flat (per-run); different target resolutions have different prices — quote cost from `credit estimate`.
 
+**Source-size constraints** (enforced by the upstream service; the CLI pre-checks them at submit time so you get a clear message instead of a cryptic `InvalidParameter`):
+- **Image source** — long edge **≤ 2048px** and short edge **≥ 256px**. Larger or thinner sources are rejected.
+- **Video source** — long edge **< 4K (3840px)**. A clip already at/above 4K is maxed out; there is nothing to enhance.
+- **Both** — the target tier must be **strictly larger** than the source's long edge (`1080p`→1920, `2k`→2560, `4k`→3840). If the source is already at or above the target tier it is not an upscale; pick a higher tier.
+
+The CLI checks this on a **best-effort** basis: it measures the source at submit time (reading the image header, or `ffprobe` for video). If it cannot measure the source — network hiccup, unrecognized format, or `ffprobe` not installed — it **lets the task through** and leaves the final decision to the server. The CLI also auto-fills `ratio` from the source's true aspect ratio (to preserve the source framing for feed/detail/canvas display), but only when it could measure the source; if you pass `--ratio` explicitly, your value is kept.
+
 ```bash
 # Enhance a finished video to 2k
 node ${CLAUDE_SKILL_DIR}/renoise-cli.mjs material upload final-cut.mp4

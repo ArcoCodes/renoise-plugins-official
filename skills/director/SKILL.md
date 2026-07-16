@@ -184,6 +184,7 @@ node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/renoise-cli.mjs task generate \
   --model upscale-video-volcano-mediakit --resolution 2k --materials "MAT_ID:ref_video"
 # no --prompt needed; target 1080p/2k/4k, default 1080p
 ```
+Source-size limits apply: the source clip must be **under 4K** (long edge < 3840px — a clip already at/above 4K is maxed out), and the target tier must be **larger than the source** (`1080p`→1920, `2k`→2560, `4k`→3840), otherwise it is not an upscale. The CLI pre-checks this at submit time on a best-effort basis and lets the task through if it cannot measure the source (e.g. `ffprobe` not installed); it also auto-fills `ratio` from the source's true aspect ratio to keep the framing when the source is measurable.
 
 ---
 
