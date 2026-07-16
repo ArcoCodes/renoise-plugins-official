@@ -143,3 +143,14 @@ git submodule add https://github.com/ArcoCodes/renoise-plugins-official.git plug
 - Multi-shot narrative workflow: story gate → consistency manifest (characters / props / scenes / style bible / transitions / spoken language), post-generation QC.
 - New capabilities: audio (`lyria-clip`, `seed-audio-1.0`), quality enhancement / upscale, `seedream-5-0-pro`, `gemini-omni-flash` source-video editing.
 - Faces on the `seedance-2.0` series pass straight through as `ref_image` (auto-facepass); the legacy API-key pre-tool hook and the deprecated `asset`/`character` commands were removed.
+
+## Feedback / 反馈
+
+Hit a bug or have feedback on the experience, generation quality, or cross-shot consistency? Open an issue — the repo ships guided forms:
+
+- 💬 **[Experience feedback](https://github.com/ArcoCodes/renoise-plugins-official/issues/new?template=feedback.yml)** — usage experience, generation quality, consistency, workflow suggestions.
+- 🐞 **[Bug report](https://github.com/ArcoCodes/renoise-plugins-official/issues/new?template=bug_report.yml)** — reproducible defects.
+
+When it involves a generation, include the **Task ID** (`task get <id>`) and an output link/screenshot — that helps us most. Account / credits / API-key matters go to https://www.renoise.ai/developer, not the issue tracker.
+
+有体验反馈或遇到 bug？到 **Issues → New issue** 选「💬 体验反馈」或「🐞 Bug 报告」按表单填写；涉及生成请附 **Task ID** 和产物链接/截图。账户 / 余额 / API Key 问题请到 https://www.renoise.ai/developer。

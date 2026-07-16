@@ -1,0 +1,53 @@
+name: 🐞 Bug 报告 / Bug report
+description: 报告一个可复现的功能缺陷 / Report a reproducible defect
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        请给出可复现的步骤；涉及生成的附上 **Task ID**（`task get <id>` 可查）。
+        Please include reproducible steps; attach the **Task ID** for generation issues.
+        > 账户 / 余额 / API Key 问题请到 https://www.renoise.ai/developer，不在本仓库。
+
+  - type: input
+    id: host-version
+    attributes:
+      label: 环境 / 版本 / Host & version
+      placeholder: "e.g. Claude Code · renoise 1.0.0 · macOS · node 20"
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: 复现步骤 / Steps to reproduce
+      placeholder: |
+        1. …（触发语 / 命令）
+        2. …
+        3. …
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: 期望结果 / Expected
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: 实际结果（含报错原文）/ Actual (paste the error text)
+    validations:
+      required: true
+
+  - type: input
+    id: task-ids
+    attributes:
+      label: Task ID(s)（如涉及生成）/ Task ID(s) (if a generation)
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: 日志 / 截图 / Logs or screenshots
+      render: shell

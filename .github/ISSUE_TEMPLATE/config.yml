@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 账户 / 余额 / API Key — Account, credits & API keys
+    url: https://www.renoise.ai/developer
+    about: 账户、余额、API Key 相关请到平台处理，不在本仓库提 issue。/ Account, credits, and API-key matters are handled on the platform, not here.

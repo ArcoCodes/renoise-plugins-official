@@ -1,0 +1,88 @@
+name: 💬 体验反馈 / Experience feedback
+description: 分享使用体验、生成质量、一致性或工作流建议 / Share usage experience, generation quality, consistency, or workflow suggestions
+title: "[Feedback] "
+labels: ["feedback"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感谢反馈！涉及生成结果时，**Task ID** 和产物链接/截图最有帮助（`task get <id>` 可查 ID）。
+        Thanks! When it involves a generation, the **Task ID** and an output link/screenshot help the most.
+        > 账户 / 余额 / API Key 问题请到 https://www.renoise.ai/developer 处理，不在本仓库。
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: 反馈类别 / Area
+      description: 可多选 / Select all that apply
+      multiple: true
+      options:
+        - 生成质量（清晰度 / 画面）/ Generation quality
+        - 跨镜头一致性（人物 / 画风 / 色调 / 道具）/ Cross-shot consistency
+        - 衔接 / 转场 / Shot transitions
+        - 工作流 / 交互体验 / Workflow & interaction
+        - 模型选择 / 默认 / Model choice & defaults
+        - 安装 / 配置 / API Key / Setup & config
+        - 文档 / Docs
+        - 其他 / Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: host
+    attributes:
+      label: 使用环境 / Host
+      options:
+        - Claude Code
+        - Codex
+        - OpenClaw
+        - 其他 / Other
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: 插件版本 / Plugin version
+      placeholder: "e.g. 1.0.0"
+
+  - type: input
+    id: skill-model
+    attributes:
+      label: 涉及的 skill / 模型 / Skill or model
+      placeholder: "e.g. director / renoise-gen；seedance-2.0 / seedream-5-0-pro"
+
+  - type: textarea
+    id: request
+    attributes:
+      label: 你的需求 / 触发语 / What you asked for
+      placeholder: "e.g. 帮我做个 1 分钟东方玄幻短剧，竖屏"
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: 期望的效果 / What you expected
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: 实际发生了什么 / What actually happened
+    validations:
+      required: true
+
+  - type: input
+    id: task-ids
+    attributes:
+      label: Task ID(s)
+      placeholder: "e.g. 109227, 109228"
+
+  - type: textarea
+    id: evidence
+    attributes:
+      label: 产物链接 / 截图 / Output link or screenshot
+      description: 可直接把图片或视频拖拽到这里 / Drag & drop images or videos here
+
+  - type: textarea
+    id: suggestion
+    attributes:
+      label: 改进建议（可选）/ Suggestion (optional)
