@@ -323,7 +323,7 @@ node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/renoise-cli.mjs credit me
 
 When a task fails with a content-review error code (`INPUT_*` / `OUTPUT_*`), work through this before retrying:
 
-- **Baseline is permissive.** The byteplus (seedance series) and seedream pipelines have a relatively loose content scale — ordinary adult-oriented content usually passes.
+- **Baseline is permissive.** The seedance series and seedream pipelines have a relatively loose content scale — ordinary adult-oriented content usually passes.
 - **Four categories are hard blocks** (rewording will not get them through — do **not** send the user into repeated retries):
   1. Political content;
   2. Religiously sensitive content;

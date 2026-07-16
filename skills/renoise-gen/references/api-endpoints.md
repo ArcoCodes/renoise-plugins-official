@@ -95,15 +95,13 @@ Response (201):
   "task": {
     "id": 1,
     "prompt": "...",
-    "model": "seedance-2.0-byteplus",
+    "model": "seedance-2.0",
     "status": "pending",
     "estimatedCredit": 5.0,
     "createdAt": "2026-03-10T..."
   }
 }
 ```
-
-> A `seedance-2.0`-series submission reads back with `model` set to `seedance-2.0-*-byteplus` — the internal execution name of the series. This is expected.
 
 Error (402 — insufficient credits):
 
@@ -193,9 +191,9 @@ Internal states `submitted`, `queued`, `assigning`, `archiving`, and `preparing_
 ## Models
 
 **Video:**
-- `seedance-2.0` — Default video model; `480p`/`720p`/`1080p`/`4k` (default `720p`). Executes as `seedance-2.0-byteplus` (auto-facepass on submit; the task reads back with that name).
-- `seedance-2.0-fast` — Faster tier; `480p`/`720p`. Executes as `seedance-2.0-fast-byteplus`.
-- `seedance-2.0-mini` — Cheapest Seedance tier; `480p`/`720p`. Executes as `seedance-2.0-mini-byteplus`.
+- `seedance-2.0` — Default video model; `480p`/`720p`/`1080p`/`4k` (default `720p`). Face reference images are auto-facepassed on submit.
+- `seedance-2.0-fast` — Faster tier; `480p`/`720p`.
+- `seedance-2.0-mini` — Cheapest Seedance tier; `480p`/`720p`.
 - `happyhorse-1.0` — Alibaba Bailian provider; `720p`/`1080p`
 - `kling-3.0-omni` — Tencent VOD AIGC provider; `720p`/`1080p`
 - `grok-video` — xAI Grok Imagine; T2V/I2V/R2V; `480p`/`720p`; R2V duration clamped to ≤10s
@@ -220,7 +218,7 @@ Internal states `submitted`, `queued`, `assigning`, `archiving`, and `preparing_
 - `lyria-clip` — Text/image-to-music; ~30s mp3; optional 1 guide `ref_image`; no ratio/resolution/duration
 - `seed-audio-1.0` — Multi-speaker director-style TTS; ≤120s mp3; `ref_audio` ≤3 mutually exclusive with `ref_image` ≤1; prompt ≤2048 chars
 
-**Deprecated aliases:** `renoise-2.0*`, `sd-2.0*`, and `youmeng-2.0*` are deprecated aliases of the `seedance-2.0` series — still accepted with a deprecation warning, mapped to the series, and removed in the next major version. Use the `seedance-2.0` series names.
+**Deprecated aliases:** legacy names such as `renoise-2.0` are deprecated aliases of the `seedance-2.0` series — still accepted with a deprecation warning and removed in the next major version. Use the `seedance-2.0` series names.
 
 Per-model aspect-ratio and resolution constraints are validated server-side; see `skills/renoise-gen/SKILL.md` for the full matrix.
 
