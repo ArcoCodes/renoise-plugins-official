@@ -6,48 +6,38 @@ body:
   - type: markdown
     attributes:
       value: |
-        请给出可复现的步骤；涉及生成的附上 **Task ID**（`task get <id>` 可查）。
-        Please include reproducible steps; attach the **Task ID** for generation issues.
-        > 账户 / 余额 / API Key 问题请到 https://www.renoise.ai/developer，不在本仓库。
+        涉及生成的缺陷请附 **Task ID**（`task get <id>` 可查）。
+        For generation defects, include the **Task ID** (`task get <id>`).
+        > 账户 / 余额 / API Key 问题请到 https://www.renoise.ai/developer ，不在本仓库。
 
   - type: input
-    id: host-version
+    id: env
     attributes:
       label: 环境 / 版本 / Host & version
-      placeholder: "e.g. Claude Code · renoise 1.0.0 · macOS · node 20"
+      placeholder: "e.g. Claude Code · renoise 1.0.0 · macOS"
     validations:
       required: true
 
   - type: textarea
     id: steps
     attributes:
-      label: 复现步骤 / Steps to reproduce
+      label: 怎么复现 / Steps to reproduce
       placeholder: |
         1. …（触发语 / 命令）
         2. …
-        3. …
     validations:
       required: true
 
   - type: textarea
-    id: expected
+    id: result
     attributes:
-      label: 期望结果 / Expected
-
-  - type: textarea
-    id: actual
-    attributes:
-      label: 实际结果（含报错原文）/ Actual (paste the error text)
+      label: 出了什么问题 / What went wrong
+      description: 实际结果（贴报错原文）+ 你期望的结果 / Actual result (paste the error) + what you expected
     validations:
       required: true
 
-  - type: input
-    id: task-ids
-    attributes:
-      label: Task ID(s)（如涉及生成）/ Task ID(s) (if a generation)
-
   - type: textarea
-    id: logs
+    id: details
     attributes:
-      label: 日志 / 截图 / Logs or screenshots
-      render: shell
+      label: 补充（可选）/ Details (optional)
+      description: Task ID、日志、截图；图片可直接拖拽。/ Task ID(s), logs, screenshots — drag & drop images here.
