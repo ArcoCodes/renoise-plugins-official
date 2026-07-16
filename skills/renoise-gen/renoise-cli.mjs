@@ -175,6 +175,7 @@ import { join, extname, basename } from "path";
 import { tmpdir } from "os";
 import { fileURLToPath } from "url";
 import { createHash } from "crypto";
+import { spawnSync } from "child_process";
 var __dir = fileURLToPath(new URL(".", import.meta.url));
 function loadEnv() {
   const candidates = [
@@ -253,6 +254,9 @@ function toSubmitModel(model) {
 // 模型能力/约束表（各字段以 Renoise 平台的模型约束为准，平台更新时同步此表）。
 // key = CLI 实际提交名（seedance 系列一律 byteplus）；未列约束的字段一律不校验（宁松勿紧）。
 var SEEDANCE_RATIOS = ["9:16", "16:9", "1:1", "4:3", "3:4", "21:9"];
+// upscale 目标档位 → 长边像素（单一事实源，图片/视频共用）。目标档位长边必须严格大于源长边，
+// 否则不是放大（源长边 >= 目标长边即非放大），应在提交前拦下。
+var UPSCALE_TARGET_LONG_EDGE = { "1080p": 1920, "2k": 2560, "4k": 3840 };
 var MODEL_CONSTRAINTS = {
   // ---- video ----
   "seedance-2.0-byteplus": { type: "video", resolutions: ["480p", "720p", "1080p", "4k"], ratios: SEEDANCE_RATIOS, maxRefImages: 9, maxRefVideos: 3, maxRefAudios: 3, allowFramesWithRefs: false },
@@ -263,7 +267,7 @@ var MODEL_CONSTRAINTS = {
   "grok-video": { type: "video", resolutions: ["480p", "720p"], ratios: ["1:1", "16:9", "9:16", "4:3", "3:4", "3:2", "2:3"], maxRefImages: 7, maxRefVideos: 0 },
   "grok-video-1.5": { type: "video", resolutions: ["480p", "720p"], ratios: ["1:1", "16:9", "9:16", "4:3", "3:4", "3:2", "2:3"], maxRefImages: 1, maxRefVideos: 0, exactlyOneImage: true },
   "gemini-omni-flash": { type: "video", resolutions: ["720p"], ratios: ["16:9", "9:16"], maxRefImages: 6, maxRefVideos: 1, maxRefAudios: 0, requireRatio: true, allowFramesWithRefs: true },
-  "upscale-video-volcano-mediakit": { type: "video", resolutions: ["1080p", "2k", "4k"], exactlyOneSource: true },
+  "upscale-video-volcano-mediakit": { type: "video", resolutions: ["1080p", "2k", "4k"], exactlyOneSource: true, defaultResolution: "1080p", upscaleSource: { videoMaxLong: 3840 } },
   // ---- image ----
   "nano-banana-2": { type: "image", resolutions: ["1k", "2k", "4k"], ratios: ["1:1", "2:3", "3:2", "3:4", "4:3", "4:5", "5:4", "9:16", "16:9", "21:9", "1:4", "4:1", "1:8", "8:1"] },
   "nano-banana-2-lite": { type: "image", resolutions: ["1k"], ratios: ["1:1", "2:3", "3:2", "3:4", "4:3", "4:5", "5:4", "9:16", "16:9", "21:9", "1:4", "4:1", "1:8", "8:1"], maxRefImages: 14, maxRefVideos: 0, maxRefAudios: 0 },
@@ -275,7 +279,7 @@ var MODEL_CONSTRAINTS = {
   "seedream-5-0-pro": { type: "image", resolutions: ["1k", "2k"], ratios: ["1:1", "4:3", "3:4", "16:9", "9:16", "3:2", "2:3", "21:9"], maxRefImages: 10, maxRefVideos: 0, maxRefAudios: 0 },
   "grok-image": { type: "image", resolutions: ["1k", "2k"], ratios: ["1:1", "3:4", "4:3", "9:16", "16:9", "2:3", "3:2"], maxRefImages: 3, maxRefVideos: 0 },
   "grok-image-quality": { type: "image", resolutions: ["1k", "2k"], ratios: ["1:1", "3:4", "4:3", "9:16", "16:9", "2:3", "3:2"], maxRefImages: 3, maxRefVideos: 0 },
-  "upscale-image-volcano-mediakit": { type: "image", resolutions: ["1080p", "2k", "4k"], exactlyOneSource: true },
+  "upscale-image-volcano-mediakit": { type: "image", resolutions: ["1080p", "2k", "4k"], exactlyOneSource: true, defaultResolution: "2k", upscaleSource: { imageMaxLong: 2048, imageMinShort: 256 } },
   // ---- audio ----
   "lyria-clip": { type: "audio", maxRefImages: 1, maxRefVideos: 0 },
   "seed-audio-1.0": { type: "audio", maxRefImages: 1, maxRefVideos: 0, maxRefAudios: 3, imageAudioExclusive: true }
@@ -329,6 +333,147 @@ async function uploadBySize(client, buffer, filename, type) {
     return client.registerMaterial({ name: filename, md5, type, storagePath: path, mimeType: mime, size: buffer.byteLength });
   }
   return client.uploadMaterial(buffer, filename, type, mime);
+}
+// 纯 JS 读常见图片格式的像素尺寸（不引三方库）：PNG / JPEG / WebP(VP8/VP8L/VP8X)。
+// 解析不了任何已知格式一律返回 null（→ 放行，交服务端）。入参为文件头 Buffer。
+function parseImageDimensions(buf) {
+  try {
+    if (!buf || buf.length < 24) return null;
+    // PNG：8B 签名 + IHDR chunk，width/height 为偏移 16/20 的大端 uint32。
+    if (buf[0] === 137 && buf[1] === 80 && buf[2] === 78 && buf[3] === 71) {
+      const w = buf.readUInt32BE(16);
+      const h = buf.readUInt32BE(20);
+      return w > 0 && h > 0 ? { width: w, height: h } : null;
+    }
+    // JPEG：扫描到首个 SOF 标记（0xFFC0–0xFFCF，排除 C4/C8/CC）读 height/width。
+    if (buf[0] === 255 && buf[1] === 216) {
+      let off = 2;
+      const len = buf.length;
+      while (off + 3 < len) {
+        if (buf[off] !== 255) { off++; continue; }
+        const marker = buf[off + 1];
+        if (marker === 255) { off++; continue; } // 填充字节
+        // 无 payload 的标记（TEM/RSTn/SOI/EOI）：直接跳过 2 字节。
+        if (marker === 1 || marker >= 208 && marker <= 217) { off += 2; continue; }
+        if (off + 3 >= len) break;
+        const segLen = buf.readUInt16BE(off + 2);
+        if (segLen < 2) break;
+        if (marker >= 192 && marker <= 207 && marker !== 196 && marker !== 200 && marker !== 204) {
+          if (off + 7 >= len) return null;
+          const h = buf.readUInt16BE(off + 5);
+          const w = buf.readUInt16BE(off + 7);
+          return w > 0 && h > 0 ? { width: w, height: h } : null;
+        }
+        off += 2 + segLen;
+      }
+      return null;
+    }
+    // WebP：RIFF....WEBP，随后 fourcc 分三种（'VP8 ' 有损 / 'VP8L' 无损 / 'VP8X' 扩展）。
+    if (buf[0] === 82 && buf[1] === 73 && buf[2] === 70 && buf[3] === 70 && buf[8] === 87 && buf[9] === 69 && buf[10] === 66 && buf[11] === 80) {
+      const fourcc = buf.toString("ascii", 12, 16);
+      if (fourcc === "VP8 " && buf.length >= 30) {
+        const w = buf.readUInt16LE(26) & 16383;
+        const h = buf.readUInt16LE(28) & 16383;
+        return w > 0 && h > 0 ? { width: w, height: h } : null;
+      }
+      if (fourcc === "VP8L" && buf.length >= 25 && buf[20] === 47) {
+        const val = (buf[21] | buf[22] << 8 | buf[23] << 16 | buf[24] << 24) >>> 0;
+        const w = 1 + (val & 16383);
+        const h = 1 + (val >>> 14 & 16383);
+        return w > 0 && h > 0 ? { width: w, height: h } : null;
+      }
+      if (fourcc === "VP8X" && buf.length >= 30) {
+        const w = 1 + (buf[24] | buf[25] << 8 | buf[26] << 16);
+        const h = 1 + (buf[27] | buf[28] << 8 | buf[29] << 16);
+        return w > 0 && h > 0 ? { width: w, height: h } : null;
+      }
+      return null;
+    }
+    return null;
+  } catch {
+    return null; // 任何越界/解析异常 → 放行。
+  }
+}
+// 只取文件头（默认前 ~64KB，Range 请求）以省流量；Range 不被支持时退化整取；任何异常 → null。
+async function fetchHeadBytes(url) {
+  try {
+    const resp = await fetch(url, { headers: { Range: "bytes=0-65535" } });
+    if (resp.ok || resp.status === 206) return Buffer.from(await resp.arrayBuffer());
+  } catch {
+  }
+  try {
+    const resp = await fetch(url);
+    if (resp.ok) return Buffer.from(await resp.arrayBuffer());
+  } catch {
+  }
+  return null;
+}
+// 视频尺寸用 ffprobe（可选依赖）：不存在 / 出错 / 无法解析一律返回 null（→ 放行，不强依赖）。
+function probeVideoDimensions(url) {
+  try {
+    const probe = spawnSync("ffprobe", ["-v", "error", "-select_streams", "v:0", "-show_entries", "stream=width,height", "-of", "csv=s=x:p=0", url], { encoding: "utf-8", timeout: 15e3 });
+    if (probe.error || probe.status !== 0 || !probe.stdout) return null; // ENOENT（ffprobe 缺失）→ probe.error 已置位。
+    const m = probe.stdout.trim().split("\n")[0].trim().match(/^(\d+)x(\d+)/);
+    if (!m) return null;
+    const w = parseInt(m[1], 10), h = parseInt(m[2], 10);
+    return w > 0 && h > 0 ? { width: w, height: h } : null;
+  } catch {
+    return null;
+  }
+}
+// 由真实 width×height 算 gcd 约简的 "w:h"（1920×1080→"16:9"、1024×1024→"1:1"）；
+// 约不成整洁比例的奇异尺寸自然退化为原值 "w:h"（gcd=1）。按真实方向传入 w,h（勿用 long,short）。
+function computeRatioString(w, h) {
+  if (!(w > 0) || !(h > 0)) return null;
+  var gcd = function(a, b) { return b === 0 ? a : gcd(b, a % b); };
+  var g = gcd(w, h) || 1;
+  return `${w / g}:${h / g}`;
+}
+// upscale 源尺寸前置校验（对齐平台对超分源的硬约束）。sourceMat 来自 GET /materials?ids= 的单条素材，
+// 需含预签名 url。宁松勿紧：量不出尺寸（无 url / 网络 / 解析 / ffprobe 缺失）一律 return 放行；
+// 只有确定违反约束（尺寸/非放大）才 throw，与其余前置校验的 new Error 风格一致。
+async function validateUpscaleSource(params, c, sourceMat) {
+  const url = sourceMat && sourceMat.url;
+  if (!url) return; // 无预签名 url → 量不出，放行。
+  const isVideo = c.type === "video";
+  // 测量路径全部内部吞异常返回 null，因此这里量不出即放行、只有业务违规才抛。
+  let dims = null;
+  if (isVideo) {
+    dims = probeVideoDimensions(url);
+  } else {
+    const head = await fetchHeadBytes(url);
+    if (head) dims = parseImageDimensions(head);
+  }
+  if (!dims || !dims.width || !dims.height) return; // 量不出 → 放行。
+  const long = Math.max(dims.width, dims.height);
+  const short = Math.min(dims.width, dims.height);
+  // 源真实宽高比 → params.ratio（对齐平台超分行为：保持源画幅、供 feed/详情/画布展示；
+  // 后端 TE wire 不转发，仅存 task.ratio；不传则后端兜底 1:1，会让非方形源显示错画幅）。
+  // 仅当用户未显式传 --ratio 时填（用户传了以用户为准，不覆盖）；量不出时不填（此处已量到）。
+  // 用真实 w:h（dims.width/dims.height 的方向），不是 long:short，否则竖屏会被写成横屏。
+  if (!params.ratio) {
+    const r = computeRatioString(dims.width, dims.height);
+    if (r) params.ratio = r;
+  }
+  const s = c.upscaleSource || {};
+  if (isVideo) {
+    if (s.videoMaxLong !== void 0 && long >= s.videoMaxLong) {
+      throw new Error(`Upscale source video is already ${long}px (≥4K); nothing to enhance.`);
+    }
+  } else {
+    if (s.imageMaxLong !== void 0 && long > s.imageMaxLong) {
+      throw new Error(`Upscale source image long edge ${long}px exceeds ${s.imageMaxLong}px (mediakit limit).`);
+    }
+    if (s.imageMinShort !== void 0 && short < s.imageMinShort) {
+      throw new Error(`Upscale source image short edge ${short}px is below the ${s.imageMinShort}px minimum.`);
+    }
+  }
+  // 共同：目标档位长边必须严格大于源长边（源长边 >= 目标长边 = 非放大）。
+  const resolution = params.resolution || c.defaultResolution;
+  const targetLong = resolution ? UPSCALE_TARGET_LONG_EDGE[resolution] : void 0;
+  if (typeof targetLong === "number" && targetLong <= long) {
+    throw new Error(`Target ${resolution} (${targetLong}px) is not larger than the source (${long}px); pick a higher tier.`);
+  }
 }
 // CLI 前置拦截"确定会被服务端拒绝"的素材/参数组合，报错文案与服务端一致。
 // 宁松勿紧：本表未设的约束、以及仅服务端才校验的规则，一律放行交服务端。
@@ -403,24 +548,30 @@ async function validateBeforeSubmit(params, client) {
       }
     }
   }
-  // d. 素材 type × role 匹配：一次 GET /materials?ids= 拉 type 后逐条比对。
+  // d. 素材 type × role 匹配：一次 GET /materials?ids= 拉素材（含 type 与预签名 url）后逐条比对。
+  //    同一份结果也供 f.（upscale 源尺寸校验）复用，避免二次网络请求。
   const idRoles = materials.filter((m) => m.id && ROLE_MEDIA_TYPE[m.role]);
+  let matById = {};
   if (idRoles.length) {
-    let typeById = {};
     try {
       const data = await client.listMaterials({ ids: idRoles.map((m) => m.id).join(",") });
-      for (const mat of data.materials || []) typeById[mat.id] = mat.type;
+      for (const mat of data.materials || []) matById[mat.id] = mat;
     } catch {
       return; // 拉取失败不阻塞提交（宁松勿紧），交服务端校验。
     }
     for (const m of idRoles) {
       const expected = ROLE_MEDIA_TYPE[m.role];
-      const actual = typeById[m.id];
+      const actual = matById[m.id]?.type;
       if (actual && actual !== expected) {
         const suggest = actual === "video" ? "ref_video" : actual === "audio" ? "ref_audio" : "ref_image";
         throw new Error(`Material #${m.id} is type '${actual}' but role '${m.role}' expects ${expected}. Use ':${suggest}' for ${actual} materials.`);
       }
     }
+  }
+  // f. upscale 源尺寸前置校验（对齐平台对超分源的硬约束）：仅 upscale-* 且恰好 1 个源素材时执行。
+  //    复用 d. 已拉取的 matById（含预签名 url）；量不出尺寸一律放行（见 validateUpscaleSource）。
+  if (c && c.upscaleSource && model && model.startsWith("upscale-") && materials.length === 1) {
+    await validateUpscaleSource(params, c, matById[materials[0].id]);
   }
 }
 
