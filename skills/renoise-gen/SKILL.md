@@ -83,9 +83,9 @@ node ${CLAUDE_SKILL_DIR}/renoise-cli.mjs task generate \
 
 | Model | Type | Duration / Resolution | Aspect Ratios | Notes |
 |-------|------|-----------------------|---------------|-------|
-| `seedance-2.0` **(default video model)** | Video | 4–15s, `480p`/`720p`/`1080p`/`4k` (default `720p`) | `9:16`, `16:9`, `1:1`, `4:3`, `3:4`, `21:9` | Default video model; refs image ≤9, video ≤3, audio ≤3; supports watermark/audio generation. Submits/executes as `seedance-2.0-byteplus` — a face image can be passed straight as `ref_image` (auto-facepass on submit). |
-| `seedance-2.0-fast` | Video | 4–15s, `480p`/`720p` (default `720p`) | `9:16`, `16:9`, `1:1`, `4:3`, `3:4`, `21:9` | Faster tier; refs image ≤9, video ≤3, audio ≤3; no 1080p/4k. Executes as `seedance-2.0-fast-byteplus`. |
-| `seedance-2.0-mini` | Video | 4–15s, `480p`/`720p` (default `720p`) | `9:16`, `16:9`, `1:1`, `4:3`, `3:4`, `21:9` | Cheapest Seedance tier; refs image ≤9, video ≤3, audio ≤3; no 1080p/4k. Executes as `seedance-2.0-mini-byteplus`. |
+| `seedance-2.0` **(default video model)** | Video | 4–15s, `480p`/`720p`/`1080p`/`4k` (default `720p`) | `9:16`, `16:9`, `1:1`, `4:3`, `3:4`, `21:9` | Default video model; refs image ≤9, video ≤3, audio ≤3; supports watermark/audio generation. A face image can be passed straight as `ref_image` (auto-facepass on submit). |
+| `seedance-2.0-fast` | Video | 4–15s, `480p`/`720p` (default `720p`) | `9:16`, `16:9`, `1:1`, `4:3`, `3:4`, `21:9` | Faster tier; refs image ≤9, video ≤3, audio ≤3; no 1080p/4k. |
+| `seedance-2.0-mini` | Video | 4–15s, `480p`/`720p` (default `720p`) | `9:16`, `16:9`, `1:1`, `4:3`, `3:4`, `21:9` | Cheapest Seedance tier; refs image ≤9, video ≤3, audio ≤3; no 1080p/4k. |
 | `happyhorse-1.0` | Video | `720p`/`1080p` (default `1080p`) | `16:9`, `9:16`, `1:1`, `4:3`, `3:4` | Alibaba Bailian; alias typo accepted `happyhourse-1.0`; refs image ≤9, video 0; no `last_frame` |
 | `kling-3.0-omni` | Video | `720p`/`1080p` (default `720p`) | `16:9`, `9:16`, `1:1`, `4:3`, `3:4` | Default 5s; with a reference video ≤10s; otherwise 3–15s (validated server-side). refs image ≤7, video ≤1, audio unsupported; prompt ≤2500 chars |
 | `grok-video` | Video | 1–15s (R2V clamped ≤10s), `480p`/`720p` (default `720p`) | `1:1`, `16:9`, `9:16`, `4:3`, `3:4`, `3:2`, `2:3` | xAI Grok Imagine; T2V/I2V/R2V; refs image ≤7 (R2V mode) |
@@ -106,7 +106,7 @@ node ${CLAUDE_SKILL_DIR}/renoise-cli.mjs task generate \
 | `lyria-clip` | Audio | ~30s mp3 | — | Text/image-to-music; optional 1 guide image `ID:ref_image`; no duration/ratio/resolution. See [Audio Generation](#audio-generation). |
 | `seed-audio-1.0` | Audio | ≤120s mp3 | — | Multi-speaker director-style TTS; `ID:ref_audio` ≤3 (mutually exclusive with `ID:ref_image` ≤1); prompt ≤2048 chars. See [Audio Generation](#audio-generation). |
 
-> **Deprecated model aliases**: `renoise-2.0*`, `sd-2.0*`, and `youmeng-2.0*` are deprecated aliases of the `seedance-2.0` series. The CLI still accepts them but prints a deprecation warning and maps them to the `seedance-2.0` series; they will be removed in the next major version. Use the `seedance-2.0` series names instead.
+> **Deprecated model aliases**: legacy names such as `renoise-2.0` are deprecated aliases of the `seedance-2.0` series. The CLI still accepts them but prints a deprecation warning; they will be removed in the next major version. Use the `seedance-2.0` series names instead.
 
 **Choosing a video model:** default to `seedance-2.0` unless the user names a different model.
 - `seedance-2.0` — **default video model**, best quality/consistency, up to `4k`. Keep it unless the user asks for another model.
@@ -242,7 +242,7 @@ node ${CLAUDE_SKILL_DIR}/renoise-cli.mjs task tag <id> --tags a,b,c
 | `--tags` | Comma-separated tags (optional; not filtered by the Renoise app — for your own `task list --tag` only) | — |
 | `--materials` | Material refs, comma-separated (see [Material Roles](#material-roles)); role required, optional `:index` | — |
 
-**Task statuses:** user-facing statuses are `pending`, `assigned`, `running`, `completed`, `failed`, `cancelled`. Internal states such as `submitted`, `queued`, `assigning`, `archiving`, and `preparing_facepass` are collapsed to `running` by the public API. Note: a `seedance-2.0`-series task reads back with `model` set to `seedance-2.0-*-byteplus` — this is the internal execution name of the `seedance-2.0` series and is expected.
+**Task statuses:** user-facing statuses are `pending`, `assigned`, `running`, `completed`, `failed`, `cancelled`. Internal states such as `submitted`, `queued`, `assigning`, `archiving`, and `preparing_facepass` are collapsed to `running` by the public API.
 
 ### Material — Upload & Browse
 
@@ -482,7 +482,7 @@ The structured `errorCode` field on a task (with an English `error` fallback) cl
 
 When a task fails with an input/output review error code (`INPUT_*` / `OUTPUT_*`), work through this before retrying:
 
-- **Baseline is permissive.** The byteplus (seedance series) and seedream pipelines have a relatively loose content scale — ordinary adult-oriented content usually passes.
+- **Baseline is permissive.** The seedance series and seedream pipelines have a relatively loose content scale — ordinary adult-oriented content usually passes.
 - **Four categories are hard blocks** (rewording will not get them through — do **not** send the user into repeated retries):
   1. Political content;
   2. Religiously sensitive content;
