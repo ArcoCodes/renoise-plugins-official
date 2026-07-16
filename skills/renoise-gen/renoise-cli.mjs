@@ -132,10 +132,12 @@ var RenoiseClient = class {
     return this.waitForTask(task.id, options);
   }
   // ---- Material ----
-  async uploadMaterial(file, filename, type = "image") {
+  async uploadMaterial(file, filename, type = "image", mime) {
     const url = `${this.baseUrl}/materials/upload`;
     const form = new FormData();
-    const blob = file instanceof Blob ? file : new Blob([file]);
+    // Blob 必须带 type，否则 multipart 分片无 content-type，服务端按 application/octet-stream
+    // 落库，下游按 MIME 严检的链路（如 source_video 要求 mp4/quicktime/webm）会直接拒绝。
+    const blob = file instanceof Blob ? file : new Blob([file], mime ? { type: mime } : void 0);
     form.append("file", blob, filename);
     form.append("type", type);
     const resp = await fetch(url, {
@@ -317,16 +319,16 @@ function mimeForUpload(ext, type) {
 async function uploadBySize(client, buffer, filename, type) {
   const big = buffer.byteLength >= UPLOAD_DIRECT_LIMIT;
   const sizeMB = (buffer.byteLength / 1024 / 1024).toFixed(1);
+  const mime = mimeForUpload(extname(filename).toLowerCase(), type);
   console.log(`Uploading ${filename} (${type}, ${sizeMB}MB)${big ? " via presigned URL" : ""}...`);
   if (big) {
-    const mime = mimeForUpload(extname(filename).toLowerCase(), type);
     const { uploadUrl, path } = await client.getUploadUrl(filename, mime);
     const putResp = await fetch(uploadUrl, { method: "PUT", headers: { "Content-Type": mime }, body: buffer });
     if (!putResp.ok) throw new Error(`PUT upload failed: ${putResp.status}`);
     const md5 = createHash("md5").update(buffer).digest("hex");
     return client.registerMaterial({ name: filename, md5, type, storagePath: path, mimeType: mime, size: buffer.byteLength });
   }
-  return client.uploadMaterial(buffer, filename, type);
+  return client.uploadMaterial(buffer, filename, type, mime);
 }
 // CLI 前置拦截"确定会被服务端拒绝"的素材/参数组合，报错文案与服务端一致。
 // 宁松勿紧：本表未设的约束、以及仅服务端才校验的规则，一律放行交服务端。
