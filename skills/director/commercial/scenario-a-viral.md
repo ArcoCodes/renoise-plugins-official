@@ -42,7 +42,7 @@ Encode all extracted elements as **text descriptions in the prompt** — never a
 - Replace all person/character references from the original video with new descriptions or `@` asset references
 - The product from the original video is fully replaced by `@product image`
 - Style elements (lighting, color, pacing, camera) come from Gemini analysis text, not from the video material
-- If the original video has a presenter, either: introduce a new presenter (via User Asset) or restructure as a product-only clip
+- If the original video has a presenter, either: introduce a new presenter (upload a face image and use `ID:ref_image`) or restructure as a product-only clip
 
 ---
 

@@ -7,7 +7,7 @@
   "plugins": [
     {
       "name": "renoise",
-      "version": "0.2.0",
+      "version": "1.0.0",
       "source": "./",
       "description": "AI video production skills — creative direction, generation, editing, and e-commerce content"
     }

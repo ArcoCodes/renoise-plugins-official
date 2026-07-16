@@ -11,7 +11,7 @@ var ApiError = class extends Error {
 };
 var AuthError = class extends ApiError {
   constructor(body) {
-    super(401, body, "Authentication failed \u2014 check your API key");
+    super(401, body, "Authentication failed \u2014 check your API key. Create or rotate one at https://www.renoise.ai/developer");
     this.name = "AuthError";
   }
 };
@@ -27,6 +27,7 @@ var InsufficientCreditError = class extends ApiError {
 };
 
 // src/client.ts
+var PLUGIN_VERSION = "1.0.0";
 var RenoiseClient = class {
   baseUrl;
   apiKey;
@@ -35,7 +36,11 @@ var RenoiseClient = class {
     this.apiKey = config.apiKey;
   }
   buildAuthHeaders() {
-    return { "X-API-Key": this.apiKey };
+    return {
+      "X-API-Key": this.apiKey,
+      "X-Client-Name": "renoise-plugin",
+      "X-Client-Version": PLUGIN_VERSION
+    };
   }
   // ---- HTTP ----
   async request(method, path, body) {
@@ -127,10 +132,12 @@ var RenoiseClient = class {
     return this.waitForTask(task.id, options);
   }
   // ---- Material ----
-  async uploadMaterial(file, filename, type = "image") {
+  async uploadMaterial(file, filename, type = "image", mime) {
     const url = `${this.baseUrl}/materials/upload`;
     const form = new FormData();
-    const blob = file instanceof Blob ? file : new Blob([file]);
+    // Blob 必须带 type，否则 multipart 分片无 content-type，服务端按 application/octet-stream
+    // 落库，下游按 MIME 严检的链路（如 source_video 要求 mp4/quicktime/webm）会直接拒绝。
+    const blob = file instanceof Blob ? file : new Blob([file], mime ? { type: mime } : void 0);
     form.append("file", blob, filename);
     form.append("type", type);
     const resp = await fetch(url, {
@@ -154,73 +161,11 @@ var RenoiseClient = class {
     if (params.offset) qs.set("offset", String(params.offset));
     return this.request("GET", `/materials?${qs}`);
   }
-  // ---- Character ----
-  async listCharacters(params = {}) {
-    const qs = new URLSearchParams();
-    if (params.category) qs.set("category", params.category);
-    if (params.usage_group) qs.set("usage_group", params.usage_group);
-    if (params.search) qs.set("search", params.search);
-    if (params.page) qs.set("page", String(params.page));
-    if (params.page_size) qs.set("page_size", String(params.page_size));
-    return this.request("GET", `/characters?${qs}`);
+  async getUploadUrl(filename, contentType) {
+    return this.request("POST", "/materials/upload-url", { filename, contentType });
   }
-  async getCharacter(id) {
-    return this.request("GET", `/characters/${id}`);
-  }
-  async importCharacters(characters) {
-    return this.request("POST", "/characters/import", { characters });
-  }
-  async getCharacterImageUploadUrl(id, contentType) {
-    return this.request("POST", `/characters/${id}/image`, { content_type: contentType });
-  }
-  async addCharacterGrant(userId, grantType, grantValue) {
-    const body = { user_id: userId, grant_type: grantType };
-    if (grantValue) body.grant_value = grantValue;
-    return this.request("POST", "/characters/grants", body);
-  }
-  // ---- Asset ----
-  async createAsset(params) {
-    return this.request("POST", "/assets", params);
-  }
-  async getAsset(id) {
-    return this.request("GET", `/assets/${id}`);
-  }
-  async listAssets(params = {}) {
-    const qs = new URLSearchParams();
-    if (params.groupId) qs.set("groupId", String(params.groupId));
-    if (params.status) qs.set("status", params.status);
-    if (params.limit) qs.set("limit", String(params.limit));
-    if (params.offset) qs.set("offset", String(params.offset));
-    return this.request("GET", `/assets?${qs}`);
-  }
-  async deleteAsset(id) {
-    return this.request("DELETE", `/assets/${id}`);
-  }
-  async waitForAsset(id, options = {}) {
-    const interval = options.pollInterval ?? 1e4;
-    const timeout = options.timeout ?? 3e5;
-    const start = Date.now();
-    while (true) {
-      const data = await this.getAsset(id);
-      const asset = data.asset || data;
-      const status = asset.status;
-      options.onPoll?.(asset);
-      if (status === "active") return asset;
-      if (status === "failed") {
-        throw new ApiError(400, asset, `Asset ${id} failed: ${asset.error_message || "unknown error"}`);
-      }
-      if (Date.now() - start > timeout) {
-        throw new Error(`Asset ${id} timed out after ${timeout / 1e3}s (status: ${status})`);
-      }
-      await new Promise((r) => setTimeout(r, interval));
-    }
-  }
-  // ---- Asset Group ----
-  async createAssetGroup(name) {
-    return this.request("POST", "/asset-groups", { name });
-  }
-  async listAssetGroups() {
-    return this.request("GET", "/asset-groups");
+  async registerMaterial(params) {
+    return this.request("POST", "/materials", params);
   }
 };
 
@@ -229,6 +174,7 @@ import { readFileSync, writeFileSync } from "fs";
 import { join, extname, basename } from "path";
 import { tmpdir } from "os";
 import { fileURLToPath } from "url";
+import { createHash } from "crypto";
 var __dir = fileURLToPath(new URL(".", import.meta.url));
 function loadEnv() {
   const candidates = [
@@ -265,13 +211,224 @@ Set it via environment variable or .env file.`);
   return v;
 }
 var DEFAULT_BASE_URL = "https://www.renoise.ai/api/public/v1";
-var IMAGE_MODELS = /* @__PURE__ */ new Set(["gpt-image-2", "nano-banana-2", "nano-banana-2-lite", "nano-banana-pro", "midjourney-v7", "midjourney", "mj-v8.1", "midjourney-v8.1", "mj-8.1", "seedream-5-0-lite", "grok-image", "grok-image-quality"]);
+var IMAGE_MODELS = /* @__PURE__ */ new Set(["gpt-image-2", "nano-banana-2", "nano-banana-2-lite", "nano-banana-pro", "midjourney-v7", "midjourney", "mj-v8.1", "midjourney-v8.1", "mj-8.1", "seedream-5-0-lite", "seedream-5-0-pro", "grok-image", "grok-image-quality"]);
+var AUDIO_MODELS = /* @__PURE__ */ new Set(["lyria-clip", "lyria", "lyria-3-clip", "seed-audio-1.0", "seed-audio"]);
+var UPLOAD_DIRECT_LIMIT = 50 * 1024 * 1024;
+// 主推名 + 废弃别名统一映射到 byteplus 提交名（与平台前端提交出口的映射保持一致）
+var SEEDANCE_BYTEPLUS_MAP = {
+  // 主推名
+  "seedance-2.0": "seedance-2.0-byteplus",
+  "seedance-2.0-fast": "seedance-2.0-fast-byteplus",
+  "seedance-2.0-mini": "seedance-2.0-mini-byteplus",
+  // 废弃别名（本次仍接受 + warn；下一个大版本移除）
+  "renoise-2.0": "seedance-2.0-byteplus",
+  "sd-2.0": "seedance-2.0-byteplus",
+  "youmeng-2.0": "seedance-2.0-byteplus",
+  "renoise-2.0-fast": "seedance-2.0-fast-byteplus",
+  "sd-2.0-fast": "seedance-2.0-fast-byteplus",
+  "youmeng-2.0-fast": "seedance-2.0-fast-byteplus",
+  "renoise-2.0-mini": "seedance-2.0-mini-byteplus",
+  "sd-2.0-mini": "seedance-2.0-mini-byteplus",
+  "youmeng-2.0-mini": "seedance-2.0-mini-byteplus"
+};
+var DEPRECATED_MODEL_ALIASES = {
+  "renoise-2.0": "seedance-2.0",
+  "sd-2.0": "seedance-2.0",
+  "youmeng-2.0": "seedance-2.0",
+  "renoise-2.0-fast": "seedance-2.0-fast",
+  "sd-2.0-fast": "seedance-2.0-fast",
+  "youmeng-2.0-fast": "seedance-2.0-fast",
+  "renoise-2.0-mini": "seedance-2.0-mini",
+  "sd-2.0-mini": "seedance-2.0-mini",
+  "youmeng-2.0-mini": "seedance-2.0-mini"
+};
+function toSubmitModel(model) {
+  // 未显式指定 model 的视频任务：平台缺省会落到非 byteplus 档，CLI 必须显式发 byteplus 名。
+  const m = model ?? "seedance-2.0";
+  if (DEPRECATED_MODEL_ALIASES[m]) {
+    console.error(`⚠️  '${m}' is deprecated, use '${DEPRECATED_MODEL_ALIASES[m]}'`);
+  }
+  return SEEDANCE_BYTEPLUS_MAP[m] ?? m;
+}
+// 模型能力/约束表（各字段以 Renoise 平台的模型约束为准，平台更新时同步此表）。
+// key = CLI 实际提交名（seedance 系列一律 byteplus）；未列约束的字段一律不校验（宁松勿紧）。
+var SEEDANCE_RATIOS = ["9:16", "16:9", "1:1", "4:3", "3:4", "21:9"];
+var MODEL_CONSTRAINTS = {
+  // ---- video ----
+  "seedance-2.0-byteplus": { type: "video", resolutions: ["480p", "720p", "1080p", "4k"], ratios: SEEDANCE_RATIOS, maxRefImages: 9, maxRefVideos: 3, maxRefAudios: 3, allowFramesWithRefs: false },
+  "seedance-2.0-fast-byteplus": { type: "video", resolutions: ["480p", "720p"], ratios: SEEDANCE_RATIOS, maxRefImages: 9, maxRefVideos: 3, maxRefAudios: 3, allowFramesWithRefs: false },
+  "seedance-2.0-mini-byteplus": { type: "video", resolutions: ["480p", "720p"], ratios: SEEDANCE_RATIOS, maxRefImages: 9, maxRefVideos: 3, maxRefAudios: 3, allowFramesWithRefs: false },
+  "happyhorse-1.0": { type: "video", resolutions: ["720p", "1080p"], ratios: ["16:9", "9:16", "1:1", "4:3", "3:4"], maxRefImages: 9, maxRefVideos: 0, noLastFrame: true },
+  "kling-3.0-omni": { type: "video", resolutions: ["720p", "1080p"], ratios: ["16:9", "9:16", "1:1", "4:3", "3:4"], maxRefImages: 7, maxRefVideos: 1 },
+  "grok-video": { type: "video", resolutions: ["480p", "720p"], ratios: ["1:1", "16:9", "9:16", "4:3", "3:4", "3:2", "2:3"], maxRefImages: 7, maxRefVideos: 0 },
+  "grok-video-1.5": { type: "video", resolutions: ["480p", "720p"], ratios: ["1:1", "16:9", "9:16", "4:3", "3:4", "3:2", "2:3"], maxRefImages: 1, maxRefVideos: 0, exactlyOneImage: true },
+  "gemini-omni-flash": { type: "video", resolutions: ["720p"], ratios: ["16:9", "9:16"], maxRefImages: 6, maxRefVideos: 1, maxRefAudios: 0, requireRatio: true, allowFramesWithRefs: true },
+  "upscale-video-volcano-mediakit": { type: "video", resolutions: ["1080p", "2k", "4k"], exactlyOneSource: true },
+  // ---- image ----
+  "nano-banana-2": { type: "image", resolutions: ["1k", "2k", "4k"], ratios: ["1:1", "2:3", "3:2", "3:4", "4:3", "4:5", "5:4", "9:16", "16:9", "21:9", "1:4", "4:1", "1:8", "8:1"] },
+  "nano-banana-2-lite": { type: "image", resolutions: ["1k"], ratios: ["1:1", "2:3", "3:2", "3:4", "4:3", "4:5", "5:4", "9:16", "16:9", "21:9", "1:4", "4:1", "1:8", "8:1"], maxRefImages: 14, maxRefVideos: 0, maxRefAudios: 0 },
+  "nano-banana-pro": { type: "image", resolutions: ["1k", "2k", "4k"], ratios: ["1:1", "2:3", "3:2", "3:4", "4:3", "4:5", "5:4", "9:16", "16:9", "21:9"] },
+  "midjourney-v7": { type: "image", ratios: ["1:1", "4:3", "3:4", "16:9", "9:16", "3:2", "2:3"], maxRefImages: 4 },
+  "mj-v8.1": { type: "image", ratios: ["1:1", "4:3", "3:4", "16:9", "9:16", "3:2", "2:3"], maxRefImages: 4 },
+  "gpt-image-2": { type: "image", resolutions: ["1k", "2k", "4k"], ratios: ["1:1", "3:2", "2:3", "3:4", "4:3", "16:9", "9:16", "21:9"], maxRefImages: 16 },
+  "seedream-5-0-lite": { type: "image", resolutions: ["2k", "3k", "4k"], ratios: ["1:1", "4:3", "3:4", "16:9", "9:16", "3:2", "2:3", "21:9"], maxRefImages: 14, maxRefVideos: 0, maxRefAudios: 0 },
+  "seedream-5-0-pro": { type: "image", resolutions: ["1k", "2k"], ratios: ["1:1", "4:3", "3:4", "16:9", "9:16", "3:2", "2:3", "21:9"], maxRefImages: 10, maxRefVideos: 0, maxRefAudios: 0 },
+  "grok-image": { type: "image", resolutions: ["1k", "2k"], ratios: ["1:1", "3:4", "4:3", "9:16", "16:9", "2:3", "3:2"], maxRefImages: 3, maxRefVideos: 0 },
+  "grok-image-quality": { type: "image", resolutions: ["1k", "2k"], ratios: ["1:1", "3:4", "4:3", "9:16", "16:9", "2:3", "3:2"], maxRefImages: 3, maxRefVideos: 0 },
+  "upscale-image-volcano-mediakit": { type: "image", resolutions: ["1080p", "2k", "4k"], exactlyOneSource: true },
+  // ---- audio ----
+  "lyria-clip": { type: "audio", maxRefImages: 1, maxRefVideos: 0 },
+  "seed-audio-1.0": { type: "audio", maxRefImages: 1, maxRefVideos: 0, maxRefAudios: 3, imageAudioExclusive: true }
+};
+// role → 期望的素材媒体类型（用于 type×role 前置校验，D11-d）。
+var ROLE_MEDIA_TYPE = {
+  ref_image: "image",
+  reference_image: "image",
+  first_frame: "image",
+  last_frame: "image",
+  mask: "image",
+  ref_video: "video",
+  reference_video: "video",
+  source_video: "video",
+  ref_audio: "audio",
+  reference_audio: "audio"
+};
+function mimeForUpload(ext, type) {
+  const map = {
+    ".mp4": "video/mp4",
+    ".mov": "video/quicktime",
+    ".webm": "video/webm",
+    ".mkv": "video/x-matroska",
+    ".avi": "video/x-msvideo",
+    ".mp3": "audio/mpeg",
+    ".wav": "audio/wav",
+    ".aac": "audio/aac",
+    ".ogg": "audio/ogg",
+    ".m4a": "audio/mp4",
+    ".png": "image/png",
+    ".jpg": "image/jpeg",
+    ".jpeg": "image/jpeg",
+    ".webp": "image/webp",
+    ".gif": "image/gif"
+  };
+  if (map[ext]) return map[ext];
+  return type === "video" ? "video/mp4" : type === "audio" ? "audio/mpeg" : "image/jpeg";
+}
+// 按 size 分流的统一上传入口（<50MB multipart 直传；>=50MB 走 upload-url + PUT + register）。
+// materialUpload 与 taskChain 共用，避免 chain 的大视频结果（1080p/4k 长片段）撞 50MB 直传上限。
+async function uploadBySize(client, buffer, filename, type) {
+  const big = buffer.byteLength >= UPLOAD_DIRECT_LIMIT;
+  const sizeMB = (buffer.byteLength / 1024 / 1024).toFixed(1);
+  const mime = mimeForUpload(extname(filename).toLowerCase(), type);
+  console.log(`Uploading ${filename} (${type}, ${sizeMB}MB)${big ? " via presigned URL" : ""}...`);
+  if (big) {
+    const { uploadUrl, path } = await client.getUploadUrl(filename, mime);
+    const putResp = await fetch(uploadUrl, { method: "PUT", headers: { "Content-Type": mime }, body: buffer });
+    if (!putResp.ok) throw new Error(`PUT upload failed: ${putResp.status}`);
+    const md5 = createHash("md5").update(buffer).digest("hex");
+    return client.registerMaterial({ name: filename, md5, type, storagePath: path, mimeType: mime, size: buffer.byteLength });
+  }
+  return client.uploadMaterial(buffer, filename, type, mime);
+}
+// CLI 前置拦截"确定会被服务端拒绝"的素材/参数组合，报错文案与服务端一致。
+// 宁松勿紧：本表未设的约束、以及仅服务端才校验的规则，一律放行交服务端。
+async function validateBeforeSubmit(params, client) {
+  const model = params.model;
+  const materials = params.materials || [];
+  // e. AUDIO_MODELS 带 resolution/ratio/duration → warn + 剥离（先做，避免后续 resolution/ratio 白名单误判）。
+  if (model && AUDIO_MODELS.has(model)) {
+    for (const key of ["resolution", "ratio", "duration"]) {
+      if (params[key] !== void 0) {
+        console.error(`⚠️  ${model} does not accept '${key}'; stripping it.`);
+        delete params[key];
+      }
+    }
+  }
+  const c = model ? MODEL_CONSTRAINTS[model] : void 0;
+  // 引用素材计数（角色集合与服务端校验一致）。
+  const refImageCount = materials.filter((m) => m.role === "reference_image" || m.role === "ref_image").length;
+  const refVideoCount = materials.filter((m) => m.role === "ref_video" || m.role === "reference_video" || m.role === "source_video").length;
+  const refAudioCount = materials.filter((m) => m.role === "ref_audio" || m.role === "reference_audio").length;
+  if (c) {
+    // a. resolution / ratio 白名单 + requireRatio。
+    if (params.resolution && c.resolutions && !c.resolutions.includes(params.resolution)) {
+      throw new Error(`Resolution '${params.resolution}' is not supported by model '${model}'. Supported: ${c.resolutions.join(", ")}`);
+    }
+    if (c.requireRatio && !params.ratio) {
+      throw new Error(`Model '${model}' requires an aspect ratio; supported: ${(c.ratios || []).join(", ")}`);
+    }
+    if (params.ratio && c.ratios && !c.ratios.includes(params.ratio)) {
+      throw new Error(`Aspect ratio '${params.ratio}' is not supported by model '${model}'. Supported: ${c.ratios.join(", ")}`);
+    }
+    // c. "恰好 1 个"类规则先于数量上限，报错文案更贴合模型语义（grok-video-1.5 / upscale-*）。
+    if (c.exactlyOneSource && materials.length !== 1) {
+      throw new Error(`${model} requires exactly 1 source material`);
+    }
+    if (c.exactlyOneImage) {
+      // 输入图计数含 first_frame（与服务端 grok 的输入图判定一致），
+      // 避免把 `ID:first_frame` 这类合法输入图误拦。
+      const inputImageCount = materials.filter((m) => m.role === "reference_image" || m.role === "ref_image" || m.role === "first_frame").length;
+      if (inputImageCount !== 1) throw new Error(`${model} requires exactly 1 input image`);
+    }
+    // b. 参考素材数量上限（含 0 = 完全禁止该类引用）。
+    if (refImageCount > 0 && c.maxRefImages !== void 0 && refImageCount > c.maxRefImages) {
+      throw new Error(`Model '${model}' supports at most ${c.maxRefImages} reference images`);
+    }
+    if (refVideoCount > 0 && c.maxRefVideos !== void 0 && refVideoCount > c.maxRefVideos) {
+      throw new Error(`Model '${model}' supports at most ${c.maxRefVideos} reference videos`);
+    }
+    if (refAudioCount > 0 && c.maxRefAudios !== void 0 && refAudioCount > c.maxRefAudios) {
+      throw new Error(`Model '${model}' supports at most ${c.maxRefAudios} audio references`);
+    }
+    // 其余角色规则。
+    if (c.imageAudioExclusive && refImageCount > 0 && refAudioCount > 0) {
+      throw new Error(`seed-audio: reference image cannot be combined with reference audio`);
+    }
+    if (refAudioCount > 0 && refImageCount === 0 && refVideoCount === 0 && c.type !== "audio") {
+      throw new Error(`reference_audio cannot be the only reference input`);
+    }
+    if (materials.length) {
+      const roles = materials.map((m) => m.role);
+      const hasLastFrame = roles.includes("last_frame");
+      const hasFirstFrame = roles.includes("first_frame");
+      const hasRefImage = roles.includes("reference_image") || roles.includes("ref_image");
+      if (hasLastFrame && !hasFirstFrame) {
+        throw new Error(`Last frame requires a first frame`);
+      }
+      if ((hasFirstFrame || hasLastFrame) && hasRefImage && !c.allowFramesWithRefs) {
+        throw new Error(`Frames and reference images cannot be used together. Tip: pass the frame as another ref_image (e.g. "ID:ref_image:0") and open the prompt with "Use @Image1 as the first frame" / "以@图片1为首帧" instead.`);
+      }
+      if (c.noLastFrame && hasLastFrame) {
+        throw new Error(`HappyHorse does not support last frame`);
+      }
+    }
+  }
+  // d. 素材 type × role 匹配：一次 GET /materials?ids= 拉 type 后逐条比对。
+  const idRoles = materials.filter((m) => m.id && ROLE_MEDIA_TYPE[m.role]);
+  if (idRoles.length) {
+    let typeById = {};
+    try {
+      const data = await client.listMaterials({ ids: idRoles.map((m) => m.id).join(",") });
+      for (const mat of data.materials || []) typeById[mat.id] = mat.type;
+    } catch {
+      return; // 拉取失败不阻塞提交（宁松勿紧），交服务端校验。
+    }
+    for (const m of idRoles) {
+      const expected = ROLE_MEDIA_TYPE[m.role];
+      const actual = typeById[m.id];
+      if (actual && actual !== expected) {
+        const suggest = actual === "video" ? "ref_video" : actual === "audio" ? "ref_audio" : "ref_image";
+        throw new Error(`Material #${m.id} is type '${actual}' but role '${m.role}' expects ${expected}. Use ':${suggest}' for ${actual} materials.`);
+      }
+    }
+  }
+}
 
 function createClient(baseUrlOverride) {
   loadEnv();
   const apiKey = process.env["RENOISE_API_KEY"];
   if (!apiKey) {
-    console.error("Error: RENOISE_API_KEY is required for /api/public/v1.\nSet it via environment variable or .env file.");
+    console.error("Error: RENOISE_API_KEY is not set.\nCreate one at https://www.renoise.ai/developer, then export RENOISE_API_KEY=fk_... (or put it in a .env file).");
     process.exit(1);
   }
   const baseUrl = baseUrlOverride || env("RENOISE_BASE_URL", DEFAULT_BASE_URL);
@@ -310,8 +467,6 @@ Usage:
 Domains:
   task        Create, list, and manage generation tasks
   material    Upload and manage materials
-  asset       Register materials as Ark assets (for face/character use)
-  character   Browse available characters
   credit      Check balance and transaction history
 
 Environment:
@@ -340,24 +495,30 @@ Commands:
   tag <id> --tags a,b,c       Update tags on a task
 
 Options for generate/create:
-  --prompt <text>             (required) Generation prompt
-  --model <name>              Model name (default: renoise-2.0 / sd-2.0)
-  --type <video|image>        Optional task type; must match model
+  --prompt <text>             (required, except upscale-* models) Generation prompt
+  --model <name>              Model name (default: seedance-2.0 for video, seedream-5-0-pro for image)
+  --type <video|image|audio>  Optional task type; must match model
   --duration <seconds>        Video duration (default: 5)
   --ratio <w:h>               Aspect ratio (default: 1:1)
-  --resolution <1k|2k|4k|720p|1080p>
-  --watermark                 Add watermark to video task (10% credit discount)
+  --resolution <1k|2k|3k|4k|480p|720p|1080p>
+  --watermark                 Add watermark to video task (credit discount applies)
   --audio-generation <0|1>    Enable/disable model audio generation when supported
   --no-audio-generation       Disable model audio generation
   --template-id <id>          Create task from template
   --tags <a,b,c>              Comma-separated tags
-  --materials <spec>          Material refs: "id:role" or "asset:id:role"; role required
-  --characters <spec>         Character refs: "id1,id2" or "id1:role,id2:role"
+  --materials <spec>          Material refs: "id:role" or "id:role:index"; role required
+                              roles: ref_image / ref_video / ref_audio / first_frame /
+                              last_frame / source_video (aliases: reference_image, ...)
+                              index sets @ImageN/@VideoN ordering in the prompt
+
+Deprecated model aliases: renoise-2.0* / sd-2.0* / youmeng-2.0* still map to the
+seedance-2.0 series (with a deprecation warning) but will be removed next major
+version. Use seedance-2.0 / seedance-2.0-fast / seedance-2.0-mini instead.
 
 Options for list:
   --status <status>           Filter by status
   --tag <tag>                 Filter by tag
-  --type <video|image>        Filter by task type
+  --type <video|image|audio>  Filter by task type
   --provider <provider>       Filter by provider
   --ids <id1,id2>             Fetch specific task IDs
   --limit <n>                 Max results (default: 20)
@@ -368,21 +529,21 @@ Options for wait:
   --timeout <seconds>         Timeout (default: 600)
 
 Examples:
-  renoise task generate --prompt "a cat dancing" --duration 5
+  renoise task generate --prompt "a cat dancing" --model seedance-2.0 --duration 5 --ratio 16:9
+  renoise task generate --prompt "quick draft, cheaper tier" --model seedance-2.0-mini --duration 10 --ratio 9:16
   renoise task generate --prompt "cute cat" --model nano-banana-2 --resolution 2k
   renoise task generate --prompt "cinematic hero frame of a lone astronaut on Mars" --model nano-banana-pro --resolution 2k --ratio 16:9
   renoise task generate --prompt "hero product shot with bold typography" --model gpt-image-2 --resolution 2k --ratio 16:9
-  renoise task generate --prompt "stylized fantasy portrait" --model midjourney-v7 --ratio 3:4
-  renoise task generate --prompt "quick draft, cheaper tier" --model renoise-2.0-mini --duration 10 --ratio 9:16
+  renoise task generate --prompt "editorial photo" --model seedream-5-0-pro --resolution 2k --ratio 3:4
   renoise task generate --prompt "the character in the reference image turns to face the camera" --model grok-video-1.5 --materials "42:ref_image" --duration 8 --ratio 16:9
-  renoise task generate --prompt "a chef plating a dessert, warm kitchen lighting" --model gemini-omni-flash --duration 8 --ratio 16:9
-  renoise task generate --prompt "editorial fashion photo, studio lighting" --model seedream-5-0-lite --resolution 2k --ratio 3:4
-  renoise task generate --prompt "a neon-lit cyberpunk alley, rain reflections" --model grok-image-quality --resolution 2k --ratio 16:9
-  renoise task create --prompt "epic scene" --duration 10 --ratio 16:9
+  renoise task generate --prompt "a chef plating a dessert, warm kitchen lighting" --model gemini-omni-flash --materials "VID:source_video" --ratio 16:9
+  renoise task generate --model lyria-clip --prompt "warm acoustic folk BGM, no vocals"
+  renoise task generate --model upscale-video-volcano-mediakit --resolution 2k --materials "77:ref_video"   # no --prompt needed
+  renoise task create --prompt "epic scene" --model seedance-2.0 --duration 10 --ratio 16:9
   renoise task list --status completed --limit 5
   renoise task result 123
   renoise task wait 123 --interval 15
-  renoise task chain 123      # downloads video result → uploads as material → prints material ID
+  renoise task chain 123      # downloads video/audio result → uploads as material → prints material ID
 `.trim();
 var HELP_MATERIAL = `
 renoise material \u2014 Manage materials
@@ -402,79 +563,13 @@ Options for list:
 Options for upload:
   --type <image|video|audio>  Override auto-detected type
 
+Files < 50MB upload directly (multipart). Files >= 50MB automatically use the
+presigned-URL flow (upload-url + PUT + register), so no manual steps are needed.
+
 Examples:
   renoise material list
   renoise material upload /path/to/image.jpg
   renoise material upload /path/to/video.mp4 --type video
-`.trim();
-var HELP_CHARACTER = `
-renoise character \u2014 Manage characters
-
-Commands:
-  list                        List available characters
-  get <id>                    Get character detail
-  create <image> [options]    Create character from image (admin)
-  grant <char_id> [user_id]   Grant character access (admin)
-
-Options for list:
-  --category <category>       Filter by category
-  --usage_group <group>       Filter by usage group
-  --search <keyword>          Search by name
-  --page <n>                  Page number
-  --page_size <n>             Page size
-
-Options for create:
-  --name <name>               Character name (required)
-  --code <code>               Character code (default: auto from name)
-  --gender <m/f>              Gender (default: m)
-  --category <category>       Category (default: custom)
-  --usage_group <group>       Usage group (default: custom)
-  --asset_id <id>             Asset ID (default: custom_<timestamp>)
-
-Examples:
-  renoise character list
-  renoise character get 3
-  renoise character create ./portrait.png --name "Li Shande" --gender m
-  renoise character grant 42
-`.trim();
-var HELP_ASSET = `
-renoise asset \u2014 Register materials as Ark assets
-
-Register uploaded images as Ark assets so they can be used as
-reference_image in video generation WITHOUT triggering face/privacy
-detection. This is the recommended way to use AI-generated character
-images as consistent references across multiple video segments.
-
-Commands:
-  create <material_id>        Register a material as an asset
-  register <material_id>      Alias for create + wait until active
-  get <id>                    Get asset detail and status
-  list                        List your assets
-  wait <id>                   Wait for asset to become active
-  delete <id>                 Soft-delete an asset
-
-Options for create/register:
-  --name <name>               Asset name (default: material filename)
-  --group_id <id>             Asset group ID (default: auto)
-
-Options for list:
-  --status <status>           Filter by status (pending/processing/active/failed)
-  --group_id <id>             Filter by group
-  --limit <n>                 Max results (default: 50)
-  --offset <n>                Pagination offset
-
-Options for wait:
-  --interval <seconds>        Poll interval (default: 10)
-  --timeout <seconds>         Timeout (default: 300)
-
-Workflow:
-  1. Upload image:    renoise material upload portrait.png
-  2. Register asset:  renoise asset register 3497 --name "Mei"
-  3. Use in video:    renoise task generate --prompt "..." \\
-                        --materials "asset:27:reference_image"
-
-Once active, use in task materials as:
-  --materials "asset:<asset_id>:reference_image"
 `.trim();
 var HELP_CREDIT = `
 renoise credit \u2014 Balance and transactions
@@ -485,12 +580,16 @@ Commands:
   history                     Show credit transaction history
 
 Options for estimate:
-  --model <name>              Model name
-  --duration <seconds>        Duration
-  --resolution <value>        Resolution variant (image: 1k/2k/4k; video: 720p/1080p)
+  --model <name>              Model name (seedance aliases are mapped automatically)
+  --duration <seconds>        Duration (video only)
+  --resolution <value>        Resolution variant (image: 1k/2k/3k/4k; video: 480p/720p/1080p/2k/4k)
   --hasVideoRef               Has video reference material
   --variant <variant>         Pricing variant override
   --watermark                 Apply video watermark discount
+
+The response includes estimatedCredit, balance, sufficient, and discountPercent
+(the applied discount: max of watermark and user-generated-content discount).
+All cost figures come from live estimation; this CLI does not hardcode prices.
 
 Options for history:
   --limit <n>                 Max results (default: 20)
@@ -498,17 +597,19 @@ Options for history:
 
 Examples:
   renoise credit me
-  renoise credit estimate --model renoise-2.0 --duration 5
+  renoise credit estimate --model seedance-2.0 --duration 5 --resolution 1080p
   renoise credit estimate --model gpt-image-2 --resolution 2k
   renoise credit history --limit 10
 `.trim();
 async function taskGenerate(client, flags) {
-  if (!flags.prompt) {
+  const isUpscale = (flags.model || "").startsWith("upscale-");
+  if (!flags.prompt && !isUpscale) {
     console.error("Error: --prompt is required.\n");
     console.log(HELP_TASK);
     process.exit(1);
   }
   const params = buildCreateParams(flags);
+  await validateBeforeSubmit(params, client);
   const interval = (flags.interval ? parseInt(flags.interval) : 10) * 1e3;
   const timeout = (flags.timeout ? parseInt(flags.timeout) : 600) * 1e3;
 
@@ -527,12 +628,14 @@ async function taskGenerate(client, flags) {
   printResult(result);
 }
 async function taskCreate(client, flags) {
-  if (!flags.prompt) {
+  const isUpscale = (flags.model || "").startsWith("upscale-");
+  if (!flags.prompt && !isUpscale) {
     console.error("Error: --prompt is required.\n");
     console.log(HELP_TASK);
     process.exit(1);
   }
   const params = buildCreateParams(flags);
+  await validateBeforeSubmit(params, client);
   const data = await client.createTask(params);
   console.log(`Task created: id=${data.task.id}, status=${data.task.status}`);
   if (data.task.estimatedCredit) console.log(`Cost: ${data.task.estimatedCredit} credits`);
@@ -616,28 +719,27 @@ async function taskChain(client, positional) {
   // 1. Get result
   console.log(`Getting result for task #${id}...`);
   const result = await client.getTaskResult(id);
-  const url = result.videoUrl || result.imageUrl;
+  const url = result.videoUrl || result.imageUrl || result.audioUrl;
   if (!url) {
-    console.error(`Task #${id} has no video or image result.`);
+    console.error(`Task #${id} has no video, image, or audio result.`);
     process.exit(1);
   }
-  const isVideo = !!result.videoUrl;
-  const ext = isVideo ? "mp4" : "png";
+  const type = result.videoUrl ? "video" : result.imageUrl ? "image" : "audio";
+  const ext = type === "video" ? "mp4" : type === "image" ? "png" : "mp3";
   const tmpPath = join(tmpdir(), `chain-${id}.${ext}`);
   // 2. Download
-  console.log(`Downloading ${isVideo ? "video" : "image"} to ${tmpPath}...`);
+  console.log(`Downloading ${type} to ${tmpPath}...`);
   const resp = await fetch(url);
   if (!resp.ok) throw new Error(`Download failed: ${resp.status}`);
   const arrayBuf = await resp.arrayBuffer();
   writeFileSync(tmpPath, Buffer.from(arrayBuf));
   console.log(`Downloaded: ${(arrayBuf.byteLength / 1024 / 1024).toFixed(1)}MB`);
-  // 3. Upload as material
-  const type = isVideo ? "video" : "image";
+  // 3. Upload as material（复用 size 分流：chain 的大视频结果 >=50MB 时自动走预签名三步上传）
   const buffer = readFileSync(tmpPath);
   const filename = `chain-${id}.${ext}`;
-  console.log(`Uploading as ${type} material...`);
-  const data = await client.uploadMaterial(buffer, filename, type);
-  const matId = data.material?.id || data.id;
+  const data = await uploadBySize(client, buffer, filename, type);
+  const mat = data.material || data;
+  const matId = mat.id;
   console.log(`\nMaterial #${matId} ready.`);
   console.log(`Use as: --materials "${matId}:ref_${type}"`);
   json(data);
@@ -682,237 +784,31 @@ async function materialUpload(client, positional, flags) {
   const type = flags.type || (videoExts.includes(ext) ? "video" : audioExts.includes(ext) ? "audio" : "image");
   const buffer = readFileSync(filePath);
   const filename = basename(filePath);
-  console.log(`Uploading ${filename} (${type}, ${(buffer.byteLength / 1024).toFixed(1)}KB)...`);
-  const data = await client.uploadMaterial(buffer, filename, type);
+  const data = await uploadBySize(client, buffer, filename, type);
+  const mat = data.material || data;
   if (data.action === "exists") {
-    console.log(`Material already exists: #${data.material.id}`);
+    console.log(`Material already exists: #${mat.id}`);
   } else {
-    console.log(`Material uploaded: #${data.material.id}`);
+    console.log(`Material uploaded: #${mat.id}`);
   }
   json(data);
-}
-async function characterList(client, flags) {
-  const data = await client.listCharacters({
-    category: flags.category,
-    usage_group: flags.usage_group,
-    search: flags.search,
-    page: flags.page ? parseInt(flags.page) : void 0,
-    page_size: flags.page_size ? parseInt(flags.page_size) : void 0
-  });
-  console.log(`Found ${data.characters.length} character(s) (total: ${data.total}):
-`);
-  for (const ch of data.characters) {
-    console.log(`  #${String(ch.id).padEnd(4)} ${ch.code.padEnd(5)} ${ch.name.padEnd(16)} ${ch.category.padEnd(8)} ${ch.usage_group}`);
-  }
-}
-async function characterGet(client, positional) {
-  const id = parseInt(positional[0]);
-  if (!id) {
-    console.error("Error: character ID required.\nUsage: renoise character get <id>");
-    process.exit(1);
-  }
-  json(await client.getCharacter(id));
-}
-async function characterCreate(client, positional, flags) {
-  const imagePath = positional[0];
-  if (!imagePath) {
-    console.error("Error: image path required.\nUsage: renoise character create <image> --name <name>");
-    process.exit(1);
-  }
-  if (!flags.name) {
-    console.error("Error: --name is required.");
-    process.exit(1);
-  }
-  const fs = await import("fs");
-  const path = await import("path");
-  if (!fs.existsSync(imagePath)) {
-    console.error(`Error: file not found: ${imagePath}`);
-    process.exit(1);
-  }
-  const code = flags.code || flags.name.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "");
-  const gender = flags.gender || "m";
-  const category = flags.category || "custom";
-  const usageGroup = flags.usage_group || "custom";
-  const assetId = flags.asset_id || `custom_${Date.now()}`;
-
-  // Step 1: import character record
-  console.log(`Creating character "${flags.name}" (code: ${code})...`);
-  const importResult = await client.importCharacters([{
-    code, name: flags.name, gender, category,
-    usage_group: usageGroup, asset_id: assetId,
-  }]);
-  console.log(`  Import: ${importResult.imported} created, ${importResult.skipped} skipped`);
-  if (importResult.imported === 0) {
-    console.error("  Character code may already exist. Try a different --code.");
-    process.exit(1);
-  }
-
-  // Step 2: find the newly created character
-  const listResult = await client.listCharacters({ search: code, page: 1, page_size: 5 });
-  const char = listResult.characters.find(c => c.code === code);
-  if (!char) {
-    console.error("  Created but could not find character. Check admin panel.");
-    process.exit(1);
-  }
-  console.log(`  Character ID: #${char.id}`);
-
-  // Step 3: upload image
-  const ext = path.extname(imagePath).toLowerCase();
-  const contentType = ext === ".png" ? "image/png" : ext === ".webp" ? "image/webp" : "image/jpeg";
-  console.log(`  Uploading image (${contentType})...`);
-  const uploadInfo = await client.getCharacterImageUploadUrl(char.id, contentType);
-  const fileBuffer = fs.readFileSync(imagePath);
-  const uploadResp = await fetch(uploadInfo.upload_url, {
-    method: "PUT",
-    headers: { "Content-Type": contentType },
-    body: fileBuffer,
-  });
-  if (!uploadResp.ok) {
-    console.error(`  Image upload failed: ${uploadResp.status} ${uploadResp.statusText}`);
-    process.exit(1);
-  }
-  console.log(`  Image uploaded to: ${uploadInfo.storage_path}`);
-
-  // Step 4: grant access to current user
-  const me = await client.getMe();
-  console.log(`  Granting access to user ${me.user.id}...`);
-  try {
-    await client.addCharacterGrant(me.user.id, "character", String(char.id));
-    console.log(`  Access granted.`);
-  } catch (e) {
-    if (e.message && e.message.includes("already exists")) {
-      console.log(`  Grant already exists.`);
-    } else {
-      console.log(`  Grant note: ${e.message} (may need 'all' grant)`);
-    }
-  }
-
-  console.log(`\n✅ Character created: #${char.id} "${flags.name}"`);
-  console.log(`   Use in video: --characters "${char.id}"`);
-}
-async function characterGrant(client, positional) {
-  const charId = positional[0];
-  if (!charId) {
-    console.error("Error: character ID required.\nUsage: renoise character grant <char_id> [user_id]");
-    process.exit(1);
-  }
-  const me = await client.getMe();
-  const userId = positional[1] || me.user.id;
-  console.log(`Granting character #${charId} to user ${userId}...`);
-  const result = await client.addCharacterGrant(userId, "character", String(charId));
-  json(result);
-}
-// ── Asset commands ──
-async function assetCreate(client, positional, flags) {
-  const materialId = parseInt(positional[0]);
-  if (!materialId) {
-    console.error("Error: material ID required.\nUsage: renoise asset create <material_id> [--name <name>]");
-    process.exit(1);
-  }
-  const params = { materialId };
-  if (flags.name) params.name = flags.name;
-  if (flags.group_id) params.groupId = parseInt(flags.group_id);
-  console.log(`Creating asset from material #${materialId}...`);
-  const data = await client.createAsset(params);
-  console.log(`Asset created: #${data.id} (${data.status})`);
-  json(data);
-}
-async function assetRegister(client, positional, flags) {
-  const materialId = parseInt(positional[0]);
-  if (!materialId) {
-    console.error("Error: material ID required.\nUsage: renoise asset register <material_id> [--name <name>]");
-    process.exit(1);
-  }
-  const params = { materialId };
-  if (flags.name) params.name = flags.name;
-  if (flags.group_id) params.groupId = parseInt(flags.group_id);
-  console.log(`Creating asset from material #${materialId}...`);
-  const data = await client.createAsset(params);
-  console.log(`Asset #${data.id} created (${data.status}). Waiting for activation...`);
-  const interval = (flags.interval ? parseInt(flags.interval) : 10) * 1e3;
-  const timeout = (flags.timeout ? parseInt(flags.timeout) : 300) * 1e3;
-  try {
-    const asset = await client.waitForAsset(data.id, {
-      pollInterval: interval,
-      timeout,
-      onPoll: (a) => {
-        console.log(`  [${new Date().toLocaleTimeString()}] ${a.status}${a.ark_asset_id ? " (ark: " + a.ark_asset_id + ")" : ""}`);
-      }
-    });
-    console.log(`\n\u2705 Asset #${asset.id} is active!`);
-    console.log(`   Ark Asset ID: ${asset.ark_asset_id}`);
-    console.log(`   Use in video: --materials "asset:${asset.id}:reference_image"`);
-    json({ asset });
-  } catch (e) {
-    console.error(`\n\u274C ${e.message}`);
-    process.exit(1);
-  }
-}
-async function assetGet(client, positional) {
-  const id = parseInt(positional[0]);
-  if (!id) {
-    console.error("Error: asset ID required.\nUsage: renoise asset get <id>");
-    process.exit(1);
-  }
-  json(await client.getAsset(id));
-}
-async function assetList(client, flags) {
-  const data = await client.listAssets({
-    groupId: flags.group_id ? parseInt(flags.group_id) : void 0,
-    status: flags.status,
-    limit: flags.limit ? parseInt(flags.limit) : 50,
-    offset: flags.offset ? parseInt(flags.offset) : 0
-  });
-  console.log(`Found ${data.assets.length} asset(s):\n`);
-  for (const a of data.assets) {
-    const arkId = a.ark_asset_id ? ` ark:${a.ark_asset_id}` : "";
-    console.log(`  #${String(a.id).padEnd(4)} ${a.status.padEnd(12)} ${a.name}${arkId}`);
-  }
-}
-async function assetWait(client, positional, flags) {
-  const id = parseInt(positional[0]);
-  if (!id) {
-    console.error("Error: asset ID required.\nUsage: renoise asset wait <id>");
-    process.exit(1);
-  }
-  const interval = (flags.interval ? parseInt(flags.interval) : 10) * 1e3;
-  const timeout = (flags.timeout ? parseInt(flags.timeout) : 300) * 1e3;
-  console.log(`Waiting for asset #${id} (poll every ${interval / 1e3}s, timeout ${timeout / 1e3}s)...`);
-  try {
-    const asset = await client.waitForAsset(id, {
-      pollInterval: interval,
-      timeout,
-      onPoll: (a) => {
-        console.log(`  [${new Date().toLocaleTimeString()}] ${a.status}`);
-      }
-    });
-    console.log(`\n\u2705 Asset #${asset.id} is active!`);
-    json({ asset });
-  } catch (e) {
-    console.error(`\n\u274C ${e.message}`);
-    process.exit(1);
-  }
-}
-async function assetDelete(client, positional) {
-  const id = parseInt(positional[0]);
-  if (!id) {
-    console.error("Error: asset ID required.\nUsage: renoise asset delete <id>");
-    process.exit(1);
-  }
-  await client.deleteAsset(id);
-  console.log(`Asset #${id} deleted.`);
 }
 async function creditMe(client) {
   json(await client.getMe());
 }
 async function creditEstimate(client, flags) {
-  const variant = !flags.variant && flags.model && IMAGE_MODELS.has(flags.model) && flags.resolution
+  // 应用 byteplus 映射（seedance 系列 → byteplus；废弃别名附 deprecation warning），否则估到非 byteplus 档的价。
+  // 缺省 model 与 task create 保持一致（视频默认 → byteplus），避免估价与实扣走到不同档。
+  const model = toSubmitModel(flags.model);
+  const isAudio = !!model && AUDIO_MODELS.has(model);
+  const variant = !flags.variant && model && IMAGE_MODELS.has(model) && flags.resolution
     ? flags.resolution
     : flags.variant;
   json(await client.estimateCost({
-    model: flags.model,
-    duration: flags.duration ? parseInt(flags.duration) : void 0,
-    resolution: flags.resolution,
+    model,
+    // audio 模型不发 duration / resolution（避免 lyria 计费 variant 漂移）。
+    duration: isAudio ? void 0 : flags.duration ? parseInt(flags.duration) : void 0,
+    resolution: isAudio ? void 0 : flags.resolution,
     variant,
     hasVideoRef: flags.hasVideoRef === "true" || flags.hasVideoRef === "1",
     watermark: flags.watermark === "true" || flags.watermark === "1"
@@ -925,7 +821,18 @@ async function creditHistory(client, flags) {
 }
 function buildCreateParams(flags) {
   const params = { prompt: flags.prompt };
-  if (flags.model) params.model = flags.model;
+  // model 改写（D1）：显式 model 走 toSubmitModel（seedance 系列 → byteplus；废弃别名附 warning）。
+  if (flags.model) {
+    params.model = toSubmitModel(flags.model);
+  } else if (!flags.type || flags.type === "video") {
+    // 视频默认 seedance（平台缺省会落到非 byteplus 档，CLI 必须显式发 byteplus 名）。
+    params.model = "seedance-2.0-byteplus";
+  } else if (flags.type === "image") {
+    // 图片默认优先 seedream-5-0-pro（除非用户显式指定别的模型）。注意其上限为 2k、
+    // 不支持极端横幅比例——需 4k / 8:1 等 / 强文字排版时用户应显式换模型。
+    params.model = "seedream-5-0-pro";
+  }
+  // --type audio 且未指定 model：不发 model（lyria vs seed-audio 语义不同，需显式指定）。
   if (flags.type) params.type = flags.type;
   if (flags.duration) params.duration = parseInt(flags.duration);
   if (flags.ratio) params.ratio = flags.ratio;
@@ -939,30 +846,28 @@ function buildCreateParams(flags) {
   if (flags["audio-generation"] !== void 0) params.audioGeneration = flags["audio-generation"] === "true" || flags["audio-generation"] === "1";
   if (flags["no-audio-generation"] !== void 0) params.audioGeneration = false;
   if (flags.tags) params.tags = flags.tags.split(",").map((t) => t.trim());
+  // upscale-*：画质增强，surface=upscale，prompt 可空（D9）。
+  if ((params.model || "").startsWith("upscale-")) {
+    params.surface = "upscale";
+    if (!params.prompt) params.prompt = "";
+  }
   const allMaterials = [];
   if (flags.materials) {
     for (const m of flags.materials.split(",")) {
+      // id:role[:index]；asset: 前缀已废弃（D3-a'）。
       const parts = m.trim().split(":");
       if (parts[0] === "asset") {
-        // asset:ID:role format
-        const assetId = parseInt(parts[1]);
-        const role = parts[2];
-        if (!role) throw new Error(`Material role is required for --materials entry '${m}'. Use asset:id:role, e.g. asset:27:reference_image`);
-        allMaterials.push({ user_asset_id: assetId, role });
-      } else {
-        const [id, role] = parts;
-        if (!role) throw new Error(`Material role is required for --materials entry '${m}'. Use id:role, e.g. 123:ref_image`);
-        allMaterials.push({ id: parseInt(id), role });
+        throw new Error(`--materials 'asset:...' 已废弃：assets 已下线，请直接使用 material ID（seedance 提交即自动开白），例如 "12345:ref_image"`);
       }
-    }
-  }
-  if (flags.characters) {
-    for (const m of flags.characters.split(",")) {
-      const trimmed = m.trim();
-      const parts = trimmed.split(":");
-      const charId = parseInt(parts[0]);
-      const role = parts[1] || "reference_image";
-      allMaterials.push({ character_id: charId, role });
+      const [id, role, idx] = parts;
+      // role 必填；空串（如 "ID::INDEX"）同样报错。
+      if (!role) throw new Error(`Material role is required for --materials entry '${m}'. Use id:role[:index], e.g. 123:ref_image`);
+      const entry = { id: parseInt(id), role };
+      if (idx !== void 0) {
+        if (!/^\d+$/.test(idx)) throw new Error(`invalid index '${idx}' in '${m}'`);
+        entry.index = parseInt(idx);
+      }
+      allMaterials.push(entry);
     }
   }
   if (allMaterials.length) params.materials = allMaterials;
@@ -973,6 +878,7 @@ function printResult(result) {
   if (result.videoUrl) console.log(`  Video: ${result.videoUrl}`);
   if (result.coverUrl) console.log(`  Cover: ${result.coverUrl}`);
   if (result.imageUrl) console.log(`  Image: ${result.imageUrl}`);
+  if (result.audioUrl) console.log(`  Audio: ${result.audioUrl}`);
   if (result.resolutions && Object.keys(result.resolutions).length) {
     console.log(`  Resolutions: ${Object.keys(result.resolutions).join(", ")}`);
   }
@@ -982,8 +888,6 @@ function printResult(result) {
 var DOMAIN_HELP = {
   task: HELP_TASK,
   material: HELP_MATERIAL,
-  asset: HELP_ASSET,
-  character: HELP_CHARACTER,
   credit: HELP_CREDIT
 };
 async function main() {
@@ -1062,54 +966,6 @@ async function main() {
             console.error(`Unknown material action: ${action}
 `);
             console.log(HELP_MATERIAL);
-            process.exit(1);
-        }
-        break;
-      case "asset":
-        switch (action) {
-          case "create":
-            await assetCreate(client, subPositional, flags);
-            break;
-          case "register":
-            await assetRegister(client, subPositional, flags);
-            break;
-          case "get":
-            await assetGet(client, subPositional);
-            break;
-          case "list":
-            await assetList(client, flags);
-            break;
-          case "wait":
-            await assetWait(client, subPositional, flags);
-            break;
-          case "delete":
-            await assetDelete(client, subPositional);
-            break;
-          default:
-            console.error(`Unknown asset action: ${action}
-`);
-            console.log(HELP_ASSET);
-            process.exit(1);
-        }
-        break;
-      case "character":
-        switch (action) {
-          case "list":
-            await characterList(client, flags);
-            break;
-          case "get":
-            await characterGet(client, subPositional);
-            break;
-          case "create":
-            await characterCreate(client, subPositional, flags);
-            break;
-          case "grant":
-            await characterGrant(client, subPositional);
-            break;
-          default:
-            console.error(`Unknown character action: ${action}
-`);
-            console.log(HELP_CHARACTER);
             process.exit(1);
         }
         break;

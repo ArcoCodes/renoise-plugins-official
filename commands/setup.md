@@ -62,7 +62,7 @@ If not set, guide the user through login:
 
 1. Open the Renoise developer page:
    ```bash
-   open "https://renoise.ai/developer"
+   open "https://www.renoise.ai/developer"
    ```
 
 2. Tell the user:
