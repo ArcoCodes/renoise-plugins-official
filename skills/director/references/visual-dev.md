@@ -168,7 +168,7 @@ Prep:
 
 Generate (serial chain):
   S1: task generate --materials "A:ref_image,S1:ref_image"
-  V1: task chain <S1_ID>                                          # downloads + uploads as material
+  V1: task chain <S1_ID>                                          # saves result as material
   S2: task generate --materials "A:ref_image,V1:ref_video,S2:ref_image"
   V2: task chain <S2_ID>
   S3: task generate --materials "A:ref_image,V2:ref_video,S2:ref_image"  # same location as S2? reuse scene ref

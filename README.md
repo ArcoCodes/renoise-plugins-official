@@ -9,6 +9,8 @@ AI video production skills by Renoise — creative direction, generation, analys
 | **director** | Creative director — single entry point for all video creation (product ads, short films, TikTok e-commerce, drama, comedy) |
 | **gemini-gen** | Visual understanding & multimodal analysis via Gemini 3.1 Pro (product analysis, video script extraction, style extraction) |
 | **renoise-gen** | AI video & image generation engine — renoise-cli, material pool, product design sheets, scene backgrounds |
+| **renoise-setup** | Cross-host CLI installation, secure login, and workflow dependency readiness |
+| **storyboard-sheet** | Script/novel adaptation into review sheets, shot lists, first frames, and video prompts |
 | **video-download** | Video downloader (yt-dlp + Douyin/TikTok fallback) |
 
 ## Installation
@@ -113,13 +115,40 @@ git submodule add https://github.com/ArcoCodes/renoise-plugins-official.git plug
 
 3. Restart Codex, run `/plugins` to find and install **renoise**.
 
+## Native Renoise CLI
+
+The `renoise-gen` skill prefers the native Go CLI for authentication, generation, templates, chaining, tags, materials, account queries, JSON output, and owner-scoped task access. Install it once from [GitHub Releases](https://github.com/renoise-ai/renoise-cli/releases/latest): choose the archive matching your OS/CPU, extract `renoise` (`renoise.exe` on Windows), and put it on `PATH`. With Go installed, this is equivalent:
+
+```bash
+go install github.com/renoise-ai/renoise-cli/cmd/renoise@latest
+```
+
+Ask the agent to “set up Renoise” on any host to trigger the `renoise-setup` skill (`/renoise:setup` is the Claude Code wrapper that also configures its statusLine). Prefer `renoise auth login`: its secure saved credential is reused by the native CLI, Gemini, upload, and bundled fallback. `RENOISE_API_KEY` remains the override for CI and containers.
+
+Plugin workflows keep calling `skills/renoise-gen/renoise-cli.mjs`; that compatibility adapter uses the native `renoise` binary from `PATH` (or `RENOISE_CLI_PATH`) and automatically falls back to the bundled Node implementation when the binary is unavailable. Set `RENOISE_FORCE_LEGACY=1` only for troubleshooting.
+
+Interactive account and CLI defaults are available through:
+
+```bash
+renoise settings
+```
+
 ## Environment Variables
 
 | Variable | Required By | Description |
 |----------|------------|-------------|
-| `RENOISE_API_KEY` | All skills | Renoise API credential. Get one at https://www.renoise.ai |
+| `RENOISE_API_KEY` | Optional override for all Renoise tools | CI/container or host-secret override. Interactive setup prefers the credential securely saved by `renoise auth login`. |
+| `RENOISE_CLI_PATH` | Optional | Explicit path to the native `renoise` binary. |
+| `RENOISE_FORCE_LEGACY` | Troubleshooting | Set to `1` to bypass native delegation. |
 
 ## Version & upgrading
+
+### 1.1.0
+
+- Native Go `renoise` CLI integration with automatic bundled fallback.
+- Existing plugin commands and director scripts remain compatible through the adapter; native coverage includes templates, chaining, and task tags.
+- Unified setup checks the shared credential plus generation, Gemini, download, storyboard, QC, and post-production tool readiness.
+- Native CLI adds interactive generation/settings TUIs, secure saved credentials, model capabilities, owner-scoped tasks, shell completion, and human/JSON output.
 
 ### 1.0.0
 

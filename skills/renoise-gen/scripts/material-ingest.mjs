@@ -12,9 +12,9 @@
  *   node material-ingest.mjs ./materials/ --output project/material-pool.json
  *   node material-ingest.mjs ./materials/ --skip-analysis   # upload only, no Gemini
  *
- * Environment:
- *   RENOISE_API_KEY   Required for upload
- *   (Gemini uses the same key via Renoise gateway)
+ * Authentication:
+ *   `renoise auth login` saved credential, or RENOISE_API_KEY override
+ *   (upload and Gemini share the same credential)
  */
 
 import fs from "fs";

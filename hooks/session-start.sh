@@ -15,6 +15,17 @@ HAS_STATUSLINE=false
 # Check if API key is configured
 if [ -n "${RENOISE_API_KEY:-}" ] || [ -n "${RENOISE_AUTH_TOKEN:-}" ]; then
   HAS_KEY=true
+else
+  # Native `renoise auth login` stores a 0600 credentials file in the OS user config dir.
+  for credentials in \
+    "${XDG_CONFIG_HOME:-$HOME/.config}/renoise/credentials.json" \
+    "$HOME/Library/Application Support/renoise/credentials.json" \
+    "${APPDATA:-$HOME/AppData/Roaming}/renoise/credentials.json"; do
+    if [ -s "$credentials" ] && grep -q '"api_key"' "$credentials" 2>/dev/null; then
+      HAS_KEY=true
+      break
+    fi
+  done
 fi
 
 # Check if statusLine is pointing to our script

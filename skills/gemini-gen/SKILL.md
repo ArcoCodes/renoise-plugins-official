@@ -199,4 +199,4 @@ POST https://renoise.ai/api/public/llm/proxy/v1beta/models/{model}:generateConte
 
 ## Authentication
 
-Environment variable `RENOISE_API_KEY`. Get one at: https://www.renoise.ai
+Uses the credential securely saved by `renoise auth login`, or the `RENOISE_API_KEY` override. Ask the agent to set up Renoise (or run `/renoise:setup` on Claude Code) if neither exists.

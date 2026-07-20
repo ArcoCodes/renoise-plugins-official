@@ -14,7 +14,7 @@ description: >
 allowed-tools: Bash, Read, Write, Glob
 metadata:
   author: renoise
-  version: 0.5.0
+  version: 0.6.0
   category: video-production
   tags: [general, video-generation, image-generation, material-pool]
 ---
@@ -26,6 +26,10 @@ CLI for the Renoise AI video/image generation platform. This skill covers **how 
 > **Platform URL**: **https://www.renoise.ai** — NEVER renoise.com.
 
 > **Defaults**: video → `seedance-2.0`, image → `seedream-5-0-pro`. These are the *preferred* models unless the user names a different one — not hard locks. When the user asks for a specific model, use it. Reach for a different image model only when the job exceeds `seedream-5-0-pro`'s limits — `4k`, an extreme banner ratio, or strong text/logo typography (see [Choosing an image model](#choosing-an-image-model)).
+
+> **CLI execution**: always invoke `node ${CLAUDE_SKILL_DIR}/renoise-cli.mjs ...` in plugin workflows. This stable adapter automatically delegates supported operations to the native Go `renoise` CLI when installed, and falls back to the bundled legacy implementation otherwise. Never call `renoise-cli-legacy.mjs` directly.
+
+Native users can also run the equivalent commands directly (`renoise generate create`, `renoise generate wait`, `renoise generate chain`, `renoise generate tags`, `renoise material`, `renoise upload`, `renoise account status`, `renoise settings`). The adapter keeps the existing plugin command grammar so older director scripts continue to work. The cross-host `renoise-setup` skill (`/renoise:setup` on Claude Code) configures a secure saved credential shared by native delegation, Gemini, upload, and bundled fallback; `RENOISE_API_KEY` remains an optional override.
 
 ---
 
@@ -87,7 +91,7 @@ node ${CLAUDE_SKILL_DIR}/renoise-cli.mjs task generate \
 | `seedance-2.0-fast` | Video | 4–15s, `480p`/`720p` (default `720p`) | `9:16`, `16:9`, `1:1`, `4:3`, `3:4`, `21:9` | Faster tier; refs image ≤9, video ≤3, audio ≤3; no 1080p/4k. Executes as `seedance-2.0-fast-byteplus`. |
 | `seedance-2.0-mini` | Video | 4–15s, `480p`/`720p` (default `720p`) | `9:16`, `16:9`, `1:1`, `4:3`, `3:4`, `21:9` | Cheapest Seedance tier; refs image ≤9, video ≤3, audio ≤3; no 1080p/4k. Executes as `seedance-2.0-mini-byteplus`. |
 | `happyhorse-1.0` | Video | `720p`/`1080p` (default `1080p`) | `16:9`, `9:16`, `1:1`, `4:3`, `3:4` | Alibaba Bailian; alias typo accepted `happyhourse-1.0`; refs image ≤9, video 0; no `last_frame` |
-| `kling-3.0-omni` | Video | `720p`/`1080p` (default `720p`) | `16:9`, `9:16`, `1:1`, `4:3`, `3:4` | Default 5s; with a reference video ≤10s; otherwise 3–15s (validated server-side). refs image ≤7, video ≤1, audio unsupported; prompt ≤2500 chars |
+| `kling-3.0-omni` | Video | `720p`/`1080p` (default `720p`) | `16:9`, `9:16`, `1:1` | Default 5s; with a reference video ≤10s; otherwise 3–15s (validated server-side). refs image ≤7, video ≤1, audio unsupported; prompt ≤2500 chars |
 | `grok-video` | Video | 1–15s (R2V clamped ≤10s), `480p`/`720p` (default `720p`) | `1:1`, `16:9`, `9:16`, `4:3`, `3:4`, `3:2`, `2:3` | xAI Grok Imagine; T2V/I2V/R2V; refs image ≤7 (R2V mode) |
 | `grok-video-1.5` | Video | 1–15s, `480p`/`720p` (default `720p`) | `1:1`, `16:9`, `9:16`, `4:3`, `3:4`, `3:2`, `2:3` | xAI Grok Imagine; **I2V only** — requires exactly 1 reference image, no text-only generation |
 | `gemini-omni-flash` | Video | ≤10s, `720p` only (fixed) | `16:9`, `9:16` only | Google Vertex Interactions API; ratio is **required** (no default); refs image ≤6, video ≤1 (`source_video` edit); `first_frame` + `ref_image` can combine; no ref audio |
@@ -180,11 +184,13 @@ node ${CLAUDE_SKILL_DIR}/renoise-cli.mjs task generate \
 
 ## CLI Commands
 
+The plugin adapter keeps the established grammar while using the native CLI underneath when available:
+
 ```bash
 node ${CLAUDE_SKILL_DIR}/renoise-cli.mjs <domain> <action> [options]
 ```
 
-Domains: `task`, `material`, `credit`
+Domains: `task`, `material`, `credit`. Native-only interactive commands such as `renoise` and `renoise settings` should be run directly by the user, not from an agent workflow.
 
 ### Credit
 
@@ -215,7 +221,7 @@ node ${CLAUDE_SKILL_DIR}/renoise-cli.mjs task result <id>
 node ${CLAUDE_SKILL_DIR}/renoise-cli.mjs task wait <id> [--interval 10] [--timeout 600]
 node ${CLAUDE_SKILL_DIR}/renoise-cli.mjs task cancel <id>              # Pending only
 
-# Chaining — download result → upload as material (one step)
+# Chaining — save a completed result as a material (one step)
 node ${CLAUDE_SKILL_DIR}/renoise-cli.mjs task chain <id>
 # → prints new material ID, ready for --materials "ID:ref_video"
 

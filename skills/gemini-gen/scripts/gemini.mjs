@@ -39,19 +39,20 @@
  *   --max-tokens <n>      Max output tokens (default: 8192)
  *   --json                Request JSON response format
  *
- * Environment:
- *   RENOISE_API_KEY       Required. Get one at https://www.renoise.ai
+ * Authentication:
+ *   `renoise auth login` saved credential, or RENOISE_API_KEY override
  */
 
 import fs from "fs/promises";
 import path from "path";
+import { resolveAPIKey } from "../../renoise-gen/credential.mjs";
 
 // --- Auth ---
-const RENOISE_API_KEY = process.env.RENOISE_API_KEY;
-if (!RENOISE_API_KEY) {
-  console.error(
-    "RENOISE_API_KEY not set. Get one at: https://www.renoise.ai"
-  );
+let RENOISE_API_KEY;
+try {
+  RENOISE_API_KEY = resolveAPIKey();
+} catch (error) {
+  console.error(error.message);
   process.exit(1);
 }
 

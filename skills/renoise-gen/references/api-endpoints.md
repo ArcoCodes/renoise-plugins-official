@@ -18,7 +18,17 @@ All endpoints require an API key, supplied in either form:
 - `X-Client-Name` — client identifier (the CLI sends `renoise-plugin`)
 - `X-Client-Version` — client version
 
-The CLI automatically sends `X-Client-Name: renoise-plugin` and `X-Client-Version`.
+The native CLI sends `X-Client-Name: renoise-cli`; the bundled fallback sends `renoise-plugin`. Both send `X-Client-Version`.
+
+API keys are least-privilege: they can only access the key owner's tasks and materials, even when the owning web account is an administrator.
+
+### Models
+
+| Method | Path | Description |
+| ------ | ---- | ----------- |
+| GET | `/api/public/v1/models` | Public model capabilities: defaults, ratios, resolutions, durations, material roles/limits, and aliases |
+
+The native CLI reads this endpoint at runtime and uses a bundled last-good snapshot only when an older server does not expose it.
 
 ### Credits
 
@@ -70,6 +80,7 @@ Request:
   "watermark": false,
   "audioGeneration": true,
   "surface": "upscale",
+  "template_id": 123,
   "materials": [
     { "id": 42, "role": "ref_video", "index": 0 },
     { "id": 99, "role": "ref_image", "index": 1 }
@@ -86,6 +97,7 @@ Field notes:
 - `watermark` — video watermark (also applies a 10% credit discount).
 - `audioGeneration` — toggle generated audio when the model supports it.
 - `surface` — `upscale` (and `erase`/`outpaint`); this is the entry point that allows an empty `prompt`.
+- `template_id` — optional generation template ID; a template may supply the prompt.
 - `materials[].index` — user-facing ordering; drives `@ImageN`/`@VideoN` numbering (see [Material Roles](#material-roles)).
 
 Response (201):
