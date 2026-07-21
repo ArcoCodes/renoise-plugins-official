@@ -35,9 +35,10 @@ If `renoise` exists, verify the plugin contract rather than trusting a static ve
 renoise version
 renoise help generate run
 renoise help auth exec
+renoise help auth login
 ```
 
-The two help outputs must contain the exact usage paths `renoise generate run` and `renoise auth exec`; older Cobra builds may show parent help and still exit successfully.
+The outputs must contain the exact usage paths `renoise generate run` and `renoise auth exec`, plus the `auth login` flag `--web`; older Cobra builds may show parent help and still exit successfully.
 
 If the binary is missing, either exact usage path is absent, or the user explicitly asks for an update, resolve `<PLUGIN_ROOT>` and preview the installer. This reads `https://download.renoise.ai/cli/latest.json` and prints the installed path/version/compatibility plus the latest release, archive, and target; it does not download or change files:
 
@@ -62,20 +63,19 @@ The same path handles first install and replacement updates. It does not auto-up
 
 For manual installation, read the public release manifest at `https://download.renoise.ai/cli/latest.json`, download the matching archive and `checksums.txt` from its version directory, verify SHA-256, then extract the binary. Downloading, moving, or replacing files still requires confirmation.
 
-Before replacing an existing binary, the installer checks both exact usage paths. After installation, rerun all three contract checks above. If `generate run` or `auth exec` is unavailable, the release is incompatible; stop and ask the user to upgrade rather than recreating the command in the plugin.
+Before replacing an existing binary, the installer checks all three command contracts. After installation, rerun the checks above. If `generate run`, `auth exec`, or browser login is unavailable, the release is incompatible; stop and ask the user to upgrade rather than recreating the command in the plugin.
 
 ## 2. Authenticate Once
 
-Preferred on every host:
+First run `renoise auth status --json`. If it is not authenticated, the Agent—not the user—must run:
 
 ```bash
-renoise auth status --json
-renoise auth login
+renoise auth login --web --json
 ```
 
-Have the user run `renoise auth login` in an interactive terminal. It masks, validates, and saves the key in the OS user config directory with restricted permissions. Plugin generation and Credits call the CLI directly; Gemini and upload scripts run through `renoise auth exec` so they reuse the credential without printing it.
+Keep the command running while it opens the Renoise authorization page. The user only signs in and selects **Allow and connect** in the browser; never ask them to open a terminal, copy an API key, or paste a secret into chat. The CLI receives the credential through a one-time localhost callback, validates it, and saves it in the OS user config directory with restricted permissions. After the command returns, continue setup automatically.
 
-`RENOISE_API_KEY` remains the credential override for CI and containers, but the native CLI binary is still required. Tell the user to store the key in the host's secret/environment facility, not in project files or chat.
+Plugin generation and Credits call the CLI directly; Gemini and upload scripts run through `renoise auth exec` so they reuse the credential without printing it. `RENOISE_API_KEY` remains the credential override for CI and containers, but the native CLI binary is still required.
 
 Verify through the native CLI:
 
@@ -84,7 +84,7 @@ renoise account status --json
 renoise model --json
 ```
 
-If authentication fails, direct the user to https://www.renoise.ai/developer to create or rotate a key, then repeat `renoise auth login`.
+If browser authentication fails, rerun `renoise auth login --web --json`. Only direct the user to account settings when the browser reports an account or permission error; do not fall back to secret entry in chat.
 
 ## 3. Check Workflow Readiness
 

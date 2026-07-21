@@ -104,8 +104,10 @@ function extract(archive, destination, platform) {
   }
 }
 
-export function hasRequiredCommands(generationHelp, authHelp) {
-  return generationHelp.includes('renoise generate run') && authHelp.includes('renoise auth exec');
+export function hasRequiredCommands(generationHelp, authHelp, loginHelp) {
+  return generationHelp.includes('renoise generate run')
+    && authHelp.includes('renoise auth exec')
+    && loginHelp.includes('--web');
 }
 
 export function compareVersions(left, right) {
@@ -121,7 +123,8 @@ function verify(target) {
   execFileSync(target, ['version'], { stdio: 'pipe' });
   const generationHelp = execFileSync(target, ['help', 'generate', 'run'], { encoding: 'utf8' });
   const authHelp = execFileSync(target, ['help', 'auth', 'exec'], { encoding: 'utf8' });
-  if (!hasRequiredCommands(generationHelp, authHelp)) throw new Error('Release is incompatible: generate run and auth exec are required');
+  const loginHelp = execFileSync(target, ['help', 'auth', 'login'], { encoding: 'utf8' });
+  if (!hasRequiredCommands(generationHelp, authHelp, loginHelp)) throw new Error('Release is incompatible: generate run, auth exec, and browser login are required');
 }
 
 function findOnPath(binary) {
@@ -141,11 +144,12 @@ function inspectInstalled(info) {
     const versionOutput = execFileSync(path, ['version'], { encoding: 'utf8' }).trim();
     const generationHelp = execFileSync(path, ['help', 'generate', 'run'], { encoding: 'utf8' });
     const authHelp = execFileSync(path, ['help', 'auth', 'exec'], { encoding: 'utf8' });
+    const loginHelp = execFileSync(path, ['help', 'auth', 'login'], { encoding: 'utf8' });
     return {
       path,
       version: versionOutput.match(/\b(v?\d+\.\d+\.\d+)\b/)?.[1]?.replace(/^v/, '') || 'unknown',
       versionOutput,
-      compatible: hasRequiredCommands(generationHelp, authHelp),
+      compatible: hasRequiredCommands(generationHelp, authHelp, loginHelp),
     };
   } catch {
     return { path, version: 'unknown', versionOutput: 'unreadable', compatible: false };

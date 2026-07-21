@@ -92,8 +92,8 @@ test('installer selects and verifies macOS, Windows, and Linux archives', () => 
   }, platformInfo('darwin', 'arm64'));
   assert.equal(plan.archive.browser_download_url, `https://download.renoise.ai/cli/v0.2.0/${assets[1].name}`);
   assert.equal(expectedChecksum(`${'a'.repeat(64)}  ${assets[0].name}\n`, assets[0].name), 'a'.repeat(64));
-  assert.equal(hasRequiredCommands('Usage: renoise generate run', 'Usage: renoise auth exec'), true);
-  assert.equal(hasRequiredCommands('Usage: renoise generate [command]', 'Usage: renoise auth [command]'), false);
+  assert.equal(hasRequiredCommands('Usage: renoise generate run', 'Usage: renoise auth exec', 'Flags:\n      --web'), true);
+  assert.equal(hasRequiredCommands('Usage: renoise generate run', 'Usage: renoise auth exec', 'Usage: renoise auth login'), false);
   assert.ok(compareVersions('0.3.0', '0.2.0') > 0);
   assert.equal(compareVersions('0.2.0', '0.2.0'), 0);
 });
@@ -105,5 +105,7 @@ test('setup only installs after explicit approval', () => {
   assert.match(setup, /--check/);
   assert.match(setup, /Ask for explicit confirmation/);
   assert.match(setup, /--install/);
+  assert.match(setup, /renoise auth login --web --json/);
+  assert.match(setup, /never ask them to open a terminal/);
   assert.match(setup, /never edits `PATH`/);
 });
