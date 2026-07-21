@@ -119,7 +119,7 @@ Rules:
 
 ## 3. Character and Scene References
 
-Before any paid generation, verify `renoise` with `command -v renoise` on macOS/Linux or `Get-Command renoise` on Windows PowerShell, then run `renoise help generate run`, `renoise auth status --json`, and `renoise model --json`. If a check fails, stop and direct the user to **Setup / Account**; never install software or edit `PATH` without explicit approval.
+Before any paid generation, verify `renoise` with `command -v renoise` on macOS/Linux or `Get-Command renoise` on Windows PowerShell, confirm `renoise help task create` contains `--prompt-file`, then run `renoise help task wait`, `renoise auth status --json`, and `renoise model --json`. If a check fails, stop and direct the user to **Setup / Account**; never install software or edit `PATH` without explicit approval.
 
 If a character appears more than once, create/register a reference first. Do not rely on text descriptions alone.
 
@@ -137,10 +137,13 @@ For recurring locations, create scene refs only when needed. Too many references
 
 Select an image model from `renoise model --json`, inspect it, then use only advertised parameters:
 
+Save the approved prompt to a file, create the task, record `task.id`, then wait separately:
+
 ```bash
-renoise generate run <selected-image-model> \
-  --prompt "$PROMPT" \
+renoise task create <selected-image-model> \
+  --prompt-file <approved-prompt-file> \
   --tags "<project>,character-ref,<character>" --json
+renoise task wait <task-id> --timeout 15m --json
 ```
 
 Upload useful references to the Renoise material pool, keep the returned material ID, and pass it directly:

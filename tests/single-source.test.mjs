@@ -92,8 +92,11 @@ test('installer selects and verifies macOS, Windows, and Linux archives', () => 
   }, platformInfo('darwin', 'arm64'));
   assert.equal(plan.archive.browser_download_url, `https://download.renoise.ai/cli/v0.2.0/${assets[1].name}`);
   assert.equal(expectedChecksum(`${'a'.repeat(64)}  ${assets[0].name}\n`, assets[0].name), 'a'.repeat(64));
-  assert.equal(hasRequiredCommands('Usage: renoise generate run', 'Usage: renoise auth exec', 'Flags:\n      --web'), true);
-  assert.equal(hasRequiredCommands('Usage: renoise generate run', 'Usage: renoise auth exec', 'Usage: renoise auth login'), false);
+  const createHelp = 'Usage: renoise task create\nFlags:\n      --prompt-file string';
+  const waitHelp = 'Usage: renoise task wait';
+  assert.equal(hasRequiredCommands(createHelp, waitHelp, 'Usage: renoise auth exec', 'Flags:\n      --web'), true);
+  assert.equal(hasRequiredCommands('Usage: renoise task create', waitHelp, 'Usage: renoise auth exec', 'Flags:\n      --web'), false);
+  assert.equal(hasRequiredCommands(createHelp, waitHelp, 'Usage: renoise auth exec', 'Usage: renoise auth login'), false);
   assert.ok(compareVersions('0.3.0', '0.2.0') > 0);
   assert.equal(compareVersions('0.2.0', '0.2.0'), 0);
 });

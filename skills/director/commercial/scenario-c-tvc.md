@@ -97,7 +97,7 @@ Present all shots together so the user sees the complete video in one view:
 @Image 1 → [filename] → ref_image (all shots)
 
 --- Generation Parameters ---
-Model: [live-capability selection] | Ratio: [advertised value] | Total estimated cost: run `renoise generate cost <model> --json` per segment and sum
+Model: [live-capability selection] | Ratio: [advertised value] | Total estimated cost: run `renoise task cost <model> --json` per segment and sum
 Note: Each shot is a separate segment, assembled by ffmpeg.
 ---
 ```

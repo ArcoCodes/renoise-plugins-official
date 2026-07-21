@@ -135,7 +135,7 @@ Present the full prompt in the standard preview format and wait for explicit con
 Model: [selected from `renoise model --json`]
 Duration / aspect ratio: [values advertised by the selected model]
 Spoken language: [only if the segment has dialogue/voiceover — label it explicitly, e.g. "口播：中文"]
-Estimated cost: [from `renoise generate cost <selected-model> --json`]
+Estimated cost: [from `renoise task cost <selected-model> --json`]
 ---
 ```
 
@@ -167,16 +167,17 @@ Record all material IDs and assign only roles advertised by `renoise model <sele
 **Step 4 — Generate**
 
 ```bash
-renoise generate run <selected-model> \
-  --prompt "<prompt>" \
+renoise task create <selected-model> \
+  --prompt-file <approved-prompt-file> \
   [only parameters and material roles advertised by that model] --json
+renoise task wait <task-id> --timeout 15m --json
 ```
 
 > **Scenario C multi-clip**: See assembly instructions in `scenario-c-tvc.md` Phase 4 Step 5.
 
 **Step 5 — Multi-segment continuity**
 
-Split when the requested duration exceeds the selected model's live maximum. Use `renoise generate chain <task-id> --json` only when the next model advertises a compatible video-reference role; otherwise use an advertised image/frame role and the Transition Table.
+Split when the requested duration exceeds the selected model's live maximum. Use `renoise task chain <task-id> --json` only when the next model advertises a compatible video-reference role; otherwise use an advertised image/frame role and the Transition Table.
 
 **Step 6 — Return results**
 
@@ -217,4 +218,4 @@ For moderation errors, follow the structured CLI error and platform policy in th
 2. **Capabilities**: limits, durations, ratios, roles, and audio behavior come only from `renoise model <selected-model> --json`.
 3. **Faces**: Follow the central `renoise-gen` material policy; do not duplicate model-family behavior here.
 4. **Aspect ratio**: Once confirmed, prepare references for the selected model's advertised ratio.
-5. **Cost**: Use `renoise generate cost` before generating and notify the user if balance is low.
+5. **Cost**: Use `renoise task cost` before creating tasks and notify the user if balance is low.

@@ -233,7 +233,7 @@ Design the **ending of each segment** to set up the next:
 Inspect `renoise model <selected-model> --json` before choosing anchors. Never assume a role or role combination from an old recipe.
 
 - Reuse an approved character/product/scene material through an advertised image-reference role when appearance matters.
-- Use `renoise generate chain <task-id> --json` only when the selected model advertises a compatible video-reference role and motion carryover matters.
+- Use `renoise task chain <task-id> --json` only when the selected model advertises a compatible video-reference role and motion carryover matters.
 - For an exact opening state, extract the previous tail frame and attach it through an advertised frame role. If only image references are available, order the tail frame first and explicitly describe the intended opening composition; treat that as a soft lock.
 - Reinforce every handoff with the verbatim opening-state bridge and a match cut in the Transition Table. Use a short cross-dissolve in post if residual variance remains.
 
@@ -367,10 +367,11 @@ She hands it to @avatar_boy with the energy of someone presenting a solution.
 **Step 3: Attach materials via CLI when generating:**
 
 ```bash
-renoise generate run \
-  --prompt "<prompt with @avatar_girl and @avatar_boy references>" \
+renoise task create \
+  --prompt-file <approved-prompt-file> \
   --materials "101:ref_image,102:ref_image" \
-  --duration 15 --ratio 16:9
+  --duration 15 --ratio 16:9 --json
+renoise task wait <task-id> --timeout 15m --json
 ```
 
 The `@name` in the prompt is matched to the attached materials by file name (the server rewrites `@<filename>` to `@ImageN`/`@VideoN` in materials order). The model uses the reference images to maintain the character's visual identity throughout the video.

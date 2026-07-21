@@ -132,10 +132,11 @@ AI-generated via Suno with prompt: "Cinematic suspense, slow build, mysterious p
 ### Character Asset
 
 ```bash
-# Generate character reference sheet
-renoise generate run \
+# Save the approved character prompt, create the task, record task.id, then wait
+renoise task create \
   --model <selected-image-model> <advertised image flags> \
-  --prompt "Character reference sheet for Maya. East Asian woman, late 20s, shoulder-length black hair with subtle auburn highlights, warm ivory skin, almond-shaped dark brown eyes, slim build. Wearing oversized cream-colored chunky-knit wool cardigan over a fitted charcoal cotton turtleneck, high-waisted dark indigo straight-leg jeans, brown leather ankle boots. Small gold hoop earrings, thin gold chain bracelet on left wrist. Multiple angles: front, 3/4, profile. Clean white background."
+  --prompt-file prompts/maya-character.txt --json
+renoise task wait <task-id> --timeout 15m --json
 
 # Download → upload; assign the role from live capabilities and renoise-gen policy
 curl -s -o maya.png "<image_url>"
@@ -146,13 +147,15 @@ renoise upload maya.png
 ### Scene Concept Images (parallel — no dependencies)
 
 ```bash
-# S1 scene: apartment hallway
-renoise generate create --model <selected-image-model> <advertised image flags> \
-  --prompt "Dimly lit apartment hallway, warm pendant light overhead, beige walls, mailboxes on left wall, wooden door at end of hall, small brown package on doormat, grocery bags nearby. Warm amber tones, cool blue shadows. Photorealistic, cinematic. No people."
-
-# S2/S3/S4 scene: apartment living room (reuse for all 3 — same location)
-renoise generate create --model <selected-image-model> <advertised image flags> \
-  --prompt "Cozy apartment living room at twilight. Wooden desk with warm table lamp, large window showing blue twilight sky, bookshelves, potted plants, worn leather chair. Warm amber side-lighting, cool blue from window. Photorealistic, cinematic, shallow depth of field. No people."
+# Save both approved prompts, then create both independent tasks
+renoise task create --model <selected-image-model> <advertised image flags> \
+  --prompt-file prompts/scene-hallway.txt --json
+# → record hallway task ID
+renoise task create --model <selected-image-model> <advertised image flags> \
+  --prompt-file prompts/scene-living.txt --json
+# → record living-room task ID
+renoise task wait <hallway-task-id> --timeout 15m --json
+renoise task wait <living-room-task-id> --timeout 15m --json
 ```
 
 Download and upload each:
@@ -257,11 +260,11 @@ Avoid: No cartoon, no anime, no oversaturated colors, no dutch angles, no text o
 
 ### Cost Estimate
 
-Run `renoise generate cost <model> --json` for each item, sum the returned `estimatedCredit` values, and compare against `renoise account status --json`. If the total exceeds the balance, reduce segment count or choose a cheaper live capability.
+Run `renoise task cost <model> --json` for each item, sum the returned `estimatedCredit` values, and compare against `renoise account status --json`. If the total exceeds the balance, reduce segment count or choose a cheaper live capability.
 
 ```bash
-renoise generate cost <selected-video-model> <advertised S1 flags>   # S1
-renoise generate cost <selected-video-model> <advertised S2 flags>  # S2
+renoise task cost <selected-video-model> <advertised S1 flags>   # S1
+renoise task cost <selected-video-model> <advertised S2 flags>  # S2
 # ...repeat per segment, then sum
 renoise account status
 ```
@@ -270,38 +273,41 @@ renoise account status
 
 ```bash
 # S1 — character face + scene ref (no ref_video for first segment)
-renoise generate run --prompt "<S1 prompt>" --duration 8 --ratio 16:9 \
-  --materials "101:ref_image,201:ref_image"
+renoise task create --prompt-file prompts/S1.txt --duration 8 --ratio 16:9 \
+  --materials "101:ref_image,201:ref_image" --json
 # → task #500
+renoise task wait 500 --timeout 15m --json
 
 # Chain S1 → material
-renoise generate chain 500
+renoise task chain 500
 # → material #V1
 
 # S2 — character + ref_video + scene ref
-renoise generate run --prompt "<S2 prompt>" --duration 13 --ratio 16:9 \
-  --materials "101:ref_image,V1:ref_video,202:ref_image"
+renoise task create --prompt-file prompts/S2.txt --duration 13 --ratio 16:9 \
+  --materials "101:ref_image,V1:ref_video,202:ref_image" --json
 # → task #501
+renoise task wait 501 --timeout 15m --json
 
 # Chain S2 → material
-renoise generate chain 501
+renoise task chain 501
 # → material #V2
 
 # S3 — character + ref_video + scene ref
-renoise generate run --prompt "<S3 prompt>" --duration 12 --ratio 16:9 \
-  --materials "101:ref_image,V2:ref_video,202:ref_image"
+renoise task create --prompt-file prompts/S3.txt --duration 12 --ratio 16:9 \
+  --materials "101:ref_image,V2:ref_video,202:ref_image" --json
 # → task #502
+renoise task wait 502 --timeout 15m --json
 
 # Chain S3 → material
-renoise generate chain 502
+renoise task chain 502
 # → material #V3
 
 # S4 — character + ref_video + scene ref
-renoise generate run --prompt "<S4 prompt>" --duration 12 --ratio 16:9 \
-  --materials "101:ref_image,V3:ref_video,202:ref_image"
+renoise task create --prompt-file prompts/S4.txt --duration 12 --ratio 16:9 \
+  --materials "101:ref_image,V3:ref_video,202:ref_image" --json
+# → record task ID, then wait with that same ID
+renoise task wait <S4-task-id> --timeout 15m --json
 ```
-
-> For asynchronous work, use `renoise generate create` followed by `renoise generate wait <id> --timeout <duration> --json`.
 
 ## Phase 6 — Assembly Guide
 

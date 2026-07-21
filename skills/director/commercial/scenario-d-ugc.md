@@ -23,7 +23,8 @@ renoise upload <person_image_path> --json
 If the user did NOT provide a presenter image, ask what kind of presenter they want. Select an image model from `renoise model --json`, inspect it, generate a portrait with advertised parameters, and present it for approval before uploading.
 
 ```bash
-renoise generate run <selected-image-model> --prompt "<portrait prompt>" --json
+renoise task create <selected-image-model> --prompt-file <portrait-prompt-file> --json
+renoise task wait <task-id> --timeout 15m --json
 curl -s -o presenter.png "<generated_image_url>"
 renoise upload presenter.png --json
 ```

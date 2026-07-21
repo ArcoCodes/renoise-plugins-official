@@ -33,13 +33,14 @@ Run this at the start of every generation session:
 ```bash
 command -v renoise >/dev/null 2>&1 || exit 127
 renoise version
-renoise help generate run | grep -q 'renoise generate run'
+renoise help task create | grep -q -- '--prompt-file'
+renoise help task wait | grep -q 'renoise task wait'
 renoise help auth exec | grep -q 'renoise auth exec'
 renoise auth status --json
 renoise model --json
 ```
 
-On Windows PowerShell, use `Get-Command renoise` instead of `command -v`, and confirm the two help outputs contain `renoise generate run` and `renoise auth exec` instead of using `grep`. If the binary, required commands, or authentication is missing, stop and direct the user to **Setup / Account** (`renoise-setup`). That skill detects macOS/Windows/Linux and x64/ARM64, previews a checksum-verified user-local install, and requires explicit approval before downloading or replacing a binary. Never ask the user to paste an API key into chat.
+On Windows PowerShell, use `Get-Command renoise` instead of `command -v`, and confirm task help contains `renoise task create` plus `--prompt-file` and `renoise task wait`, and auth help contains `renoise auth exec`, instead of using `grep`. If the binary, required commands, or authentication is missing, stop and direct the user to **Setup / Account** (`renoise-setup`). That skill detects macOS/Windows/Linux and x64/ARM64, previews a checksum-verified user-local install, and requires explicit approval before downloading or replacing a binary. Never ask the user to paste an API key into chat.
 
 ## Select a Model Dynamically
 
@@ -58,27 +59,27 @@ Only pass ratios, resolutions, durations, material roles, reference counts, and 
 
 ## Generate
 
-`generate run` creates a task, waits, and returns its result. Omit the model to use the server default, or pass the selected model explicitly:
+Agents must create the task first, record `task.id` from stdout, then wait separately. This makes terminal timeouts resumable and prevents a blind retry from creating and charging for another task:
 
 ```bash
-renoise generate run [model] \
-  --prompt "..." \
+renoise task create [model] \
+  --prompt-file /path/to/prompt.txt \
   [--type video|image|audio] \
   [--duration N] [--ratio X:Y] [--resolution VALUE] \
   [--materials "ID:role[:index],..."] \
-  [--watermark] [--audio-generation=false] \
-  [--timeout 1s5m] --json
+  [--watermark] [--audio-generation=false] --json
+renoise task wait <task-id> --timeout 15m --json
 ```
 
-For asynchronous workflows:
+Use `--prompt-file -` to read a prompt from stdin, or `--prompt` only for short shell-safe text. The two flags are mutually exclusive. Omit the model to use the server default, or pass the selected model explicitly.
+
+If `wait` times out or the terminal call is interrupted, rerun `wait` with the same task ID; do not rerun `create`.
 
 ```bash
-renoise generate create [model] --prompt "..." --json
-renoise generate wait <task-id> --timeout 1s5m --json
-renoise generate get <task-id> --json
-renoise generate result <task-id> --json
-renoise generate cancel <task-id> --json
-renoise generate list --json
+renoise task get <task-id> --json
+renoise task result <task-id> --json
+renoise task cancel <task-id> --json
+renoise task list --json
 ```
 
 Other operations:
@@ -86,10 +87,10 @@ Other operations:
 ```bash
 renoise account status --json
 renoise account history --json
-renoise generate cost <model> [generation options] --json
-renoise generate chain <task-id> --json
-renoise generate tags --json
-renoise generate tag <task-id> --tags project,shot --json
+renoise task cost <model> [generation options] --json
+renoise task chain <task-id> --json
+renoise task tags --json
+renoise task tag <task-id> --tags project,shot --json
 renoise material --json
 renoise upload /path/to/file [--type image|video|audio] --json
 ```
@@ -100,7 +101,7 @@ Use `renoise <command> --help` rather than documenting every flag here.
 
 Before spending credits:
 
-1. Run `renoise generate cost <model> ... --json` with the actual generation parameters.
+1. Run `renoise task cost <model> ... --json` with the actual generation parameters.
 2. Multiply `estimatedCredit` by the planned number of generations.
 3. Add character-sheet, upscale, audio, and retry costs when applicable.
 4. Compare with `renoise account status --json`.
@@ -124,7 +125,7 @@ Do not assume role combinations are portable across models. Inspect the selected
 For a completed result that should become a reusable reference:
 
 ```bash
-renoise generate chain <task-id> --json
+renoise task chain <task-id> --json
 ```
 
 ## Prompt Basics
@@ -142,7 +143,7 @@ Tasks are stateless. Repeat the approved style/character text and reattach share
 Choose continuity from the selected model's advertised material roles:
 
 - Reuse a stable image material when identity, product, scene, or palette must stay fixed.
-- Use `generate chain` when a completed result can be reused through a supported video-reference role.
+- Use `task chain` when a completed result can be reused through a supported video-reference role.
 - If an opening-frame role is supported, extract and upload the previous tail frame before the next segment.
 - If only image references are supported, the director may use the tail frame as the first ordered image and describe the intended opening state explicitly.
 
@@ -171,10 +172,10 @@ node ${CLAUDE_SKILL_DIR}/scripts/match-materials.mjs --pool material-pool.json -
 
 ## Errors
 
-Use the CLI's JSON error and exit code; do not infer API behavior from copied endpoint documentation.
+Use the CLI's JSON error and exit code; do not infer API behavior from copied endpoint documentation. JSON errors expose `retryable` and, after task creation, `taskId`; retry only the wait/query operation for that ID, never the paid create operation.
 
 ```bash
-renoise generate get <task-id> --json
+renoise task get <task-id> --json
 renoise auth status --json
 renoise model <model> --json
 ```

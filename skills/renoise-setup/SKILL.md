@@ -33,12 +33,13 @@ If `renoise` exists, verify the plugin contract rather than trusting a static ve
 
 ```text
 renoise version
-renoise help generate run
+renoise help task create
+renoise help task wait
 renoise help auth exec
 renoise help auth login
 ```
 
-The outputs must contain the exact usage paths `renoise generate run` and `renoise auth exec`, plus the `auth login` flag `--web`; older Cobra builds may show parent help and still exit successfully.
+The outputs must contain the exact usage paths `renoise task create`, `renoise task wait`, and `renoise auth exec`, the task flag `--prompt-file`, plus the `auth login` flag `--web`; older Cobra builds may show parent help and still exit successfully.
 
 If the binary is missing, either exact usage path is absent, or the user explicitly asks for an update, resolve `<PLUGIN_ROOT>` and preview the installer. This reads `https://download.renoise.ai/cli/latest.json` and prints the installed path/version/compatibility plus the latest release, archive, and target; it does not download or change files:
 
@@ -63,7 +64,7 @@ The same path handles first install and replacement updates. It does not auto-up
 
 For manual installation, read the public release manifest at `https://download.renoise.ai/cli/latest.json`, download the matching archive and `checksums.txt` from its version directory, verify SHA-256, then extract the binary. Downloading, moving, or replacing files still requires confirmation.
 
-Before replacing an existing binary, the installer checks all three command contracts. After installation, rerun the checks above. If `generate run`, `auth exec`, or browser login is unavailable, the release is incompatible; stop and ask the user to upgrade rather than recreating the command in the plugin.
+Before replacing an existing binary, the installer checks all four command contracts. After installation, rerun the checks above. If agent-safe `task create --prompt-file`, `task wait`, `auth exec`, or browser login is unavailable, the release is incompatible; stop and ask the user to upgrade rather than recreating the command in the plugin.
 
 ## 2. Authenticate Once
 

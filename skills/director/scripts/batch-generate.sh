@@ -73,8 +73,8 @@ for i in $(seq 0 $((SHOT_COUNT - 1))); do
 
   # Create task (segment task IDs are recorded locally in the project manifest below —
   # no server-side tags: the Renoise app does not filter by tag).
-  CREATE_OUTPUT=$(renoise generate create \
-    --prompt "$PROMPT" \
+  CREATE_OUTPUT=$(printf '%s' "$PROMPT" | renoise task create \
+    --prompt-file - \
     --duration "$DURATION" \
     --ratio "$RATIO" --json) || {
     echo "[FAILED] $SHOT_ID — create error:"
@@ -99,13 +99,13 @@ for i in $(seq 0 $((SHOT_COUNT - 1))); do
   echo "Task created: #$TASK_ID"
 
   # Wait for completion
-  WAIT_OUTPUT=$(renoise generate wait "$TASK_ID" --timeout "${TIMEOUT}s" --json) || {
+  WAIT_OUTPUT=$(renoise task wait "$TASK_ID" --timeout "${TIMEOUT}s" --json) || {
     echo "[FAILED] $SHOT_ID (task #$TASK_ID) — wait error:"
     echo "$WAIT_OUTPUT"
     FAILED=$((FAILED + 1))
     RESULTS+=("$SHOT_ID|FAILED|#$TASK_ID|wait timeout/error")
     echo ""
-    echo "Stopping batch — the task may still be running. Check with: renoise generate get $TASK_ID"
+    echo "Stopping batch — the task may still be running. Check with: renoise task get $TASK_ID"
     break
   }
 

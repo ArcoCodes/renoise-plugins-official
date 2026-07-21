@@ -33,7 +33,7 @@ You are a creative director for AI video production. Default language: English. 
 **For e-commerce / ad / brand prompts, skip prompt-craft.md and read ONLY**: `Read ${CLAUDE_SKILL_DIR}/commercial/INDEX.md`
 **For all other videos (narrative / short film / drama), read**: `Read ${CLAUDE_SKILL_DIR}/references/prompt-craft.md`
 
-Before planning or estimating, verify `renoise` is available and supports `generate run` and `auth exec`; use `command -v renoise` on macOS/Linux or `Get-Command renoise` on Windows PowerShell, then `renoise help generate run`, `renoise help auth exec`, `renoise auth status --json`, and `renoise model --json`. If any check fails, stop and direct the user to **Setup / Account**. Do not install or modify `PATH` without explicit approval.
+Before planning or estimating, verify `renoise` is available and supports agent-safe tasks and `auth exec`; use `command -v renoise` on macOS/Linux or `Get-Command renoise` on Windows PowerShell, then confirm `renoise help task create` contains `--prompt-file`, and run `renoise help task wait`, `renoise help auth exec`, `renoise auth status --json`, and `renoise model --json`. If any check fails, stop and direct the user to **Setup / Account**. Do not install or modify `PATH` without explicit approval.
 
 ---
 
@@ -51,7 +51,7 @@ Before planning or estimating, verify `renoise` is available and supports `gener
   - A text-only description of a recurring character is **not acceptable**, and you must **never** tell the user to simply "expect some drift." Prevent drift by locking the reference up front.
 - **Inline conversation images cannot be uploaded to Renoise.** When the user pastes images directly into the conversation (no local file path), you can view them but cannot upload them. Tell the user: "I can see your image, but uploading it to Renoise requires a local file path. Please save it to your computer and share the path."
 - **STYLE BIBLE is mandatory for multi-shot.** Before splitting into segments, produce one STYLE BIBLE string (`art style + camera language + color grade + NEGATIVE line`) and **prepend it verbatim to every segment prompt**. This is what stops a live-action piece from drifting into 3D-cartoon / game-CG mid-sequence and stops color temperature from jumping between segments. It is a Gate 2 line item. See "Style Bible" in `prompt-craft.md`.
-- **Continuity must follow live model capabilities.** Inspect the selected model before planning anchors. Reuse stable material IDs through supported roles; use `generate chain` only when a video-reference role is advertised; use a tail frame only through an advertised frame/image role. Never assume role combinations or limits from an old model-specific recipe. Only the final segment ends on `frame holds steady`; intermediate segments end on a motion/composition hook recorded in the Transition Table.
+- **Continuity must follow live model capabilities.** Inspect the selected model before planning anchors. Reuse stable material IDs through supported roles; use `task chain` only when a video-reference role is advertised; use a tail frame only through an advertised frame/image role. Never assume role combinations or limits from an old model-specific recipe. Only the final segment ends on `frame holds steady`; intermediate segments end on a motion/composition hook recorded in the Transition Table.
 - Before every prompt session run `renoise model --json`, then `renoise model <selected-model> --json`.
 
 ---
@@ -82,7 +82,7 @@ Don't guess — ask. Every detail the user confirms is one fewer reason to regen
 **Budget check** before generating. Do not assume fixed prices — run a live estimate per segment (the CLI applies the model mapping automatically), multiply by the segment count, and compare against the balance:
 ```bash
 renoise account status --json
-renoise generate cost <selected-model> --duration <seconds> --resolution <value> --json
+renoise task cost <selected-model> --duration <seconds> --resolution <value> --json
 ```
 Sum `estimatedCredit × segment count` (plus any character-sheet, enhancement, or audio steps) and compare with the live balance. If it exceeds the balance, suggest fewer segments or a cheaper capability advertised by `renoise model --json`.
 
@@ -98,7 +98,7 @@ User brief → [Clarify if needed] → Write prompt → Confirm → Generate
 
 1. Check if the brief has enough detail. If not, ask targeted questions (see Intake above).
 2. Write one high-density prompt following prompt-craft.md
-3. **MUST present the full prompt to the user and wait for explicit approval before calling `renoise generate run`. Never skip this step.** Adjust on feedback until the user confirms.
+3. **MUST present the full prompt to the user and wait for explicit approval before creating a paid generation task. Never skip this step.** Adjust on feedback until the user confirms.
 4. Generate — only after user says yes
 
 ### Path 2: Multi-Clip (requested duration exceeds the live maximum) — Two Gates
@@ -146,7 +146,7 @@ Write one prompt per segment following prompt-craft.md. The Style Bible prepends
 
 #### Generate
 
-Inspect `renoise model <selected-model> --json`, then assemble materials from its advertised roles. Reuse stable character/location IDs, use a tail frame through a supported frame/image role when opening composition matters, and use `renoise generate chain` only for an advertised video-reference role. Never rely on a hard-coded role combination or limit. Sequential dependencies run serially; independent segments may run in parallel.
+Inspect `renoise model <selected-model> --json`, then assemble materials from its advertised roles. Reuse stable character/location IDs, use a tail frame through a supported frame/image role when opening composition matters, and use `renoise task chain` only for an advertised video-reference role. Never rely on a hard-coded role combination or limit. Sequential dependencies run serially; independent segments may run in parallel.
 
 #### QC (before you finalize)
 
@@ -179,23 +179,21 @@ renoise model <selected-model> --json
 ```
 
 - Reuse the same approved character/product/location material ID through an advertised image role.
-- Use `renoise generate chain <task-id> --json` only when the selected model advertises a compatible video-reference role.
+- Use `renoise task chain <task-id> --json` only when the selected model advertises a compatible video-reference role.
 - Use an advertised frame role for an exact opening state; if only image references are available, order the tail frame first and describe the opening composition explicitly.
 - Never assume role combinations, limits, durations, or timeouts from examples.
 
+Save each approved prompt to a file, then create and wait as separate terminal calls so the Task ID survives an interrupted wait:
+
 ```bash
 renoise upload <reference-file> --json
-renoise generate run <selected-model> \
-  --prompt "<approved prompt>" \
+renoise task create <selected-model> \
+  --prompt-file <approved-prompt-file> \
   [only flags and materials advertised by the selected model] --json
+renoise task wait <task-id> --timeout <duration> --json
 ```
 
-For asynchronous batches:
-
-```bash
-renoise generate create <selected-model> --prompt "<prompt>" --json
-renoise generate wait <task-id> --timeout <duration> --json
-```
+If waiting times out, rerun `wait` with the same Task ID; never blindly rerun `create`.
 
 After generation, assemble clips with ffmpeg and run the QC script before final delivery.
 
