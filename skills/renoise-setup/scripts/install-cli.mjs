@@ -223,7 +223,7 @@ async function main() {
     return;
   }
 
-  if (plan.installed?.version !== 'unknown' && compareVersions(plan.installed.version, latestVersion) >= 0) {
+  if (plan.installed && plan.installed.version !== 'unknown' && compareVersions(plan.installed.version, latestVersion) >= 0) {
     if (!plan.installed.compatible) throw new Error(`Installed CLI ${plan.installed.version} does not satisfy the plugin contract and no newer public release is available`);
     console.log(`${plan.installed.version === latestVersion ? 'Already current' : 'Installed version is newer than the latest release'} and compatible: ${plan.installed.path}`);
     return;
