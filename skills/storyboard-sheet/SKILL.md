@@ -119,6 +119,8 @@ Rules:
 
 ## 3. Character and Scene References
 
+Before any paid generation, verify `renoise` with `command -v renoise` on macOS/Linux or `Get-Command renoise` on Windows PowerShell, then run `renoise help generate run`, `renoise auth status --json`, and `renoise model --json`. If a check fails, stop and direct the user to **Setup / Account**; never install software or edit `PATH` without explicit approval.
+
 If a character appears more than once, create/register a reference first. Do not rely on text descriptions alone.
 
 Character ref prompt:
@@ -133,26 +135,21 @@ Character ref prompt:
 
 For recurring locations, create scene refs only when needed. Too many references can confuse layout/identity.
 
-Renoise generation pattern:
+Select an image model from `renoise model --json`, inspect it, then use only advertised parameters:
 
 ```bash
-node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/renoise-cli.mjs task generate \
+renoise generate run <selected-image-model> \
   --prompt "$PROMPT" \
-  --model gpt-image-2 \
-  --resolution 2k \
-  --ratio 9:16 \
-  --tags "<project>,character-ref,<character>"
+  --tags "<project>,character-ref,<character>" --json
 ```
 
 Upload useful references to the Renoise material pool, keep the returned material ID, and pass it directly:
 
 ```bash
-node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/renoise-cli.mjs material upload /path/to/reference.png
-# Material uploaded: #42
---materials "42:ref_image"
+renoise upload /path/to/reference.png --json
 ```
 
-The deprecated `asset:` prefix must not be used.
+Assign the returned ID through a material role advertised by the selected generation model. The deprecated `asset:` prefix must not be used.
 
 ---
 

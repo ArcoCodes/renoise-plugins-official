@@ -2,7 +2,7 @@
 """
 Beat analysis for short film editing.
 Analyzes audio to extract BPM, beat positions, section boundaries,
-and suggests clip cut points within seedance-2.0's 4-15s constraint.
+and suggests clip cut points within this editor's configured 5-15s window.
 
 Usage: python3 analyze-beats.py <audio_file>
 Output: JSON to stdout
@@ -49,7 +49,7 @@ def analyze_beats(audio_path: str) -> dict:
     # Build sections with labels
     section_labels = _label_sections(boundaries, total_duration)
 
-    # Generate suggested cuts respecting 5-15s constraint
+    # Generate suggested cuts respecting the configured segment window
     suggested_cuts = _suggest_cuts(section_labels, beat_times, total_duration)
 
     return {
@@ -106,7 +106,7 @@ def _suggest_cuts(
     total_duration: float,
 ) -> list[dict]:
     """
-    Generate suggested cut points respecting 5-15s segment constraints.
+    Generate suggested cut points respecting the configured segment window.
     Uses section boundaries as primary cuts, then subdivides or merges as needed.
     """
     raw_segments = []
@@ -161,7 +161,7 @@ def _subdivide_at_beats(
     beats: list[float],
     label: str,
 ) -> list[dict]:
-    """Split a long section at beat points into 5-15s segments."""
+    """Split a long section at beat points into configured-length segments."""
     section_beats = [b for b in beats if start <= b <= end]
     if not section_beats:
         # No beats found; split evenly

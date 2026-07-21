@@ -1,9 +1,10 @@
 ---
 name: renoise-setup
 description: >
-  Set up or diagnose Renoise on any agent host. Use when the user asks to install,
-  configure, connect, log in, check dependencies, enable the Renoise CLI, or fix
+  Set up, update, or diagnose Renoise on any agent host. Use when the user asks to install,
+  upgrade, configure, connect, log in, check dependencies, enable the Renoise CLI, or fix
   missing RENOISE_API_KEY, ffmpeg, jq, yt-dlp, ImageMagick, or agent-browser.
+disable-model-invocation: true
 metadata:
   author: renoise
   version: 1.0.0
@@ -17,23 +18,51 @@ This is the host-neutral setup flow. Do not assume Claude Code, Codex, OpenClaw,
 
 Never ask the user to paste an API key into chat. Never install software, move binaries, edit `PATH`, or change host configuration without explicit confirmation.
 
-## 1. Detect Core Runtime and CLI
+## 1. Detect, Install, or Update the Core Runtime
 
-```bash
-command -v node 2>/dev/null
-command -v bun 2>/dev/null || true
-command -v renoise 2>/dev/null
-renoise version 2>/dev/null || true
+Detect without changing the host:
+
+| Host | Detection |
+|---|---|
+| macOS / Linux shell | `command -v node; command -v renoise; uname -s; uname -m` |
+| Windows PowerShell | `Get-Command node, renoise -ErrorAction SilentlyContinue; [System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture` |
+
+Node.js is required by the plugin's Gemini, material, and cross-platform installer scripts; Bun is optional. The native CLI is required and is the single source of truth for authentication, model capabilities, generation, uploads, and task management.
+
+If `renoise` exists, verify the plugin contract rather than trusting a static version number:
+
+```text
+renoise version
+renoise help generate run
+renoise help auth exec
 ```
 
-Node.js is required because existing plugin workflows invoke `node`; Bun is optional and may power host-specific integrations. The native CLI is recommended and gives the interactive generator/settings UI plus secure shared login.
+The two help outputs must contain the exact usage paths `renoise generate run` and `renoise auth exec`; older Cobra builds may show parent help and still exit successfully.
 
-If `renoise` is missing, offer one of these; run nothing without confirmation:
+If the binary is missing, either exact usage path is absent, or the user explicitly asks for an update, resolve `<PLUGIN_ROOT>` and preview the installer. This reads `https://download.renoise.ai/cli/latest.json` and prints the installed path/version/compatibility plus the latest release, archive, and target; it does not download or change files:
 
-- [GitHub Releases](https://github.com/renoise-ai/renoise-cli/releases/latest): download the matching OS/CPU archive, extract `renoise` (`renoise.exe` on Windows), and place it on `PATH`.
-- With Go installed: `go install github.com/renoise-ai/renoise-cli/cmd/renoise@latest`.
+```text
+node "<PLUGIN_ROOT>/skills/renoise-setup/scripts/install-cli.mjs" --check
+```
 
-Release archives are `.tar.gz` on macOS/Linux and `.zip` on Windows. Verify with `renoise version`. A non-PATH binary can be selected with `RENOISE_CLI_PATH=/path/to/renoise`.
+The installer supports macOS, Windows, and Linux on x64 or ARM64. It selects `.tar.gz` on macOS/Linux or `.zip` on Windows, verifies the archive against the release's `checksums.txt`, and installs to:
+
+| Host | Default target |
+|---|---|
+| macOS / Linux | `~/.local/bin/renoise` |
+| Windows | `%LOCALAPPDATA%\Renoise\bin\renoise.exe` |
+
+Show the installed and latest versions, detected release archive, whether the target will replace an existing file, and target path. If the current version is already compatible, do not force an update during unrelated work. **Ask for explicit confirmation.** Only after approval run:
+
+```text
+node "<PLUGIN_ROOT>/skills/renoise-setup/scripts/install-cli.mjs" --install
+```
+
+The same path handles first install and replacement updates. It does not auto-update in the background, and it never edits `PATH`. If the target directory is absent from `PATH` or another `renoise` binary wins PATH resolution, explain the platform-specific change and ask separately before editing shell profiles or the Windows user environment. Restart Codex/ChatGPT Desktop or Claude Desktop after a PATH change. Linux has no official Codex Desktop app, but the same CLI and skills work in Codex CLI and Claude Code.
+
+For manual installation, read the public release manifest at `https://download.renoise.ai/cli/latest.json`, download the matching archive and `checksums.txt` from its version directory, verify SHA-256, then extract the binary. Downloading, moving, or replacing files still requires confirmation.
+
+Before replacing an existing binary, the installer checks both exact usage paths. After installation, rerun all three contract checks above. If `generate run` or `auth exec` is unavailable, the release is incompatible; stop and ask the user to upgrade rather than recreating the command in the plugin.
 
 ## 2. Authenticate Once
 
@@ -44,27 +73,35 @@ renoise auth status --json
 renoise auth login
 ```
 
-Have the user run `renoise auth login` in an interactive terminal. It masks, validates, and saves the key in the OS user config directory with restricted permissions. Plugin generation, Gemini, upload, fallback, and Credits code all reuse that saved credential without printing it.
+Have the user run `renoise auth login` in an interactive terminal. It masks, validates, and saves the key in the OS user config directory with restricted permissions. Plugin generation and Credits call the CLI directly; Gemini and upload scripts run through `renoise auth exec` so they reuse the credential without printing it.
 
-`RENOISE_API_KEY` remains the override for CI, containers, or hosts where installing the native CLI is not possible. Tell the user to store it in that host's secret/environment facility, not in project files or chat. Do not guess or edit host-specific config paths.
+`RENOISE_API_KEY` remains the credential override for CI and containers, but the native CLI binary is still required. Tell the user to store the key in the host's secret/environment facility, not in project files or chat.
 
-Verify through the stable adapter:
+Verify through the native CLI:
 
 ```bash
-cd "<PLUGIN_ROOT>"
-node skills/renoise-gen/renoise-cli.mjs credit me
+renoise account status --json
+renoise model --json
 ```
 
 If authentication fails, direct the user to https://www.renoise.ai/developer to create or rotate a key, then repeat `renoise auth login`.
 
 ## 3. Check Workflow Readiness
 
-Detection only:
+Detection only on macOS/Linux:
 
 ```bash
 for tool in jq ffmpeg ffprobe yt-dlp magick agent-browser; do
   if command -v "$tool" >/dev/null 2>&1; then printf 'OK      %s\n' "$tool"; else printf 'MISSING %s\n' "$tool"; fi
 done
+```
+
+Windows PowerShell equivalent:
+
+```powershell
+'jq','ffmpeg','ffprobe','yt-dlp','magick','agent-browser' | ForEach-Object {
+  if (Get-Command $_ -ErrorAction SilentlyContinue) { "OK      $_" } else { "MISSING $_" }
+}
 ```
 
 | Tool | Enables |

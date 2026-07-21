@@ -6,7 +6,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        感谢反馈！涉及生成时，附上 **Task ID**（`task get <id>` 可查）和产物链接/截图最有帮助。
+        感谢反馈！涉及生成时，附上 **Task ID**（`renoise generate get <id>` 可查）和产物链接/截图最有帮助。
         Thanks! A **Task ID** + output link/screenshot help the most when it involves a generation.
         > 账户 / 余额 / API Key 问题请到 https://www.renoise.ai/developer ，不在本仓库。
 

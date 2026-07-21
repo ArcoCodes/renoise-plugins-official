@@ -64,13 +64,13 @@
 
 ```bash
 # 1. Upload product image (product image only, NOT the model image)
-node renoise-cli.mjs material upload <product-image-path>
+renoise upload <product-image-path>
 # → returns material id, e.g. 194
 
 # 2. Submit task (with product image material, all-in-one)
-node renoise-cli.mjs task generate \
+renoise generate run \
   --prompt "<Video Prompt above>" \
-  --model seedance-2.0 --duration 15 --ratio 9:16 \
+  --model <selected-video-model> <advertised video flags> \
   --materials "194:ref_image"
 ```
 

@@ -8,7 +8,7 @@ permissions:
   contents: read
 
 jobs:
-  adapter:
+  plugin:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -16,7 +16,8 @@ jobs:
         with:
           node-version: 22
       - run: npm test
-      - run: node --check skills/renoise-gen/renoise-cli.mjs
-      - run: node --check skills/renoise-gen/renoise-cli-legacy.mjs
-      - run: bash -n hooks/session-start.sh skills/director/scripts/batch-generate.sh
+      - run: node --check skills/gemini-gen/scripts/gemini.mjs
+      - run: node --check skills/renoise-gen/scripts/material-ingest.mjs
+      - run: node --check skills/renoise-setup/scripts/install-cli.mjs
+      - run: bash -n skills/director/scripts/batch-generate.sh
       - run: npm pack --dry-run

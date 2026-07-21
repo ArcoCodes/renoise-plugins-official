@@ -1,0 +1,4 @@
+interface:
+  display_name: "Analyze Media"
+  short_description: "Analyze images and video with multimodal AI"
+  default_prompt: "Use $gemini-gen to analyze this image or video."

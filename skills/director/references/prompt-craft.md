@@ -1,6 +1,6 @@
 # Prompt Craft - Writing High-Density Video Prompts
 
-This is the most important reference in the director skill. **The quality of the video is determined by the quality of the prompt.** Everything else (pipeline, material uploads, assembly) is infrastructure. This document teaches you how to write prompts that make seedance-2.0 produce cinematic results.
+This is the main creative reference in the director skill. Model capabilities and guidance come from `renoise model <selected-model> --json`; this document only covers model-independent prompt craft.
 
 ---
 
@@ -80,7 +80,7 @@ Other examples:
 
 This is where most prompts fail. The difference between a mediocre and an excellent prompt is **density and specificity** in the timeline.
 
-**For single clips (≤15s): use 1-2 second granularity.**
+**For single clips: use roughly 1–2 second granularity within the selected duration.**
 **For multi-clip segments: use 2-3 second granularity minimum.**
 
 Never use the 5-second blocks `[0-5s] [5-10s] [10-15s]` as your primary structure - they're too coarse. Use them only as rough section markers if needed, but fill them with beat-by-beat action.
@@ -111,7 +111,7 @@ Notice: no camera instructions mixed in. The action is pure narrative. Camera ca
 
 ### 6. Sound Design (per-segment, not a footnote)
 
-Sound design is **not optional**. seedance-2.0 generates audio with the video. Specific sound descriptions improve both the audio AND the visual output - they help the model understand the physical reality of the scene.
+When the selected model advertises audio generation, sound design is **not optional**. Specific sound descriptions can improve both audio and visual coherence by grounding the physical scene.
 
 **Bad** (what the old framework did):
 ```
@@ -228,43 +228,21 @@ Design the **ending of each segment** to set up the next:
 | **Time Jump** | Visual time indicators (light change, seasons) | Montage, passage of time |
 | **Spatial Flow** | Camera moves through a door/window into new space | Exploration, journey |
 
-### Serial continuity routing: reference-image-as-first-frame is the default
+### Serial continuity routing
 
-**For continuous narrative, default to the tail-frame chain carried in reference mode** (previous segment's tail frame → next segment's `ref_image:0` + an explicit first-frame declaration in the prompt). This keeps the next shot opening where the last one landed, and it makes cuts vanish. Reach for the alternative — a shared `ref_image` + color anchor + a match-cut hook — only when you deliberately want **free composition** per shot (new angles, new blocking) rather than an opening-frame handoff. State this trade-off to yourself per cut: **continuous-flow priority → tail-frame chain; free-composition priority → shared ref_image + match-cut.** Use `ref_video` when motion/style carryover matters more than pinning the opening frame.
+Inspect `renoise model <selected-model> --json` before choosing anchors. Never assume a role or role combination from an old recipe.
 
-**Why not native `first_frame`? (constraint → technique → soft-lock reminder)**
-- **Constraint**: on the seedance series, frame mode (`first_frame`/`last_frame`) and multimodal reference mode (`ref_image`) are **mutually exclusive** — a segment cannot attach both (only `gemini-omni-flash` allows `first_frame` + `ref_image`). Nearly every narrative segment already carries `ref_image`s (character sheet, scene anchor), so native `first_frame` is unavailable exactly where continuity matters most.
-- **Technique (reference-image-as-first-frame / 全能参考首帧法)**: extract the tail frame, upload it, attach it as a `ref_image` **pinned to index 0** (`TAIL_ID:ref_image:0` → it is `@Image1`), and make the prompt's **first sentence** "Use @Image1 as the first frame." (Chinese-spoken segments: 「以@图片1为首帧」), immediately followed by the `Continuing from the previous shot:` bridge describing the opening state exactly. The tail frame combines freely with the character/scene refs inside reference mode (seedance ≤9 images).
-- **Soft-lock reminder**: the prompt-declared first frame is a **soft lock** — weaker than native `first_frame`. Reinforce it with (a) the verbatim opening-state description, (b) a match-cut / composition match recorded in the Transition Table, and (c) if the join still shows, a 0.3–0.5s cross-dissolve in post.
+- Reuse an approved character/product/scene material through an advertised image-reference role when appearance matters.
+- Use `renoise generate chain <task-id> --json` only when the selected model advertises a compatible video-reference role and motion carryover matters.
+- For an exact opening state, extract the previous tail frame and attach it through an advertised frame role. If only image references are available, order the tail frame first and explicitly describe the intended opening composition; treat that as a soft lock.
+- Reinforce every handoff with the verbatim opening-state bridge and a match cut in the Transition Table. Use a short cross-dissolve in post if residual variance remains.
 
-Native `ID:first_frame` remains valid **only when the segment has no other image reference at all** (e.g. a pure landscape B-roll continuation with no character/scene refs) — there it is the hard lock and needs no prompt declaration.
-
-For continuity blocks in the same location, choose the method based on what must stay fixed:
-
-**Use the tail-frame chain when:**
-- The next shot must open on an exact composition from the previous shot
-- Pose, gaze, lighting state, or prop placement needs to match precisely
-- You want a clean visual handoff, but the next shot can develop new motion after the opening frame
-
-Workflow:
-1. End the current segment on a clean, readable composition
-2. Generate the segment
-3. Extract the previous segment's tail frame with ffmpeg
-4. Upload the extracted image, then route: segment has other `ref_image`s → attach as `TAIL_ID:ref_image:0` + open the prompt with "Use @Image1 as the first frame."; no other image reference → use it as `ID:first_frame`
-
-Recommended extraction command:
 ```bash
 ffmpeg -sseof -0.2 -i previous-segment.mp4 -frames:v 1 -q:v 2 -y next-first-frame.jpg
+renoise upload next-first-frame.jpg --json
 ```
 
-When you design segment endings for this workflow, the final 1-2 seconds should settle into a clear pose, gaze direction, lighting state, and prop state that can survive extraction as a single still frame.
-
-**Use `ref_video` when:**
-- Motion/style transfer matters more than pinning the next shot's opening frame
-- The transition itself is dynamic and the previous clip's movement should influence the next one
-- A single extracted still frame is not enough to carry the intended continuity
-
-When using `ref_video` serial chain, the model physically continues from the previous segment's ending frame — focus transition design on the **last 2-3 seconds** of each segment.
+Design the end of each intermediate segment as a readable motion/composition hook the next segment can continue.
 
 ### Same style line everywhere
 Copy your STYLE BIBLE / style foundation block (Section 1) identically into every segment — including its NEGATIVE line. See "Style Bible" above.
@@ -344,7 +322,7 @@ When adapting existing material (novels, screenplays, manga):
 - **Don't write generic actions**: "She interacts with the object" → write exactly what she does with her hands
 - **Don't summarize**: "They argue about whose fault it is" → write the specific pointing gestures, clipboard grabs, stepping patterns
 - **Don't front-load camera instructions**: action first, camera second. The model needs to understand the scene before knowing how to film it
-- **Don't use energy numbers**: "⚡ Energy: 7" means nothing to seedance-2.0. Write the actual pacing - fast cuts, slow holds, motion blur
+- **Don't use energy numbers**: "⚡ Energy: 7" is not a visual instruction. Write the actual pacing — fast cuts, slow holds, motion blur.
 - **Don't put BGM instructions for narrative videos**: if the video should have diegetic audio only, say so. BGM instructions are for e-commerce/product videos.
 - **Don't skip sound design**: every silent prompt is a wasted opportunity to improve the visual output
 
@@ -359,12 +337,12 @@ When you attach reference images (character photos, product shots, scene refs) a
 **Step 1: Upload materials** (see visual-dev.md for details)
 
 ```bash
-# Upload character image (faces included — seedance auto-facepasses on submit, no registration)
-node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/renoise-cli.mjs material upload avatar_girl.png
+# Upload the approved character image
+renoise upload avatar_girl.png --json
 # → material ID #101
 
 # Same for second character
-node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/renoise-cli.mjs material upload avatar_boy.png
+renoise upload avatar_boy.png
 # → material ID #102
 ```
 
@@ -389,7 +367,7 @@ She hands it to @avatar_boy with the energy of someone presenting a solution.
 **Step 3: Attach materials via CLI when generating:**
 
 ```bash
-node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/renoise-cli.mjs task generate \
+renoise generate run \
   --prompt "<prompt with @avatar_girl and @avatar_boy references>" \
   --materials "101:ref_image,102:ref_image" \
   --duration 15 --ratio 16:9
@@ -403,7 +381,7 @@ The `@name` in the prompt is matched to the attached materials by file name (the
 - **Use `@name` every time the character appears** - not just in the character definition block. In the timeline, write `@avatar_girl reaches into the case` so the model knows which face to apply to that action.
 - **Multiple characters**: each gets their own `@name` and their own material entry in the comma-separated `--materials` flag: `--materials "101:ref_image,102:ref_image"`
 - **Works for non-face materials too**: product shots, scene references, etc. Upload as material, reference with `@name` in the prompt.
-- **Face-containing images (seedance)**: pass the face image directly as `ID:ref_image` — it is auto-facepassed on submit, no registration. Reuse the same material ID for a character that recurs across segments. On non-seedance models a face may be blocked by provider review — prefer a seedance model.
+- **Face-containing images**: inspect the selected model's live roles and guidance, then reuse the same approved material ID for a recurring character.
 
 ### Without `@name` (weaker)
 
@@ -422,7 +400,7 @@ Spoken dialogue (say EXACTLY, word-for-word): "别刷了——我把家里的健
 Mouth clearly visible when speaking.
 ```
 
-This format improves mouth-motion accuracy. Follow each dialogue line with the visible-mouth instruction. Keep dialogue lines short (roughly under 15 words / a short spoken clause), max 3-4 lines per 15s segment. Note the model's lip-sync is best when the spoken text is in the segment's dominant language; a short line in a language different from the surrounding prompt text is less reliable (see video-capabilities.md).
+This format can improve mouth motion when the selected model's guidance supports generated speech. Keep lines short, keep the segment's dominant language aligned with the spoken language, and never promise frame-accurate lip sync.
 
 ---
 

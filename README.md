@@ -6,12 +6,12 @@ AI video production skills by Renoise — creative direction, generation, analys
 
 | Skill | Description |
 |-------|-------------|
-| **director** | Creative director — single entry point for all video creation (product ads, short films, TikTok e-commerce, drama, comedy) |
-| **gemini-gen** | Visual understanding & multimodal analysis via Gemini 3.1 Pro (product analysis, video script extraction, style extraction) |
-| **renoise-gen** | AI video & image generation engine — renoise-cli, material pool, product design sheets, scene backgrounds |
-| **renoise-setup** | Cross-host CLI installation, secure login, and workflow dependency readiness |
-| **storyboard-sheet** | Script/novel adaptation into review sheets, shot lists, first frames, and video prompts |
-| **video-download** | Video downloader (yt-dlp + Douyin/TikTok fallback) |
+| **Create with Renoise** (`director`) | Creative direction and production for product ads, short films, e-commerce, drama, and comedy |
+| **Analyze Media** (`gemini-gen`) | Visual understanding, product analysis, script extraction, and style analysis |
+| **Build Storyboard** (`storyboard-sheet`) | Script and novel adaptation into review sheets, shot lists, first frames, and video prompts |
+| **Setup / Account** (`renoise-setup`) | Cross-platform CLI installation/update, secure login, and readiness checks |
+| `renoise-gen` | Internal native-CLI tool layer used by creation workflows |
+| `video-download` | Video downloader utility (yt-dlp + Douyin/TikTok fallback) |
 
 ## Installation
 
@@ -43,89 +43,25 @@ claude plugin install renoise@renoise-plugins-official
 openclaw plugins install @renoise/plugin
 ```
 
-### Codex (≥ 0.117.0)
+### Codex / ChatGPT Desktop
 
-<details>
-<summary><b>Personal install</b> — available across all your projects</summary>
-
-1. Clone the plugin:
+Add the repository marketplace with the native Codex plugin command:
 
 ```bash
-git clone https://github.com/ArcoCodes/renoise-plugins-official.git ~/.codex/plugins/renoise
+codex plugin marketplace add ArcoCodes/renoise-plugins-official
 ```
 
-2. Create or update `~/.agents/plugins/marketplace.json`:
-
-```json
-{
-  "name": "renoise-plugins",
-  "plugins": [
-    {
-      "name": "renoise",
-      "source": {
-        "source": "local",
-        "path": "./renoise"
-      },
-      "policy": {
-        "installation": "AVAILABLE",
-        "authentication": "ON_INSTALL"
-      },
-      "category": "Productivity"
-    }
-  ]
-}
-```
-
-> `source.path` is resolved relative to the marketplace root (`~/.agents/plugins/`). Since the plugin is at `~/.codex/plugins/renoise`, you can also symlink it: `ln -s ~/.codex/plugins/renoise ~/.agents/plugins/renoise`
-
-</details>
-
-<details>
-<summary><b>Workspace install</b> — scoped to a single repo</summary>
-
-1. Add the plugin to your project:
-
-```bash
-git submodule add https://github.com/ArcoCodes/renoise-plugins-official.git plugins/renoise
-```
-
-2. Create `$REPO_ROOT/.agents/plugins/marketplace.json`:
-
-```json
-{
-  "name": "renoise-plugins",
-  "plugins": [
-    {
-      "name": "renoise",
-      "source": {
-        "source": "local",
-        "path": "./plugins/renoise"
-      },
-      "policy": {
-        "installation": "AVAILABLE",
-        "authentication": "ON_INSTALL"
-      },
-      "category": "Productivity"
-    }
-  ]
-}
-```
-
-</details>
-
-3. Restart Codex, run `/plugins` to find and install **renoise**.
+Restart the ChatGPT desktop app, open **Plugins**, select the **Renoise** marketplace, and install **renoise**. Codex Desktop is available on macOS and Windows; on Linux, use the same plugin through Codex CLI.
 
 ## Native Renoise CLI
 
-The `renoise-gen` skill prefers the native Go CLI for authentication, generation, templates, chaining, tags, materials, account queries, JSON output, and owner-scoped task access. Install it once from [GitHub Releases](https://github.com/renoise-ai/renoise-cli/releases/latest): choose the archive matching your OS/CPU, extract `renoise` (`renoise.exe` on Windows), and put it on `PATH`. With Go installed, this is equivalent:
+The native Go CLI is required and is the single source of truth for authentication, model capabilities, generation, uploads, tasks, and machine-readable output.
 
-```bash
-go install github.com/renoise-ai/renoise-cli/cmd/renoise@latest
-```
+Explicitly select **Setup / Account** in Codex/ChatGPT Desktop, or run `/renoise:setup` in Claude Code; account and install actions are intentionally not invoked implicitly. Setup detects macOS/Windows/Linux and x64/ARM64, compares the installed CLI contract/version with the latest release, and previews the archive and user-local target. After confirmation, the same path installs or updates the matching `.tar.gz`/`.zip`, verifies `checksums.txt` and required commands before replacement, and rolls back a failed replacement. The default targets are `~/.local/bin/renoise` on macOS/Linux and `%LOCALAPPDATA%\Renoise\bin\renoise.exe` on Windows. It never updates in the background; any binary replacement or PATH change requires approval, and PATH changes require a Desktop restart.
 
-Ask the agent to “set up Renoise” on any host to trigger the `renoise-setup` skill (`/renoise:setup` is the Claude Code wrapper that also configures its statusLine). Prefer `renoise auth login`: its secure saved credential is reused by the native CLI, Gemini, upload, and bundled fallback. `RENOISE_API_KEY` remains the override for CI and containers.
+Manual downloads are listed in `https://download.renoise.ai/cli/latest.json`; verify the matching version directory's `checksums.txt` before extracting the binary.
 
-Plugin workflows keep calling `skills/renoise-gen/renoise-cli.mjs`; that compatibility adapter uses the native `renoise` binary from `PATH` (or `RENOISE_CLI_PATH`) and automatically falls back to the bundled Node implementation when the binary is unavailable. Set `RENOISE_FORCE_LEGACY=1` only for troubleshooting.
+Plugin updates remain owned by each host's plugin manager; CLI updates remain explicit through **Setup / Account**, so the two release tracks do not silently modify each other. There is no per-session setup notification. `renoise auth login` stores the shared credential securely; `RENOISE_API_KEY` remains the override for CI and containers. Plugin skills query `renoise model --json` at runtime, so new models and capability changes do not require duplicated plugin updates.
 
 Interactive account and CLI defaults are available through:
 
@@ -138,15 +74,13 @@ renoise settings
 | Variable | Required By | Description |
 |----------|------------|-------------|
 | `RENOISE_API_KEY` | Optional override for all Renoise tools | CI/container or host-secret override. Interactive setup prefers the credential securely saved by `renoise auth login`. |
-| `RENOISE_CLI_PATH` | Optional | Explicit path to the native `renoise` binary. |
-| `RENOISE_FORCE_LEGACY` | Troubleshooting | Set to `1` to bypass native delegation. |
 
 ## Version & upgrading
 
 ### 1.1.0
 
-- Native Go `renoise` CLI integration with automatic bundled fallback.
-- Existing plugin commands and director scripts remain compatible through the adapter; native coverage includes templates, chaining, and task tags.
+- Native Go `renoise` CLI integration as the single runtime and model-capability source.
+- Plugin commands and director scripts call the native CLI directly; model capabilities are discovered at runtime.
 - Unified setup checks the shared credential plus generation, Gemini, download, storyboard, QC, and post-production tool readiness.
 - Native CLI adds interactive generation/settings TUIs, secure saved credentials, model capabilities, owner-scoped tasks, shell completion, and human/JSON output.
 
@@ -160,7 +94,7 @@ renoise settings
 >   claude plugin uninstall video-maker@renoise-plugins-official   # only if you have this leftover
 >   claude plugin uninstall renoise@renoise-plugins-official 2>/dev/null; claude plugin install renoise@renoise-plugins-official
 >   ```
-> - **Codex** — delete the old `video-maker` entry from `~/.agents/plugins/marketplace.json` and its clone directory, then re-install as `renoise` (see [Codex install](#codex--01170) above) and restart Codex.
+> - **Codex** — remove the old `video-maker` marketplace/install, add `ArcoCodes/renoise-plugins-official` as shown above, install `renoise`, and restart the ChatGPT desktop app or Codex CLI.
 > - **OpenClaw** — reinstall with `openclaw plugins install @renoise/plugin`.
 >
 > After migrating, slash commands move from `/video-maker:*` to `/renoise:*`.
@@ -168,10 +102,10 @@ renoise settings
 **Highlights of 1.0.0**
 
 - Unified plugin name **`renoise`** across Claude Code / Codex / OpenClaw.
-- Default models: video → `seedance-2.0`, image → `seedream-5-0-pro` (override with `--model` anytime).
+- Default models and capabilities are discovered from `renoise model --json` at runtime.
 - Multi-shot narrative workflow: story gate → consistency manifest (characters / props / scenes / style bible / transitions / spoken language), post-generation QC.
-- New capabilities: audio (`lyria-clip`, `seed-audio-1.0`), quality enhancement / upscale, `seedream-5-0-pro`, `gemini-omni-flash` source-video editing.
-- Faces on the `seedance-2.0` series pass straight through as `ref_image` (auto-facepass); the legacy API-key pre-tool hook and the deprecated `asset`/`character` commands were removed.
+- New generation kinds and workflows are exposed through live CLI model capabilities.
+- Model-specific reference handling follows live CLI guidance; the plugin-side facepass/original-Seedance flow and deprecated `asset`/`character` commands are retired.
 
 ## Feedback / 反馈
 
@@ -180,6 +114,6 @@ Hit a bug or have feedback on the experience, generation quality, or cross-shot 
 - 💬 **[Experience feedback](https://github.com/ArcoCodes/renoise-plugins-official/issues/new?template=feedback.yml)** — usage experience, generation quality, consistency, workflow suggestions.
 - 🐞 **[Bug report](https://github.com/ArcoCodes/renoise-plugins-official/issues/new?template=bug_report.yml)** — reproducible defects.
 
-When it involves a generation, include the **Task ID** (`task get <id>`) and an output link/screenshot — that helps us most. Account / credits / API-key matters go to https://www.renoise.ai/developer, not the issue tracker.
+When it involves a generation, include the **Task ID** (`renoise generate get <id>`) and an output link/screenshot — that helps us most. Account / credits / API-key matters go to https://www.renoise.ai/developer, not the issue tracker.
 
 有体验反馈或遇到 bug？到 **Issues → New issue** 选「💬 体验反馈」或「🐞 Bug 报告」按表单填写；涉及生成请附 **Task ID** 和产物链接/截图。账户 / 余额 / API Key 问题请到 https://www.renoise.ai/developer。

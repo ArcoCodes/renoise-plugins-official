@@ -21,7 +21,7 @@
 
 ## Two Modes Based on Total Duration
 
-### Mode A: Single-clip (total ≤ 15s) — PREFERRED
+### Mode A: Single clip within the selected model's live maximum — PREFERRED
 
 Generate as **one single API call**. Write all visual stages into one prompt + a unified audio direction at the end. The model renders them as a continuous flowing video with coherent audio. No assembly needed.
 
@@ -41,7 +41,7 @@ Generate as **one single API call**. Write all visual stages into one prompt + a
 [Shot 3 | 5s | Product Detail] Macro close-up of [product interacting with environment], camera orbiting. Fade to black.
 ```
 
-**Example prompt** (hiking boot TVC, single 15s clip):
+**Example prompt** (hiking boot TVC; timing shown for one example duration):
 
 > Ultra-wide panoramic of mountain ranges and open ridge, referencing the environment from @Image 1. Golden morning mist drifts across the slopes, camera slowly and steadily pushes forward through the landscape. **[Shot 1 | 5s | Establishing]**
 >
@@ -51,13 +51,13 @@ Generate as **one single API call**. Write all visual stages into one prompt + a
 >
 > **[Audio]** Background soundscape of crisp birdsong and wind rustling through pine trees throughout. When the hiker appears in Shot 2, a gentle acoustic guitar strum fades in. During the boot close-up in Shot 3, the music swells softly with a warm bass note as the dewdrops splash. No dialogue, no sudden loud sounds.
 >
-> **[Post-Production]** Person's appearance and boot design must remain consistent throughout. No visible product logos until the final fade. No frame flickering, no distorted faces. **[Single 15s clip]**
+> **[Post-Production]** Person's appearance and boot design must remain consistent throughout. No visible product logos until the final fade. No frame flickering, no distorted faces.
 
 ---
 
-### Mode B: Multi-clip (total > 15s) — only when duration exceeds model limit
+### Mode B: Multi-clip — when duration exceeds the selected model's live maximum
 
-Split into multiple segments (each ≤ 15s), each as a separate API call following the same Mode A format (shots + audio direction + constraints in one prompt per segment).
+Split into segments whose durations are advertised by `renoise model <selected-model> --json`; each segment follows the same Mode A format.
 
 After all segments are generated, concatenate and replace audio:
 
@@ -97,7 +97,7 @@ Present all shots together so the user sees the complete video in one view:
 @Image 1 → [filename] → ref_image (all shots)
 
 --- Generation Parameters ---
-Model: seedance-2.0 | Ratio: W:H | Total estimated cost: run `credit estimate` per segment and sum
+Model: [live-capability selection] | Ratio: [advertised value] | Total estimated cost: run `renoise generate cost <model> --json` per segment and sum
 Note: Each shot is a separate segment, assembled by ffmpeg.
 ---
 ```

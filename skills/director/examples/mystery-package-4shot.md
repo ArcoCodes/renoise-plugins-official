@@ -133,13 +133,13 @@ AI-generated via Suno with prompt: "Cinematic suspense, slow build, mysterious p
 
 ```bash
 # Generate character reference sheet
-node renoise-cli.mjs task generate \
-  --model seedream-5-0-pro --resolution 2k --ratio 1:1 \
+renoise generate run \
+  --model <selected-image-model> <advertised image flags> \
   --prompt "Character reference sheet for Maya. East Asian woman, late 20s, shoulder-length black hair with subtle auburn highlights, warm ivory skin, almond-shaped dark brown eyes, slim build. Wearing oversized cream-colored chunky-knit wool cardigan over a fitted charcoal cotton turtleneck, high-waisted dark indigo straight-leg jeans, brown leather ankle boots. Small gold hoop earrings, thin gold chain bracelet on left wrist. Multiple angles: front, 3/4, profile. Clean white background."
 
-# Download → upload (face used directly as ref_image; seedance auto-facepasses on submit)
+# Download → upload; assign the role from live capabilities and renoise-gen policy
 curl -s -o maya.png "<image_url>"
-node renoise-cli.mjs material upload maya.png
+renoise upload maya.png
 # → material #101 (reuse this same ID in every segment Maya appears in)
 ```
 
@@ -147,19 +147,19 @@ node renoise-cli.mjs material upload maya.png
 
 ```bash
 # S1 scene: apartment hallway
-node renoise-cli.mjs task create --model seedream-5-0-pro --resolution 2k --ratio 16:9 \
+renoise generate create --model <selected-image-model> <advertised image flags> \
   --prompt "Dimly lit apartment hallway, warm pendant light overhead, beige walls, mailboxes on left wall, wooden door at end of hall, small brown package on doormat, grocery bags nearby. Warm amber tones, cool blue shadows. Photorealistic, cinematic. No people."
 
 # S2/S3/S4 scene: apartment living room (reuse for all 3 — same location)
-node renoise-cli.mjs task create --model seedream-5-0-pro --resolution 2k --ratio 16:9 \
+renoise generate create --model <selected-image-model> <advertised image flags> \
   --prompt "Cozy apartment living room at twilight. Wooden desk with warm table lamp, large window showing blue twilight sky, bookshelves, potted plants, worn leather chair. Warm amber side-lighting, cool blue from window. Photorealistic, cinematic, shallow depth of field. No people."
 ```
 
 Download and upload each:
 ```bash
-curl -s -o scene-hallway.png "<url>" && node renoise-cli.mjs material upload scene-hallway.png
+curl -s -o scene-hallway.png "<url>" && renoise upload scene-hallway.png
 # → material #201
-curl -s -o scene-living.png "<url>" && node renoise-cli.mjs material upload scene-living.png
+curl -s -o scene-living.png "<url>" && renoise upload scene-living.png
 # → material #202 (reused for S2, S3, S4)
 ```
 
@@ -257,51 +257,51 @@ Avoid: No cartoon, no anime, no oversaturated colors, no dutch angles, no text o
 
 ### Cost Estimate
 
-Run `credit estimate` for each item (character sheet, the 2 scene refs, and each of S1–S4 at its model/duration/resolution), sum the returned `estimatedCredit` values, and compare the total against the `balance` from `credit me`. If the total exceeds the balance, reduce segment count or lower the resolution tier.
+Run `renoise generate cost <model> --json` for each item, sum the returned `estimatedCredit` values, and compare against `renoise account status --json`. If the total exceeds the balance, reduce segment count or choose a cheaper live capability.
 
 ```bash
-node renoise-cli.mjs credit estimate --model seedance-2.0 --duration 8 --resolution 1080p   # S1
-node renoise-cli.mjs credit estimate --model seedance-2.0 --duration 13 --resolution 1080p  # S2
+renoise generate cost <selected-video-model> <advertised S1 flags>   # S1
+renoise generate cost <selected-video-model> <advertised S2 flags>  # S2
 # ...repeat per segment, then sum
-node renoise-cli.mjs credit me
+renoise account status
 ```
 
 ### Serial Chain Commands
 
 ```bash
 # S1 — character face + scene ref (no ref_video for first segment)
-node renoise-cli.mjs task generate --prompt "<S1 prompt>" --duration 8 --ratio 16:9 \
+renoise generate run --prompt "<S1 prompt>" --duration 8 --ratio 16:9 \
   --materials "101:ref_image,201:ref_image"
 # → task #500
 
 # Chain S1 → material
-node renoise-cli.mjs task chain 500
+renoise generate chain 500
 # → material #V1
 
 # S2 — character + ref_video + scene ref
-node renoise-cli.mjs task generate --prompt "<S2 prompt>" --duration 13 --ratio 16:9 \
+renoise generate run --prompt "<S2 prompt>" --duration 13 --ratio 16:9 \
   --materials "101:ref_image,V1:ref_video,202:ref_image"
 # → task #501
 
 # Chain S2 → material
-node renoise-cli.mjs task chain 501
+renoise generate chain 501
 # → material #V2
 
 # S3 — character + ref_video + scene ref
-node renoise-cli.mjs task generate --prompt "<S3 prompt>" --duration 12 --ratio 16:9 \
+renoise generate run --prompt "<S3 prompt>" --duration 12 --ratio 16:9 \
   --materials "101:ref_image,V2:ref_video,202:ref_image"
 # → task #502
 
 # Chain S3 → material
-node renoise-cli.mjs task chain 502
+renoise generate chain 502
 # → material #V3
 
 # S4 — character + ref_video + scene ref
-node renoise-cli.mjs task generate --prompt "<S4 prompt>" --duration 12 --ratio 16:9 \
+renoise generate run --prompt "<S4 prompt>" --duration 12 --ratio 16:9 \
   --materials "101:ref_image,V3:ref_video,202:ref_image"
 ```
 
-> **Note**: Multi-anchor generations take ~8-12 minutes per segment. Use `task create` + `task wait --timeout 900` if the default timeout is insufficient.
+> For asynchronous work, use `renoise generate create` followed by `renoise generate wait <id> --timeout <duration> --json`.
 
 ## Phase 6 — Assembly Guide
 

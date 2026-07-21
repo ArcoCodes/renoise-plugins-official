@@ -15,11 +15,12 @@
     "extensions": ["./index.mjs"]
   },
   "files": [
+    ".agents/",
     ".claude-plugin/",
     ".codex-plugin/",
+    "assets/",
     "openclaw.plugin.json",
     "index.mjs",
-    "hooks/",
     "commands/",
     "skills/",
     "src/",

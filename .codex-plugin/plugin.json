@@ -17,5 +17,21 @@
     "tiktok",
     "renoise"
   ],
-  "skills": "./skills/"
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Renoise",
+    "shortDescription": "Create, analyze, and produce AI video",
+    "longDescription": "Plan stories, analyze media, build storyboards, estimate credits, and generate AI video with the native Renoise CLI.",
+    "developerName": "Renoise",
+    "category": "Productivity",
+    "websiteURL": "https://www.renoise.ai",
+    "defaultPrompt": [
+      "Create an AI video from my brief.",
+      "Analyze this image or video.",
+      "Turn my script into a storyboard."
+    ],
+    "brandColor": "#6558F5",
+    "composerIcon": "./assets/icon.svg",
+    "logo": "./assets/icon.svg"
+  }
 }

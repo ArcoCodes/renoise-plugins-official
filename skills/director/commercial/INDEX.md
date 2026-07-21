@@ -51,15 +51,9 @@ the serum glass bottle from @Image 1         ← what was referenced + what info
 reference the camera movement of @Video 1    ← explicitly only partial features, not everything
 ```
 
-| Reference type | Prompt syntax | Renoise `--materials` role | Notes |
-|---------------|--------------|---------------------------|-------|
-| Product / scene image (no faces) | `@Image N` | `ID:ref_image` | Up to 9 |
-| Scene image with incidental faces (face NOT the reference target) | `@Image N` | `ID:ref_image` | Treat as scene ref |
-| Person image where face IS the character identity | `@Image N` | `ID:ref_image` | On seedance the face is auto-facepassed on submit; reuse the same material ID across segments for consistency |
-| Reference video (chaining own segments only) | `@Video N` | `ID:ref_video` | Up to 3; NOT for external style — use Gemini analysis instead |
-| First frame | `@Image N` | `ID:first_frame` | Mutually exclusive with ref_image |
+Resolve roles and limits from `renoise model <selected-model> --json`. Use only advertised material roles, preserve ordering for `@ImageN`/`@VideoN`, and never copy numeric limits into this guide.
 
-**Face Rule**: On the `seedance-2.0` series, a face image is passed straight as `ID:ref_image` — it is auto-facepassed on submit, so there is no registration step. For a character appearing across multiple segments, upload the face/character-sheet image once and reuse the **same material ID** every time (references dedupe by material ID). On non-seedance models a face may still be blocked by the provider's content review — prefer a seedance model or a text-only description.
+For recurring people or products, upload the approved anchor once and reuse the same material ID through a role supported by the selected model. Follow that model's live `guidance` for face handling and incompatible role combinations.
 
 ---
 
@@ -71,23 +65,14 @@ reference the camera movement of @Video 1    ← explicitly only partial feature
 2. **Asset inventory** — view each image/video the user provides:
    - Images: Read tool → analyze (product? scene? person?)
    - Videos: use Gemini analysis if available; otherwise ask user to describe key frames
-3. **Tag each asset**:
-   - `has_face: true` → on seedance, use the image directly as `ID:ref_image` (auto-facepassed on submit); for a recurring character reuse the same material ID across segments
-   - Assign role: subject anchor / scene calibration / camera reference / beat-sync control
-4. **Confirm generation parameters**:
-   - Duration: 4–15s per segment (over 15s → multi-segment chaining)
-   - Aspect ratio: based on user's request
-   - Model:
+3. **Tag each asset** by production purpose: subject anchor, scene calibration, camera reference, or beat-sync control. Reuse the same material ID for recurring anchors.
+4. **Confirm live generation parameters**:
+   - Run `renoise model --json` and preserve any user-selected model.
+   - Otherwise choose the server-advertised default whose `kind` matches the job.
+   - Inspect it with `renoise model <selected-model> --json`.
+   - Choose duration, ratio, resolution, audio options, roles, and limits only from that response.
 
-| Model | Duration | Resolution | Notes |
-|-------|----------|------------|-------|
-| `seedance-2.0` | 4–15s | 480p / 720p / 1080p / 4k (default 720p) | Default; ref image ≤9, ref video ≤3, audio ≤3, audio generation |
-| `seedance-2.0-fast` | 4–15s | 480p / 720p | Faster & cheaper; no 1080p/4k |
-| `seedance-2.0-mini` | 4–15s | 480p / 720p | Cheapest Seedance tier; no 1080p/4k |
-| `happyhorse-1.0` | 3–15s | 720p / 1080p | No `last_frame`, no ref video |
-| `kling-3.0-omni` | default 5s; with ref_video ≤10s; else 3–15s | 720p / 1080p | ref image ≤7, ref video ≤1; no audio; prompt ≤2500 chars |
-
-> **Default models**: the table above lists **video** models — default `seedance-2.0` unless the user names another. Any **image** generated in this flow (presenter portrait, character concept, scene/background concept) defaults to **`seedream-5-0-pro`**; switch off it only when the shot needs `4k`, an extreme banner ratio, or text/logo typography (`seedream-5-0-pro` is capped at `1k`/`2k` and the 8 common ratios — see `references/visual-dev.md`). In every case the default gives way the moment the user names a specific model.
+Do not maintain a commercial-specific model table. New models and capability changes must be picked up from the CLI without editing this guide.
 
 > **Scenario D only**: After Phase 1, execute Phase 1.5 (asset pre-upload) before writing any prompt. See `scenario-d-ugc.md`.
 
@@ -147,11 +132,10 @@ Present the full prompt in the standard preview format and wait for explicit con
 @Video 1 → [filename / description] → Gemini analysis only (NOT uploaded to Renoise)
 
 --- Generation Parameters ---
-Model: seedance-2.0
-Duration: N seconds
-Aspect ratio: W:H
+Model: [selected from `renoise model --json`]
+Duration / aspect ratio: [values advertised by the selected model]
 Spoken language: [only if the segment has dialogue/voiceover — label it explicitly, e.g. "口播：中文"]
-Estimated cost: [from `credit estimate`]
+Estimated cost: [from `renoise generate cost <selected-model> --json`]
 ---
 ```
 
@@ -166,14 +150,14 @@ The user may request: modify a dimension → change only that dimension, re-pres
 > **Scenario D**: If Phase 1.5 was executed, person and product assets are already uploaded — skip re-uploading. Only upload NEW materials not handled in Phase 1.5.
 
 ```bash
-# Upload each asset (face images included — seedance auto-facepasses on submit, no registration)
-node renoise-cli.mjs material upload <file_path>
+# Upload each asset once
+renoise upload <file_path> --json
 # → returns material_id
 ```
 
 **Step 2 — Build the final asset mapping table**
 
-Record all `material_id` values and their roles. Face images use `ID:ref_image` directly; reuse the same material ID for a character that recurs across segments.
+Record all material IDs and assign only roles advertised by `renoise model <selected-model> --json`. Reuse the same approved material ID for recurring people and products. Follow the central `renoise-gen` material policy; do not add another preparation flow here.
 
 **Step 3 — Prompt language decision**
 
@@ -183,25 +167,16 @@ Record all `material_id` values and their roles. Face images use `ID:ref_image` 
 **Step 4 — Generate**
 
 ```bash
-node renoise-cli.mjs task generate \
+renoise generate run <selected-model> \
   --prompt "<prompt>" \
-  --model seedance-2.0 \
-  --duration <seconds> \
-  --ratio <ratio> \
-  --materials "<id1>:<role1>,<id2>:<role2>"
+  [only parameters and material roles advertised by that model] --json
 ```
 
 > **Scenario C multi-clip**: See assembly instructions in `scenario-c-tvc.md` Phase 4 Step 5.
 
-**Step 5 — Multi-segment chaining** (only when total video exceeds 15s)
+**Step 5 — Multi-segment continuity**
 
-```bash
-node renoise-cli.mjs task chain <segment1_task_id>
-# → prints material_id for ref_video
-node renoise-cli.mjs task generate \
-  --prompt "segment 2 prompt" \
-  --materials "<chained_id>:ref_video,<other_materials>"
-```
+Split when the requested duration exceeds the selected model's live maximum. Use `renoise generate chain <task-id> --json` only when the next model advertises a compatible video-reference role; otherwise use an advertised image/frame role and the Transition Table.
 
 **Step 6 — Return results**
 
@@ -211,35 +186,13 @@ Present: video URL, cover image, generation time. If unsatisfactory, ask which d
 
 ## Renoise CLI Reference
 
+Do not duplicate the command or model reference here. Use:
+
 ```bash
-# Upload material (face images included — no registration needed)
-node renoise-cli.mjs material upload <path>
-
-# Generate video (blocking)
-node renoise-cli.mjs task generate \
-  --prompt "prompt" --model seedance-2.0 \
-  --duration 10 --ratio 9:16 \
-  --materials "id1:ref_image,id2:ref_image"
-
-# Chain segment for ref_video
-node renoise-cli.mjs task chain <task_id>
-
-# Check balance
-node renoise-cli.mjs credit me
-
-# Estimate cost
-node renoise-cli.mjs credit estimate --model seedance-2.0 --duration 10
+renoise --help
+renoise model --json
+renoise model <selected-model> --json
 ```
-
-**Materials mode — mutually exclusive, do not mix:**
-
-| Mode | Role combination | Use case |
-|------|-----------------|----------|
-| First frame | `first_frame` | Lock the opening frame |
-| First + last frame | `first_frame` + `last_frame` | Lock opening and ending |
-| Multimodal reference | `ref_image` / `ref_video` / `reference_image` | Most common |
-
-**Timeout note**: Multi-anchor generations take 8–12 minutes per segment. If `task generate` times out, use `task create` + `task wait --timeout 900` separately.
 
 ---
 
@@ -247,23 +200,21 @@ node renoise-cli.mjs credit estimate --model seedance-2.0 --duration 10
 
 | Problem | Fix |
 |---------|-----|
-| `PrivacyInformation` error | Only on non-seedance models or output review — seedance input faces are auto-facepassed. Switch to a seedance model or describe the person in text |
-| Face review rejects an image (task `failed` + `INPUT_IMAGE_*`) | Swap the reference image and retry |
-| 402 insufficient credits | `credit me`, inform user, suggest top-up at https://www.renoise.ai |
-| Character drifts between segments | Reuse the same face/character-sheet material ID as `ref_image` in every segment + copy full character description verbatim |
+| Input/reference rejection | Read the selected model's live guidance and the central `renoise-gen` material policy. |
+| 402 insufficient credits | Run `renoise account status --json`, inform the user, and suggest top-up at https://www.renoise.ai. |
+| Character drifts between segments | Reuse the same approved material ID through an advertised role and copy the full character description verbatim. |
 | Video ignores actions in prompt | Prompt too dense — reduce to 3–4 actions per 5s window |
 | Video looks incoherent | Simplify: 2 camera stages, one mood, fewer actions |
-| Segments don't connect | Tail-frame handoff: if the segment carries any other `ref_image` (product/scene — the usual case), attach the tail frame as `TAIL_ID:ref_image:0` + open the prompt with "Use @Image1 as the first frame." (`first_frame` is mutually exclusive with `ref_image`); use native `first_frame` only when there is no other image reference; or `ref_video` for motion carryover |
+| Segments don't connect | Re-check advertised roles, the opening-state bridge, and the Transition Table; add a short cross-dissolve if needed. |
 
-**Content-moderation errors** (`INPUT_*` / `OUTPUT_*`): the seedance/seedream pipelines are relatively permissive, but four categories are hard blocks that rewording will not pass — political content, religiously sensitive content, sexual content involving minors, and copyrighted content (well-known IP / recognizable public figures). If the prompt or materials touch these, tell the user the platform does not support it rather than retrying; otherwise adjust wording / swap materials and retry.
+For moderation errors, follow the structured CLI error and platform policy in the `renoise-gen` skill rather than model-family assumptions.
 
 ---
 
 ## Important Notes
 
 1. **Language**: Draft in user's language. Translate to English before API call — **except any segment with dialogue/voiceover/narration**, whose spoken line stays verbatim in the confirmed spoken language (always the case for Scenario D 口播; also any Scenario C film with voiceover). Confirm the spoken language before writing prompts.
-2. **Asset limits**: seedance-2.0 supports up to 9 ref_images + 3 ref_videos
-3. **Duration**: 4–15s per segment; use `task chain` for longer videos
-4. **Faces**: on seedance, pass a face image directly as `ID:ref_image` (auto-facepassed on submit); reuse the same material ID for a recurring character
-5. **Aspect ratio**: Once confirmed, all reference images should match the same ratio
-6. **Cost**: Use `credit estimate` before generating; notify user proactively if balance is low
+2. **Capabilities**: limits, durations, ratios, roles, and audio behavior come only from `renoise model <selected-model> --json`.
+3. **Faces**: Follow the central `renoise-gen` material policy; do not duplicate model-family behavior here.
+4. **Aspect ratio**: Once confirmed, prepare references for the selected model's advertised ratio.
+5. **Cost**: Use `renoise generate cost` before generating and notify the user if balance is low.

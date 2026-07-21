@@ -40,19 +40,16 @@
  *   --json                Request JSON response format
  *
  * Authentication:
- *   `renoise auth login` saved credential, or RENOISE_API_KEY override
+ *   Run through `renoise auth exec -- node gemini.mjs ...`, or set RENOISE_API_KEY.
  */
 
 import fs from "fs/promises";
 import path from "path";
-import { resolveAPIKey } from "../../renoise-gen/credential.mjs";
 
 // --- Auth ---
-let RENOISE_API_KEY;
-try {
-  RENOISE_API_KEY = resolveAPIKey();
-} catch (error) {
-  console.error(error.message);
+const RENOISE_API_KEY = process.env.RENOISE_API_KEY?.trim();
+if (!RENOISE_API_KEY) {
+  console.error("Not authenticated. Run this command through `renoise auth exec -- ...`.");
   process.exit(1);
 }
 

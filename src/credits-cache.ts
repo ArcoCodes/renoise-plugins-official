@@ -74,34 +74,14 @@ export function getCredits(): { data: CreditsData | null; fresh: boolean } {
   return { data, fresh: isCacheFresh(data) }
 }
 
-/**
- * Fetch real balance from Renoise API and update cache.
- * Uses RENOISE_API_KEY env var. Non-blocking — fire and forget.
- */
+/** Fetch real balance through the native CLI and update the cache. */
 export async function refreshFromApi(): Promise<void> {
-  const apiKey = process.env.RENOISE_API_KEY
-  if (!apiKey) {
-    try {
-      const cli = process.env.RENOISE_CLI_PATH || 'renoise'
-      const { stdout } = await execFileAsync(cli, ['account', 'status', '--json'], { encoding: 'utf8', timeout: 5000 })
-      const json = JSON.parse(stdout) as { credit?: { balance?: number } }
-      const balance = json?.credit?.balance
-      if (typeof balance === 'number') writeCache(balance, 'renoise')
-    } catch {
-      // Native CLI is optional; the plugin adapter still has its bundled fallback.
-    }
-    return
-  }
-
-  const baseUrl = process.env.RENOISE_BASE_URL || 'https://www.renoise.ai/api/public/v1'
-  const headers: Record<string, string> = { 'X-API-Key': apiKey }
-
-  const res = await fetch(`${baseUrl}/me`, { headers, signal: AbortSignal.timeout(5000) })
-  if (!res.ok) return
-
-  const json = await res.json() as { credit?: { balance?: number } }
-  const balance = json?.credit?.balance
-  if (typeof balance === 'number') {
-    writeCache(balance, 'renoise')
+  try {
+    const { stdout } = await execFileAsync('renoise', ['account', 'status', '--json'], { encoding: 'utf8', timeout: 5000 })
+    const json = JSON.parse(stdout) as { credit?: { balance?: number } }
+    const balance = json?.credit?.balance
+    if (typeof balance === 'number') writeCache(balance, 'renoise')
+  } catch {
+    // Status line refresh must never crash.
   }
 }

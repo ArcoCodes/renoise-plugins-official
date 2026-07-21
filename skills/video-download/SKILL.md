@@ -76,7 +76,7 @@ After a successful download, the user may want to:
 
 1. **Analyze the video** — extract script, style, or rhythm:
    ```bash
-   node ${CLAUDE_PLUGIN_ROOT}/skills/gemini-gen/scripts/gemini.mjs --file <path> --mode video-script
+   renoise auth exec -- node ${CLAUDE_PLUGIN_ROOT}/skills/gemini-gen/scripts/gemini.mjs --file <path> --mode video-script
    ```
 
 2. **Add to Material Pool** — for use as reference material in video generation:

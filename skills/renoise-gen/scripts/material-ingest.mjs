@@ -19,14 +19,13 @@
 
 import fs from "fs";
 import path from "path";
-import { execSync } from "child_process";
+import { execFileSync } from "child_process";
 import { fileURLToPath } from "url";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dir = path.dirname(__filename);
 
 // ── Config ──────────────────────────────────────────────────────────────
-const CLI_PATH = path.join(__dir, "..", "renoise-cli.mjs");
 const GEMINI_PATH = path.join(__dir, "..", "..", "gemini-gen", "scripts", "gemini.mjs");
 
 const IMAGE_EXTS = new Set([".jpg", ".jpeg", ".png", ".webp", ".gif", ".bmp", ".tiff"]);
@@ -81,21 +80,13 @@ function uploadFile(filePath) {
   const ext = path.extname(filePath).toLowerCase();
   const type = VIDEO_EXTS.has(ext) ? "video" : "image";
   try {
-    const output = execSync(
-      `node "${CLI_PATH}" material upload "${filePath}" --type ${type}`,
+    const data = JSON.parse(execFileSync(
+      "renoise",
+      ["upload", filePath, "--type", type, "--json"],
       { encoding: "utf-8", timeout: 60000 }
-    );
-    // Parse material ID from output like "Material uploaded: #42" or "Material already exists: #42"
-    const idMatch = output.match(/#(\d+)/);
-    if (idMatch) {
-      return { id: parseInt(idMatch[1]), type };
-    }
-    // Try parsing JSON output
-    const jsonMatch = output.match(/\{[\s\S]*\}/);
-    if (jsonMatch) {
-      const data = JSON.parse(jsonMatch[0]);
-      return { id: data.material?.id, type };
-    }
+    ));
+    const material = data.material || data;
+    if (material?.id) return { id: material.id, type };
     console.error(`⚠️  Could not parse upload result for ${filePath}`);
     return null;
   } catch (err) {
@@ -120,16 +111,12 @@ Return ONLY valid JSON (no markdown fences) with these fields:
 - suitable_roles: array from ["ref_image", "image1", "image2", "ref_video", "first_frame", "last_frame"] — which material roles this file is suitable for`;
 
   try {
-    const output = execSync(
-      `node "${GEMINI_PATH}" --file "${filePath}" --resolution ${resolution} --json '${prompt.replace(/'/g, "'\\''")}'`,
+    const output = execFileSync(
+      "renoise",
+      ["auth", "exec", "--", process.execPath, GEMINI_PATH, "--file", filePath, "--resolution", resolution, "--json", prompt],
       { encoding: "utf-8", timeout: 120000 }
     );
-    // Try to parse JSON from output
-    const jsonMatch = output.match(/\{[\s\S]*\}/);
-    if (jsonMatch) {
-      return JSON.parse(jsonMatch[0]);
-    }
-    return null;
+    return JSON.parse(output);
   } catch (err) {
     console.error(`⚠️  Analysis failed for ${filePath}: ${err.message}`);
     return null;
