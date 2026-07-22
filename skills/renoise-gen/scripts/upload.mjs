@@ -6,16 +6,16 @@
  *
  * Usage: node upload.mjs <file-path>
  *
- * Environment:
- *   RENOISE_API_KEY  Required. Get one at https://www.renoise.ai
+ * Authentication:
+ *   Run through `renoise auth exec -- node upload.mjs ...`, or set RENOISE_API_KEY.
  */
 
 import fs from "fs/promises";
 import path from "path";
 
-const RENOISE_API_KEY = process.env.RENOISE_API_KEY;
+const RENOISE_API_KEY = process.env.RENOISE_API_KEY?.trim();
 if (!RENOISE_API_KEY) {
-  console.error("RENOISE_API_KEY not set. Get one at: https://www.renoise.ai");
+  console.error("Not authenticated. Run this command through `renoise auth exec -- ...`.");
   process.exit(1);
 }
 

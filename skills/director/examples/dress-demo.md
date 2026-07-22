@@ -64,14 +64,15 @@
 
 ```bash
 # 1. Upload product image (product image only, NOT the model image)
-node renoise-cli.mjs material upload <product-image-path>
+renoise upload <product-image-path>
 # → returns material id, e.g. 194
 
-# 2. Submit task (with product image material, all-in-one)
-node renoise-cli.mjs task generate \
-  --prompt "<Video Prompt above>" \
-  --model seedance-2.0 --duration 15 --ratio 9:16 \
-  --materials "194:ref_image"
+# 2. Create the task, record task.id, then wait separately
+renoise task create \
+  --prompt-file <approved-prompt-file> \
+  --model <selected-video-model> <advertised video flags> \
+  --materials "194:ref_image" --json
+renoise task wait <task-id> --timeout 15m --json
 ```
 
 ## Multi-Scene Batch Generation

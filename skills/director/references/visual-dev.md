@@ -1,238 +1,119 @@
-# Visual Dev — Character & Scene Asset Setup
+# Visual Dev — Character & Scene Anchors
 
-Quick reference for creating visual assets before writing prompts. Only needed for **multi-clip projects** (>15s) with recurring characters.
+Use this for projects with recurring characters, products, props, wardrobe, or locations. Model selection and material capabilities always come from the native CLI.
 
----
+## Live Capability Check
 
-## When to Use
+```bash
+renoise model --json
+renoise model <selected-image-model> --json
+renoise model <selected-video-model> --json
+```
 
-- Character appears in **2+ segments** → **you MUST lock the look with a character sheet**: generate one (below), get the user's OK, upload it once, and reuse the **same material ID** as `ref_image` in every segment. This holds **even for a fully invented character with no source photo** — the generated sheet *is* the reference. Do not settle for a text-only description of a recurring character (that is what causes face/wardrobe drift).
-- Character appears in **1 segment only** → text-only description in prompt is fine
-- Scene/environment anchoring → optional but helps consistency
-
----
-
-## Picking an Image Model
-
-| Use case | Model | Why |
-|----------|-------|-----|
-| Character design sheet, scene ref, most anchoring work | `seedream-5-0-pro` | **Default image model** — high fidelity at `1k`/`2k`, covers the 8 common ratios |
-| `4k` / extreme banner ratio (8:1 / 1:8) / cheapest quick draft | `nano-banana-2` | Widest ratios + `4k`; cheapest tier |
-| Hero / final keyframe needing `4k` fidelity | `nano-banana-pro` | Higher detail + lighting quality at `4k` |
-| Poster / title card / anything with readable text or logos | `gpt-image-2` | Best prompt-following for typography |
-| Stylized / painterly illustration | `midjourney-v7` | Strongest stylization (no `--resolution`) |
-| Seedream look at `3k`/`4k` | `seedream-5-0-lite` | Seedream style beyond `seedream-5-0-pro`'s `2k` ceiling |
-
-Default to `seedream-5-0-pro` for anchoring work (character sheets, scene refs); switch per-shot only when the job demands `4k`, an extreme ratio, typography, or heavy stylization. `seedream-5-0-pro` is capped at `1k`/`2k` and the 8 common ratios (`1:1`, `4:3`, `3:4`, `16:9`, `9:16`, `3:2`, `2:3`, `21:9`) — no `4k`, no `1:4`/`4:1`/`1:8`/`8:1` banners.
-
----
+Choose the server-advertised default unless the user names a model or another model's live `guidance` better matches the job. Only use advertised resolutions, ratios, material roles, and reference limits. Do not maintain a model matrix here.
 
 ## Character Design Sheet
 
-Generate a multi-angle reference for each main character.
+A character appearing in more than one segment needs one approved visual anchor. Generate it once, show it to the user, upload it, and reuse the same material ID through an image-reference role supported by the selected video model.
 
-**Prompt template:**
-```
+Prompt template:
+
+```text
 Character design sheet for [NAME].
 
-[FULL appearance description — age, face details, hair, skin tone, body type,
-wardrobe (texture + cut + color per garment), accessories, signature details]
+[FULL appearance description — age, face, hair, skin tone, body type,
+wardrobe with texture/cut/color, accessories, signature details]
 
-Layout: 2 rows × 3 columns on clean white background.
-Row 1: front view (neutral), 3/4 view (neutral), side profile (neutral).
-Row 2: front view ([emotion A]), front view ([emotion B]), full body pose.
+Layout: 2 rows × 3 columns on a clean background.
+Row 1: front, three-quarter, side profile.
+Row 2: two expressions, one full-body pose.
 
-[STYLE LINE from project]
-Concept art style, clean lines, consistent appearance across all panels.
-No text labels. No background elements.
+[PROJECT STYLE LINE]
+Consistent appearance across every panel. No labels or background elements.
 ```
-
-**Generate:**
-```bash
-node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/renoise-cli.mjs task generate \
-  --model seedream-5-0-pro --resolution 2k --ratio 16:9 \
-  --prompt "<character sheet prompt>"
-```
-
----
-
-## Upload the Character Sheet
-
-On the seedance series a face image is used directly as `ref_image` — it is auto-facepassed on submit, so there is no registration step.
 
 ```bash
-# Download the generated image
-curl -s -o char.png "<image_url>"
-
-# Upload as material
-node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/renoise-cli.mjs material upload char.png
-# → Returns material ID (e.g. #101)
-
-# Use in video prompts — reuse the SAME material ID in every segment:
-# --materials "101:ref_image"
+renoise task create <selected-image-model> \
+  --prompt-file <character-sheet-prompt-file> \
+  <ratio/resolution flags advertised by the model> --json
+renoise task wait <task-id> --timeout 15m --json
+renoise upload character-sheet.png --json
 ```
 
-**List your uploaded materials:**
-```bash
-node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/renoise-cli.mjs material list --mine
-```
-
----
-
-## Props & Wardrobe Continuity Table
-
-Character sheets lock faces; this table locks the **props and wardrobe** that also drift or mutate across segments (a jade token turning from a white porcelain shard into a raw green stone; a hairstyle going from a bun to loose hair, or grey clothes to a black-and-gold robe, with no transition). It is a line item of the director skill's **Gate 2 Consistency Manifest**.
-
-For each key prop and each character's wardrobe, register a **fixed description** (`material + color + form`) and split traits into **constant vs plot-driven**:
-
-```
-Item                         Fixed description (material+color+form)                    Type
-Engagement token             translucent green jade, palm-sized, one clean broken shard  Constant (all segments)
-Hero robe (Act I)            coarse grey hemp, loose-fit, frayed hem                     Constant until S4
-Hero robe (Act II)           black silk with gold immortal embroidery, high collar       Plot-driven (from S4)
-Hair                         waist-length black, tied in a single high bun               Constant until S4
-Hair (Act II)                waist-length black, worn loose                              Plot-driven (from S4)
-```
-
-Rules:
-- **Copy the fixed description verbatim** into every segment prompt where the item appears — do not paraphrase it segment to segment (paraphrase is how "green jade shard" becomes "white porcelain fragment").
-- **Constant traits never change.** If it is not a deliberate plot beat, it stays identical every segment.
-- **A plot-driven change must be staged as its own explicit transformation shot** — a dedicated segment that shows the change happening (a transformation close-up: robe reforming, hair coming loose). Never let wardrobe/props jump between two adjacent segments with no on-screen transition. The transition itself becomes a segment in the shot list and a row in the Transition Table.
-
----
-
-## Ingesting User-Provided Materials
-
-If the user provides reference images, product photos, or footage:
+Before attaching it to video, inspect the selected video model and use one of its advertised material roles:
 
 ```bash
-node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/scripts/material-ingest.mjs <paths-or-directory>
+renoise model <selected-video-model> --json
 ```
 
-This uploads files, runs analysis (tags, descriptions, face detection), and outputs `material-pool.json`. Match pool entries against project needs before generating new assets.
+## Props and Wardrobe
 
----
+Register a fixed description for every recurring prop and wardrobe state:
 
-## Scene Reference (Recommended for Multi-Clip)
-
-Generate environment-only concept art for each segment to anchor lighting, color palette, and spatial layout. **Without scene refs, different segments will drift in environment appearance even with character assets and ref_video.**
-
-Scene images must NOT contain human faces (use wide shots, empty rooms, landscapes). They don't need asset registration — upload directly as materials.
-
-**Generate one scene ref per segment:**
-```bash
-# For each segment, generate a scene concept image
-node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/renoise-cli.mjs task generate \
-  --model seedream-5-0-pro --resolution 2k --ratio 16:9 \
-  --prompt "<scene description, environment only, no people. Include: location, time of day, lighting, color palette, key props, atmosphere. Photorealistic, cinematic composition.>"
-
-# Download and upload
-curl -s -o scene-s1.png "<image_url>"
-node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/renoise-cli.mjs material upload scene-s1.png
-# → Use as: --materials "ID:ref_image"
+```text
+Item                 Fixed description                         Type
+Engagement token     translucent green jade, one broken shard  Constant
+Hero robe, Act I     coarse grey hemp, loose, frayed hem       Constant until S4
+Hero robe, Act II    black silk, gold embroidery, high collar  Plot-driven from S4
 ```
 
-**Scene ref prompt tips:**
-- Include the exact lighting conditions from your style guide ("warm desk lamp, twilight blue through window")
-- Include key props that matter to the story ("empty pedestal center frame", "DoorDash bag on doormat")
-- Match the color palette to your segment's mood (warm amber for comfort, cool blue for tension)
-- If multiple segments share the same location, you can reuse the same scene ref material ID
+- Copy fixed descriptions verbatim wherever the item appears.
+- Constant traits never change silently.
+- A plot-driven change gets an explicit transformation shot and Transition Table row.
 
----
+## Scene References
 
-## Combining Anchors
-
-Character `ref_image`, `ref_video`, and scene `ref_image` **combine freely**. Use as many or as few as each segment requires.
+For recurring locations, generate an environment-only concept image that fixes layout, lighting, palette, and key props. Upload once and reuse its material ID wherever that location returns.
 
 ```bash
-# All three (character + continuity + environment)
---materials "27:ref_image,42:ref_video,99:ref_image"
-
-# Character + environment only (no continuity needed)
---materials "27:ref_image,99:ref_image"
-
-# Environment only (B-roll, no characters)
---materials "99:ref_image"
-
-# Character + environment + carried-over opening frame (tail frame pinned as @Image1)
---materials "27:ref_image,91:ref_image:0,99:ref_image"
+renoise task create <selected-image-model> \
+  --prompt-file <environment-prompt-file> --json
+renoise task wait <task-id> --timeout 15m --json
+renoise upload scene-reference.png --json
 ```
 
-**Carried-over opening frame rides in reference mode**: native `ID:first_frame` is frame mode and cannot be combined with any `ref_image` — so when a segment needs both a carried-over opening frame **and** character/scene refs (the usual case), attach the extracted tail frame as `TAIL_ID:ref_image:0` (index 0 → it is `@Image1`) and make the prompt's first sentence "Use @Image1 as the first frame." (中文口播段：「以@图片1为首帧」). This is a soft lock — back it with an exact opening-state description after the `Continuing from the previous shot:` bridge. Reserve native `first_frame` for segments with no other image reference. See the director SKILL.md Hard Rule and prompt-craft.md "Serial continuity routing".
+## Continuity Routing
 
-**Example workflow for a 3-segment project:**
-```
-Prep:
-  1. Generate character sheet → upload → note its material ID #A (reuse it every segment)
-  2. Generate scene concepts for unique locations in parallel → upload → materials
+Never assume roles combine across models. Inspect `materialRoles` and `guidance` first.
 
-Generate (serial chain):
-  S1: task generate --materials "A:ref_image,S1:ref_image"
-  V1: task chain <S1_ID>                                          # downloads + uploads as material
-  S2: task generate --materials "A:ref_image,V1:ref_video,S2:ref_image"
-  V2: task chain <S2_ID>
-  S3: task generate --materials "A:ref_image,V2:ref_video,S2:ref_image"  # same location as S2? reuse scene ref
-```
+- Identity/product/location continuity: reuse the same uploaded material ID through a supported image role.
+- Motion continuity: use `renoise task chain <task-id> --json` only when the next model advertises a compatible video-reference role.
+- Exact opening-state continuity: extract the previous tail frame and use an advertised frame role; if only image references are available, place the tail frame first and state the opening composition explicitly.
 
-S1 has no ref_video (nothing to continue from). Add ref_video only when continuing from a previous segment's action.
-
-> Scene concepts are independent — generate all of them in parallel with `task create`, then `task wait` each.
-> Generations with multiple anchors take 8–12 min/segment. Use `task create` + `task wait --timeout 900` if default timeout is insufficient.
-
----
-
-## Storyboard Grid (Recommended for Multi-Clip)
-
-A single image containing key frames from ALL segments. Because the AI renders all panels in one generation, characters share consistent face structure, proportions, and styling across panels.
-
-**Why one image > many images**: Independent generations start from different random seeds, causing drift in face shape, color palette, and rendering style. A grid forces consistency.
-
-**Prompt template:**
-```
-Storyboard grid for "[TITLE]", [N] panels in [R] rows × [C] columns.
-
-[STYLE LINE]
-
-[Full Character Bible for each character — verbatim]
-
-Panel 1 (S1 — [label]): [Key visual moment, 1 sentence. Character action + environment + mood]
-Panel 2 (S2 — [label]): [Key visual moment]
-...
-
-Consistent character appearance across all panels. Each panel is a distinct scene.
-Cinematic composition per panel. No text labels.
-```
-
-**Split into individual panels** (for per-segment `ref_image`):
 ```bash
-# For a 2×3 grid using ImageMagick:
-convert storyboard.png -crop 3x2@ +repage +adjoin panel_%d.png
+ffmpeg -sseof -0.2 -i previous.mp4 -frames:v 1 -q:v 2 -y previous-end.jpg
+renoise upload previous-end.jpg --json
+```
 
-# Or use the included script:
+Record the actual role and material ID chosen for every shot:
+
+```text
+Shot  Character anchor  Scene anchor  Previous result  CLI materials
+S1    #27               #91           —                <supported roles>
+S2    #27               #92           #V1              <supported roles>
+```
+
+## Material Ingest
+
+```bash
+renoise auth exec -- node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/scripts/material-ingest.mjs <paths-or-directory>
+```
+
+This uploads files, runs Gemini analysis, and writes `material-pool.json`.
+
+## Storyboard Grid
+
+For multi-segment visual review, generate one grid after character sheets are approved. A shared canvas helps palette and styling stay coherent; split it into per-segment references only if the selected video model supports the needed image role.
+
+```text
+Storyboard grid for "[TITLE]", [N] panels.
+[PROJECT STYLE LINE]
+[APPROVED CHARACTER BIBLE]
+Panel 1: [key visual moment]
+Panel 2: [key visual moment]
+Consistent designs and palette. No labels.
+```
+
+```bash
 bash ${CLAUDE_SKILL_DIR}/scripts/split-grid.sh storyboard.png output_dir/ 2 3
 ```
-
-**Consistency note**: Use grids for style/palette anchoring. For face consistency across segments, reuse the same character-sheet material ID as `ref_image` in every segment. On non-seedance models, grid panels with close-up faces may be rejected by provider review — favor environment-focused wide shots there.
-
-**Generation order**: Character sheets first (review them), then reference those designs when writing the storyboard grid prompt. The grid will be more consistent because you've already locked the character look.
-
----
-
-## Shot Mapping
-
-Before writing prompts, build a mapping of **all three anchors** for each shot:
-
-```
-Shot  Character        Scene Ref    Prev Video   CLI --materials
-S1    #27              #S1          (none)       "27:ref_image,S1:ref_image"
-S2    #27,#28          #S2          #V1          "27:ref_image,28:ref_image,V1:ref_video,S2:ref_image"
-S3    (no characters)  #S3          #V2          "V2:ref_video,S3:ref_image"
-S4    Elder (1-shot)   #S3          #V3          "V3:ref_video,S3:ref_image"  (+ text description for Elder)
-```
-
-**Rules:**
-- Face images → `ID:ref_image` (seedance auto-facepasses on submit); reuse the same material ID for a recurring character
-- Scene/environment images → `ID:ref_image`
-- Previous segment output → `ID:ref_video`
-- Same location across segments → reuse the same scene ref material ID
-- S1 has no ref_video; all subsequent segments should chain from previous

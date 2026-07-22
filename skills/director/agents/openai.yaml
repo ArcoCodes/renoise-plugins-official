@@ -1,0 +1,4 @@
+interface:
+  display_name: "Create with Renoise"
+  short_description: "Plan, cost, and create polished AI videos"
+  default_prompt: "Use $director to plan and create an AI video from my brief."

@@ -22,18 +22,20 @@ Handles files of any size automatically — small files are sent inline, large f
 
 ## Quick Start
 
+First verify the native CLI with `command -v renoise` on macOS/Linux or `Get-Command renoise` on Windows PowerShell, then run `renoise help auth exec` and `renoise auth status --json`. If a check fails, stop and direct the user to **Setup / Account**; never install software or edit `PATH` without explicit approval.
+
 ```bash
 # Analyze a product photo
-node ${CLAUDE_SKILL_DIR}/scripts/gemini.mjs --file photo.jpg --mode product
+renoise auth exec -- node ${CLAUDE_SKILL_DIR}/scripts/gemini.mjs --file photo.jpg --mode product
 
 # Extract a video script with timestamps
-node ${CLAUDE_SKILL_DIR}/scripts/gemini.mjs --file clip.mp4 --mode video-script
+renoise auth exec -- node ${CLAUDE_SKILL_DIR}/scripts/gemini.mjs --file clip.mp4 --mode video-script
 
 # Extract visual style keywords from a reference
-node ${CLAUDE_SKILL_DIR}/scripts/gemini.mjs --file reference.jpg --mode style
+renoise auth exec -- node ${CLAUDE_SKILL_DIR}/scripts/gemini.mjs --file reference.jpg --mode style
 
 # Free-form analysis
-node ${CLAUDE_SKILL_DIR}/scripts/gemini.mjs --file photo.jpg "Describe this image in detail"
+renoise auth exec -- node ${CLAUDE_SKILL_DIR}/scripts/gemini.mjs --file photo.jpg "Describe this image in detail"
 ```
 
 ## Analysis Modes
@@ -45,7 +47,7 @@ Preset modes auto-select optimal resolution and output format. Use `--mode` for 
 Analyzes product photos and returns structured JSON with type, color, material, selling points, brand tone, and scene suggestions. Auto-selects `high` resolution for maximum detail.
 
 ```bash
-node ${CLAUDE_SKILL_DIR}/scripts/gemini.mjs --file product.jpg --mode product
+renoise auth exec -- node ${CLAUDE_SKILL_DIR}/scripts/gemini.mjs --file product.jpg --mode product
 ```
 
 Output:
@@ -65,7 +67,7 @@ Output:
 Watches a video and outputs timestamped dialogue, scene descriptions, and camera movements. Auto-selects `low` resolution to reduce token consumption.
 
 ```bash
-node ${CLAUDE_SKILL_DIR}/scripts/gemini.mjs --file clip.mp4 --mode video-script
+renoise auth exec -- node ${CLAUDE_SKILL_DIR}/scripts/gemini.mjs --file clip.mp4 --mode video-script
 ```
 
 ### Style Extraction (`--mode style`)
@@ -73,26 +75,26 @@ node ${CLAUDE_SKILL_DIR}/scripts/gemini.mjs --file clip.mp4 --mode video-script
 Extracts visual style keywords from a reference image or video: color palette, lighting, camera language, composition, and mood.
 
 ```bash
-node ${CLAUDE_SKILL_DIR}/scripts/gemini.mjs --file reference.jpg --mode style
+renoise auth exec -- node ${CLAUDE_SKILL_DIR}/scripts/gemini.mjs --file reference.jpg --mode style
 ```
 
 ## CLI Usage
 
 ```bash
 # Text only
-node ${CLAUDE_SKILL_DIR}/scripts/gemini.mjs "Explain quantum computing"
+renoise auth exec -- node ${CLAUDE_SKILL_DIR}/scripts/gemini.mjs "Explain quantum computing"
 
 # Analyze an image (high resolution for product detail)
-node ${CLAUDE_SKILL_DIR}/scripts/gemini.mjs --file photo.jpg --resolution high "Describe this product"
+renoise auth exec -- node ${CLAUDE_SKILL_DIR}/scripts/gemini.mjs --file photo.jpg --resolution high "Describe this product"
 
 # Analyze a video (low resolution to save tokens)
-node ${CLAUDE_SKILL_DIR}/scripts/gemini.mjs --file clip.mp4 --resolution low "Summarize this clip"
+renoise auth exec -- node ${CLAUDE_SKILL_DIR}/scripts/gemini.mjs --file clip.mp4 --resolution low "Summarize this clip"
 
 # Multiple images
-node ${CLAUDE_SKILL_DIR}/scripts/gemini.mjs --file a.jpg --file b.jpg "Compare these two"
+renoise auth exec -- node ${CLAUDE_SKILL_DIR}/scripts/gemini.mjs --file a.jpg --file b.jpg "Compare these two"
 
 # JSON output mode
-node ${CLAUDE_SKILL_DIR}/scripts/gemini.mjs --json "Return a JSON object with name and age"
+renoise auth exec -- node ${CLAUDE_SKILL_DIR}/scripts/gemini.mjs --json "Return a JSON object with name and age"
 ```
 
 ### Options
@@ -126,17 +128,17 @@ Files larger than 20MB are **automatically uploaded** before analysis — no man
 
 ```bash
 # This just works — the script detects file size and auto-uploads if needed
-node ${CLAUDE_SKILL_DIR}/scripts/gemini.mjs --file large-video.mp4 "Analyze this video"
+renoise auth exec -- node ${CLAUDE_SKILL_DIR}/scripts/gemini.mjs --file large-video.mp4 "Analyze this video"
 ```
 
 For manual uploads (e.g. reusing the same large file across multiple calls):
 ```bash
 # Upload once
-FILE_URL=$(node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/scripts/upload.mjs large-video.mp4)
+FILE_URL=$(renoise auth exec -- node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/scripts/upload.mjs large-video.mp4)
 
 # Use the URL in multiple calls
-node ${CLAUDE_SKILL_DIR}/scripts/gemini.mjs --file-uri "$FILE_URL" --file-mime video/mp4 "Summarize"
-node ${CLAUDE_SKILL_DIR}/scripts/gemini.mjs --file-uri "$FILE_URL" --file-mime video/mp4 "Extract dialogue"
+renoise auth exec -- node ${CLAUDE_SKILL_DIR}/scripts/gemini.mjs --file-uri "$FILE_URL" --file-mime video/mp4 "Summarize"
+renoise auth exec -- node ${CLAUDE_SKILL_DIR}/scripts/gemini.mjs --file-uri "$FILE_URL" --file-mime video/mp4 "Extract dialogue"
 ```
 
 ## When to Use vs When Not
@@ -199,4 +201,4 @@ POST https://renoise.ai/api/public/llm/proxy/v1beta/models/{model}:generateConte
 
 ## Authentication
 
-Environment variable `RENOISE_API_KEY`. Get one at: https://www.renoise.ai
+Uses the credential securely saved by `renoise auth login`, or the `RENOISE_API_KEY` override. Ask the agent to set up Renoise (or run `/renoise:setup` on Claude Code) if neither exists.

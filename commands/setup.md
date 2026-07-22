@@ -1,103 +1,62 @@
 ---
-description: Configure Renoise Credits statusLine display
+description: Run universal Renoise setup, then enable Claude Code Credits statusLine
 allowed-tools: Bash, Read, Edit, Write, AskUserQuestion
 ---
 
-# Renoise StatusLine Setup
+# Renoise Setup for Claude Code
 
-Set up the Renoise Credits display in Claude Code's status bar. Merges with claude-hud if installed.
+This command is a Claude Code wrapper, not the universal setup implementation.
 
-## Step 1: Detect Runtime
+## Step 1: Run Universal Setup
 
-Find a JavaScript runtime (prefer bun for performance):
+Read `${CLAUDE_PLUGIN_ROOT}/skills/renoise-setup/SKILL.md` completely and follow it through authentication verification and the readiness report.
 
-```bash
-command -v bun 2>/dev/null || command -v node 2>/dev/null
-```
+Do not ask the user to open a terminal or paste an API key into chat. The Agent runs `renoise auth login --web --json`, waits while the user authorizes in the browser, then continues automatically; the native CLI owns credential discovery and shares it with Gemini/upload through `renoise auth exec`. If the CLI is unavailable and the user declines installation, generation is not ready; do not recreate its behavior in the plugin.
 
-If empty, tell the user to install bun (https://bun.sh) or Node.js (https://nodejs.org), then re-run `/renoise:setup`.
+After universal setup, select the Claude statusLine runtime with `command -v bun 2>/dev/null || command -v node 2>/dev/null` and save its absolute path as `{RUNTIME_PATH}`. Do not continue to the Claude-specific steps until Node.js exists and authentication verifies.
 
-Save the runtime absolute path as `{RUNTIME_PATH}`.
-
-## Step 2: Find Plugin Directory
+## Step 2: Find the Installed Claude Plugin
 
 ```bash
 CLAUDE_DIR="${CLAUDE_CONFIG_DIR:-$HOME/.claude}"
 ls -d "$CLAUDE_DIR"/plugins/cache/renoise-plugins-official/renoise/*/ 2>/dev/null | awk -F/ '{ print $(NF-1) "\t" $(0) }' | sort -t. -k1,1n -k2,2n -k3,3n -k4,4n | tail -1 | cut -f2-
 ```
 
-Save as `{PLUGIN_DIR}`. If empty, the plugin may not be installed via marketplace. Ask user to verify installation.
+Save as `{PLUGIN_DIR}`. If empty, ask the user to verify the marketplace installation.
 
-## Step 3: Generate and Test Command
+## Step 3: Build and Test the Credits Command
 
-Generate the statusLine command:
+For Bun:
 
-**If runtime is bun:**
-```
+```text
 bash -c 'plugin_dir=$(ls -d "${CLAUDE_CONFIG_DIR:-$HOME/.claude}"/plugins/cache/renoise-plugins-official/renoise/*/ 2>/dev/null | awk -F/ '"'"'{ print $(NF-1) "\t" $(0) }'"'"' | sort -t. -k1,1n -k2,2n -k3,3n -k4,4n | tail -1 | cut -f2-); exec "{RUNTIME_PATH}" --env-file /dev/null "${plugin_dir}src/index.ts"'
 ```
 
-**If runtime is node:**
-```
+For Node.js:
+
+```text
 bash -c 'plugin_dir=$(ls -d "${CLAUDE_CONFIG_DIR:-$HOME/.claude}"/plugins/cache/renoise-plugins-official/renoise/*/ 2>/dev/null | awk -F/ '"'"'{ print $(NF-1) "\t" $(0) }'"'"' | sort -t. -k1,1n -k2,2n -k3,3n -k4,4n | tail -1 | cut -f2-); exec npx tsx "${plugin_dir}src/index.ts"'
 ```
 
-Test the command:
+Test the generated command:
+
 ```bash
 echo '{}' | {GENERATED_COMMAND} 2>&1
 ```
 
-Should output at least one line (credits display). If it errors, debug before proceeding.
+It must output at least one line.
 
-## Step 4: Configure RENOISE_API_KEY
-
-Check if `RENOISE_API_KEY` is already set:
-```bash
-echo "${RENOISE_API_KEY:+SET}"
-```
-
-If already set, skip to Step 5.
-
-If not set, guide the user through login:
-
-1. Open the Renoise developer page:
-   ```bash
-   open "https://www.renoise.ai/developer"
-   ```
-
-2. Tell the user:
-   > 🎬 Renoise developer page opened. Please create an API key there (starts with `fk_`), then paste it here.
-
-3. Use AskUserQuestion to ask for the API key.
-
-4. Save to `~/.claude/settings.json` under the `env` block. Merge with existing values — do not overwrite other keys:
-   ```json
-   {
-     "env": {
-       "RENOISE_API_KEY": "<user's key>"
-     }
-   }
-   ```
-
-5. Verify the key works:
-   ```bash
-   cd ${CLAUDE_PLUGIN_ROOT} && RENOISE_API_KEY="<user's key>" node skills/renoise-gen/renoise-cli.mjs credit me
-   ```
-   If verification fails, tell the user the key may be invalid and ask to try again.
-
-## Step 5: Apply StatusLine Config
+## Step 4: Merge Claude Code StatusLine
 
 Read `${CLAUDE_CONFIG_DIR:-$HOME/.claude}/settings.json`.
 
-**If a `statusLine` already exists** and its command does NOT contain "renoise":
-1. Save the existing statusLine command to `~/.renoise/previous-statusline.json`:
-   ```json
-   { "command": "<existing statusLine command>" }
-   ```
-   Create the `~/.renoise/` directory if needed.
-2. Tell the user: "Your existing statusLine (e.g. claude-hud) will be preserved and merged with the credits display."
+If an existing `statusLine.command` does not contain `renoise`, save it to `~/.renoise/previous-statusline.json`:
 
-**Then** merge in our statusLine config, preserving all other existing settings:
+```json
+{ "command": "<existing statusLine command>" }
+```
+
+Then merge this without overwriting unrelated settings:
 
 ```json
 {
@@ -108,11 +67,12 @@ Read `${CLAUDE_CONFIG_DIR:-$HOME/.claude}/settings.json`.
 }
 ```
 
-After writing, tell the user:
+Tell the user the existing statusLine is preserved and merged.
 
-> ✅ Login successful! Your Renoise account is now connected.
+## Step 5: Finish
+
+Return the universal readiness summary, then add:
+
+> ✅ Claude Code statusLine configured. Restart Claude Code to activate it.
 >
-> **Restart Claude Code** to activate. After restart you'll see:
-> - Your real-time credit balance in the status bar
-> - Low balance warnings when credits are running out
-> - Type `/renoise:add-credits` anytime to top up
+> Use `/renoise:add-credits` anytime to top up.

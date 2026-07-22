@@ -12,30 +12,28 @@ Upload all assets **before writing the prompt**. Material IDs must be known befo
 
 **1. Person image → upload as material**
 
-The presenter face is used directly as `ID:ref_image` — on the seedance series it is auto-facepassed on submit, so there is no registration step. Reuse the **same material ID** across every segment to keep the presenter consistent.
+Upload the presenter once and reuse the **same material ID** through an image-reference role advertised by the selected model. Follow the central `renoise-gen` material policy; do not add a commercial-specific preparation step.
 
 If the user provided a presenter face image:
 ```bash
-node renoise-cli.mjs material upload <person_image_path>
-# → returns material_id; use as ID:ref_image
+renoise upload <person_image_path> --json
+# → use the returned ID through a role advertised by the selected video model
 ```
 
-If the user did NOT provide a presenter image: ask what kind of presenter they want (gender, age, style, vibe — e.g. "甜美少女风", "职场精英感", "邻家小姐姐"). Generate a portrait with `seedream-5-0-pro` (default image model), download it, and upload it. Present to user for approval before proceeding.
+If the user did NOT provide a presenter image, ask what kind of presenter they want. Select an image model from `renoise model --json`, inspect it, generate a portrait with advertised parameters, and present it for approval before uploading.
 
 ```bash
-node renoise-cli.mjs task generate \
-  --model seedream-5-0-pro --resolution 2k --ratio 1:1 \
-  --prompt "<portrait prompt>"
+renoise task create <selected-image-model> --prompt-file <portrait-prompt-file> --json
+renoise task wait <task-id> --timeout 15m --json
 curl -s -o presenter.png "<generated_image_url>"
-node renoise-cli.mjs material upload presenter.png
-# → returns material_id; use as ID:ref_image
+renoise upload presenter.png --json
 ```
 
 **2. Product images → upload as material**
 
 ```bash
-node renoise-cli.mjs material upload <product_image_path>
-# → returns material_id; role will be ref_image
+renoise upload <product_image_path> --json
+# → assign a role advertised by the selected video model
 ```
 
 **3. Record all IDs**, then proceed to Phase 2.

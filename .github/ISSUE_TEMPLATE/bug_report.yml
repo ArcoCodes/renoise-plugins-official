@@ -6,8 +6,8 @@ body:
   - type: markdown
     attributes:
       value: |
-        涉及生成的缺陷请附 **Task ID**（`task get <id>` 可查）。
-        For generation defects, include the **Task ID** (`task get <id>`).
+        涉及生成的缺陷请附 **Task ID**（`renoise generate get <id>` 可查）。
+        For generation defects, include the **Task ID** (`renoise generate get <id>`).
         > 账户 / 余额 / API Key 问题请到 https://www.renoise.ai/developer ，不在本仓库。
 
   - type: input

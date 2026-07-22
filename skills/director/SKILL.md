@@ -33,24 +33,26 @@ You are a creative director for AI video production. Default language: English. 
 **For e-commerce / ad / brand prompts, skip prompt-craft.md and read ONLY**: `Read ${CLAUDE_SKILL_DIR}/commercial/INDEX.md`
 **For all other videos (narrative / short film / drama), read**: `Read ${CLAUDE_SKILL_DIR}/references/prompt-craft.md`
 
+Before planning or estimating, verify `renoise` is available and supports agent-safe tasks and `auth exec`; use `command -v renoise` on macOS/Linux or `Get-Command renoise` on Windows PowerShell, then confirm `renoise help task create` contains `--prompt-file`, and run `renoise help task wait`, `renoise help auth exec`, `renoise auth status --json`, and `renoise model --json`. If any check fails, stop and direct the user to **Setup / Account**. Do not install or modify `PATH` without explicit approval.
+
 ---
 
 ## Hard Rules
 
 - Platform URL: **https://www.renoise.ai** (never renoise.com)
-- **Default models**: video → `seedance-2.0`, image → `seedream-5-0-pro`. These are the *preferred* defaults, not hard locks — if the user names a different model, use it. Switch the image model off `seedream-5-0-pro` only when the job needs `4k`, an extreme banner ratio (`8:1`/`1:8`, etc.), or strong text/logo typography (`seedream-5-0-pro` is capped at `1k`/`2k` and the 8 common ratios). See `references/visual-dev.md` "Picking an Image Model".
-- **Duration should follow the user's preference,but no longer than 15s and no shorter than 3 seconds.** If the user's prompt does not specify total video length or per-segment duration, ask before writing any prompts: "How long should the total video be(5=15s)? " Only after the user answers should you decide segment count and per-segment duration. Model supports 5–15s per segment.
+- **Models and limits are live data.** Run `renoise model --json`, preserve any user-named model, otherwise use the server-advertised default for the requested media kind. Inspect the selection with `renoise model <model> --json`; its guidance, durations, resolutions, ratios, material roles, and limits are authoritative.
+- **Duration follows the user's preference and the selected model's advertised durations.** If total or per-segment duration is missing, ask before writing prompts. Decide segment count only after selecting the model and reading its live capabilities.
 - One mood per segment — no contradictory tone/color in the same prompt
 - **Spoken-language Hard Rule (all paths, no exemption).** If **any** segment contains dialogue / voiceover / narration, you **must confirm the spoken language with the user before writing prompts** — same tier of hard gate as the duration confirmation, and it is **not** waived even when the brief is rich enough to skip the rest of Intake. After confirmation: (1) write each dialogue/voiceover line **verbatim in the confirmed language** inside the prompt — translating the line changes the voice's language; (2) for dialogue-dense segments keep the **whole segment prompt in the spoken language**, so a large block of English text does not drag the generated speech toward English; (3) label the spoken language of every dialogue segment in the Gate 2 preview ("S4 口播：中文"). This generalizes the old Scenario-D-only rule to every path with dialogue.
 - **Two gates before any credits are spent (multi-shot / narrative).** Nothing is generated until **both** gates are confirmed by the user, in order: **Gate 1 — Story** (logline + treatment / shot list) → **Gate 2 — Consistency Manifest** (characters, props, scenes, style bible, transition table, spoken language). See "Two Gates" below. "Story first" and "lock recurring characters" are the two halves of this framework — do not treat them as separate ad-hoc rules.
 - **Lock recurring characters before generating — this is how you guarantee consistency, not something to apologize for.** Any character appearing in 2+ segments **must** be pinned to a reference image (this is a Gate 2 line item):
   - If the user supplied a photo → use it.
-  - If the character is invented / no photo exists → **first generate a character design sheet** (`seedream-5-0-pro`, see visual-dev.md), show it to the user for approval, then reuse that **same material ID** as `ref_image` in every segment the character appears in (seedance auto-facepasses on submit and dedupes by material ID, so re-use is free and consistent).
+  - If the character is invented / no photo exists → **first generate a character design sheet** with a live-capability-selected image model (see visual-dev.md), show it to the user for approval, then reuse that **same material ID** through a role supported by the selected video model in every recurring segment.
   - A text-only description of a recurring character is **not acceptable**, and you must **never** tell the user to simply "expect some drift." Prevent drift by locking the reference up front.
 - **Inline conversation images cannot be uploaded to Renoise.** When the user pastes images directly into the conversation (no local file path), you can view them but cannot upload them. Tell the user: "I can see your image, but uploading it to Renoise requires a local file path. Please save it to your computer and share the path."
 - **STYLE BIBLE is mandatory for multi-shot.** Before splitting into segments, produce one STYLE BIBLE string (`art style + camera language + color grade + NEGATIVE line`) and **prepend it verbatim to every segment prompt**. This is what stops a live-action piece from drifting into 3D-cartoon / game-CG mid-sequence and stops color temperature from jumping between segments. It is a Gate 2 line item. See "Style Bible" in `prompt-craft.md`.
-- **Continuous narrative defaults to the reference-image-as-first-frame chain (全能参考首帧法).** Platform constraint: on the seedance series, frame mode (`first_frame`/`last_frame`) and multimodal reference mode (`ref_image`) are **mutually exclusive** — a segment cannot carry both (`gemini-omni-flash` is the only exception that allows `first_frame` + `ref_image`). Since nearly every narrative segment already carries a `ref_image` (character sheet, scene anchor), the default chain is: extract the previous segment's tail frame with ffmpeg, upload it, and attach it **as a `ref_image` pinned to index 0** (`TAIL_ID:ref_image:0` → it becomes `@Image1`), coexisting freely with the character/scene refs (seedance ≤9 images); then the prompt's **first sentence explicitly declares it the opening frame** — "Use @Image1 as the first frame." (Chinese-spoken segments: 「以@图片1为首帧」) — immediately followed by the exact opening-state description via the existing `Continuing from the previous shot:` bridge. Native `ID:first_frame` is the **fallback only**, used when the segment has **no other image reference at all** (e.g. pure landscape B-roll continuation). Note the prompt-declared first frame is a **soft lock** — weaker than native `first_frame` — so always pair it with a verbatim opening-state description and a match-cut composition in the Transition Table; if the join still shows, add a 0.3–0.5s cross-dissolve in post. Only the **final** segment ends on `frame holds steady`; every intermediate segment must end on a motion/composition hook the next segment can catch (see the Transition Table in Gate 2). Use `ref_video` when motion/style carryover matters more than pinning the next opening frame — `ref_video` combines with `ref_image` as usual and is unaffected by the frame-mode exclusion.
-- Read video model capabilities before every prompt session: `Read ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/references/video-capabilities.md`
+- **Continuity must follow live model capabilities.** Inspect the selected model before planning anchors. Reuse stable material IDs through supported roles; use `task chain` only when a video-reference role is advertised; use a tail frame only through an advertised frame/image role. Never assume role combinations or limits from an old model-specific recipe. Only the final segment ends on `frame holds steady`; intermediate segments end on a motion/composition hook recorded in the Transition Table.
+- Before every prompt session run `renoise model --json`, then `renoise model <selected-model> --json`.
 
 ---
 
@@ -68,7 +70,7 @@ Don't guess — ask. Every detail the user confirms is one fewer reason to regen
 | **Story/Action** | What physically happens in the video | "What's the key action or event? Is there a conflict, reveal, or transformation?" |
 | **Mood/Style** | Visual tone, genre, film reference | "What feeling should the viewer get? Any visual references (film, anime, documentary)?" |
 | **Setting** | Location, time of day, environment | "Where does this take place? What time of day? Interior or exterior?" |
-| **Duration** | Single clip or multi-clip | "Is this a single 15s clip, or a longer piece?" |
+| **Duration** | Single clip or multi-clip, based on live model limits | "How long should the finished video be?" |
 | **Dialogue** | Whether characters speak, what language — **spoken language is a Hard Rule, always confirm it, never auto-translate the dialogue line** | "Should characters speak? In what language should the voice be?" |
 | **Reference materials** | Existing images, character photos, product shots | "Do you have any reference images, character art, or product photos?" |
 
@@ -79,17 +81,16 @@ Don't guess — ask. Every detail the user confirms is one fewer reason to regen
 
 **Budget check** before generating. Do not assume fixed prices — run a live estimate per segment (the CLI applies the model mapping automatically), multiply by the segment count, and compare against the balance:
 ```bash
-node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/renoise-cli.mjs credit me
-node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/renoise-cli.mjs credit estimate \
-  --model seedance-2.0 --duration 15 --resolution 1080p
+renoise account status --json
+renoise task cost <selected-model> --duration <seconds> --resolution <value> --json
 ```
-Sum `estimatedCredit × segment count` (plus any character-sheet / upscale / BGM steps) and compare with the `balance` from `credit me`. If it exceeds the balance, tell the user and suggest fewer segments or a lower resolution tier.
+Sum `estimatedCredit × segment count` (plus any character-sheet, enhancement, or audio steps) and compare with the live balance. If it exceeds the balance, suggest fewer segments or a cheaper capability advertised by `renoise model --json`.
 
 ---
 
 ## Two Paths
 
-### Path 1: Single Clip (≤15s)
+### Path 1: Single Clip (within the selected model's live maximum)
 
 ```
 User brief → [Clarify if needed] → Write prompt → Confirm → Generate
@@ -97,10 +98,10 @@ User brief → [Clarify if needed] → Write prompt → Confirm → Generate
 
 1. Check if the brief has enough detail. If not, ask targeted questions (see Intake above).
 2. Write one high-density prompt following prompt-craft.md
-3. **MUST present the full prompt to the user and wait for explicit approval before calling `task generate`. Never skip this step.** Adjust on feedback until the user confirms.
+3. **MUST present the full prompt to the user and wait for explicit approval before creating a paid generation task. Never skip this step.** Adjust on feedback until the user confirms.
 4. Generate — only after user says yes
 
-### Path 2: Multi-Clip (>15s) — Two Gates
+### Path 2: Multi-Clip (requested duration exceeds the live maximum) — Two Gates
 
 Multi-shot work runs through **two hard gates**. You spend **zero credits** until the user has confirmed **both**, in this order:
 
@@ -125,7 +126,7 @@ After the story is locked and segments are drafted, but **before generating any 
 
 | Manifest item | What to lock |
 |---|---|
-| **Characters** | Each recurring character's design sheet (generated `seedream-5-0-pro` sheet, or the user's photo), split into **constant traits vs plot-driven changes**. Character in 2+ segments → MUST have a locked `ref_image`, even if fully invented (the generated sheet *is* the reference). Never substitute a text-only description + "may drift" disclaimer. |
+| **Characters** | Each recurring character's approved design sheet (generated with a live-selected image model, or supplied by the user), split into **constant traits vs plot-driven changes**. Reuse one material ID through a role advertised by the selected video model; never substitute a text-only description plus a drift disclaimer. |
 | **Props** | Fixed description of each key prop — **material + color + form** (e.g. "translucent green jade engagement token / broken shard"). Logged in the Props & Wardrobe Continuity Table (visual-dev.md). |
 | **Scenes** | Recurring-location concept image (environment only, no faces) or a fixed written description. |
 | **Style Bible** | One string: `art style + camera language + color grade + NEGATIVE line`, prepended verbatim to every segment. Unifies color grade (kills color-temperature jumps). See "Style Bible" in prompt-craft.md. |
@@ -134,25 +135,18 @@ After the story is locked and segments are drafted, but **before generating any 
 
 Preparation notes for Gate 2:
 - If the user provided materials: ingest with `material-ingest.mjs`, match against needs first.
-- **Characters recurring in 2+ segments → generate the character design sheet, present it for approval, upload it, reuse its material ID as `ref_image` in every segment.** Do this even for a fully invented character.
+- **Characters recurring in 2+ segments → generate the character design sheet, present it for approval, upload it, and reuse its material ID through a role advertised by the selected model.** Do this even for a fully invented character.
 - **Locations** recurring in 2+ segments → scene concept image (environment only, no faces) + upload.
 - **Props/wardrobe** that are plot-critical → log in the Props & Wardrobe Continuity Table and mark constant vs plot-evolving. A costume/prop upgrade the plot requires (e.g. torn robe → immortal robe) must be staged as its **own explicit transformation shot**, never an untransitioned jump between adjacent segments.
 - Not every segment needs every anchor. Judge per segment, then record the decision in the **Shot Mapping** table.
 
 #### Prompts (part of Gate 2's output)
 
-Write one prompt per segment following prompt-craft.md. The Style Bible prepends every segment; the full character block is copied verbatim every time; each segment after S1 starts with a `Continuing from the previous shot:` bridge. If the continuity method is the tail-frame chain — whether `TAIL_ID:ref_image:0` + the "Use @Image1 as the first frame." declaration (the default), or native `first_frame` (no-other-image-refs fallback) — the described opening state must match the extracted frame exactly. Dialogue lines stay in the confirmed spoken language.
+Write one prompt per segment following prompt-craft.md. The Style Bible prepends every segment; the full character block is copied verbatim; each segment after S1 starts with a `Continuing from the previous shot:` bridge; dialogue stays in the confirmed spoken language.
 
 #### Generate
 
-Assemble `--materials` per segment based on the Shot Mapping:
-- Character in frame → `FACE_MAT_ID:ref_image` (reuse the same material ID in every segment)
-- Exact carried-over opening pose/composition/state needed → extract the previous segment tail frame with ffmpeg, upload it, then route by what else the segment carries (frame mode and reference mode are mutually exclusive — see the reference-image-as-first-frame Hard Rule):
-  - Segment has **any other `ref_image`** (character/scene — the usual case) → attach the tail frame as `TAIL_ID:ref_image:0` (index 0 makes it `@Image1`) and open the prompt with "Use @Image1 as the first frame." — the **default** for continuous narrative
-  - Segment has **no other image reference** (e.g. pure landscape B-roll) → native `ID:first_frame`
-- Motion/style carryover from previous segment needed → `PREV_ID:ref_video` (use `task chain <id>` to get material)
-- Recurring or visually specific location → `SCENE_ID:ref_image`
-- Sequential segments: serial chain. Independent segments: parallel.
+Inspect `renoise model <selected-model> --json`, then assemble materials from its advertised roles. Reuse stable character/location IDs, use a tail frame through a supported frame/image role when opening composition matters, and use `renoise task chain` only for an advertised video-reference role. Never rely on a hard-coded role combination or limit. Sequential dependencies run serially; independent segments may run in parallel.
 
 #### QC (before you finalize)
 
@@ -162,168 +156,63 @@ bash ${CLAUDE_SKILL_DIR}/scripts/qc-preview.sh --videos-dir <videos_dir>
 ```
 This stitches a rough preview, builds a frame contact sheet, and lays out each cut's tail-frame → next-first-frame pair. Self-check every segment against the confirmed Consistency Manifest — **same face / same art style / same color grade / props coherent / transitions catchable / spoken language correct** — and report the result to the user. Re-generate only the segments that fail (keep the good ones), then confirm before finalizing.
 
-#### Assemble
+#### Assemble and optional post-processing
 
-Concatenate clips, strip AI audio, overlay unified BGM.
-- BGM option A — generate a ~30s original track with `lyria-clip` (loop/trim to length):
-  ```bash
-  node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/renoise-cli.mjs task generate \
-    --model lyria-clip --prompt "<mood/genre/instrumentation, no vocals>"
-  # task result → audioUrl; download it and use as the ffmpeg BGM input
-  ```
-- BGM option B — a user-provided audio file.
+Use the selected model's live capabilities for generated audio and enhancement. Do not name a fixed audio/upscale model here; choose by `kind` and `guidance` from `renoise model --json`.
 
-#### Resolution & final delivery
-
-**720p is the draft tier** — fine for internal previews and QC. For a final deliverable, target **1080p** (generate at 1080p on `seedance-2.0`) or run the finished cut through the super-resolution step below. Quote the resolution-tier cost from `credit estimate` (higher tiers bill more) rather than assuming a flat rate.
-
-**(Optional) Enhance the final cut** (super-resolution):
 ```bash
-node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/renoise-cli.mjs material upload final-with-bgm.mp4
-node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/renoise-cli.mjs task generate \
-  --model upscale-video-volcano-mediakit --resolution 2k --materials "MAT_ID:ref_video"
-# no --prompt needed; target 1080p/2k/4k, default 1080p
+cd "${PROJECT_DIR}/videos"
+printf "file '%s'\n" S1.mp4 S2.mp4 S3.mp4 > concat.txt
+ffmpeg -y -f concat -safe 0 -i concat.txt -c copy final.mp4
 ```
-Source-size limits apply: the source clip must be **under 4K** (long edge < 3840px — a clip already at/above 4K is maxed out), and the target tier must be **larger than the source** (`1080p`→1920, `2k`→2560, `4k`→3840), otherwise it is not an upscale. The CLI pre-checks this at submit time on a best-effort basis and lets the task through if it cannot measure the source (e.g. `ffprobe` not installed); it also auto-fills `ratio` from the source's true aspect ratio to keep the framing when the source is measurable.
+
+If a separate soundtrack is required, select an advertised audio model, estimate it, generate it, then mix with ffmpeg. If enhancement is required, select a live model whose guidance describes enhancement and use only its advertised inputs and output settings.
 
 ---
 
 ## Anchoring Strategy
 
-Anchors are tools, not a checklist. Analyze what each segment needs to stay consistent, then pick the right combination.
+Anchors are tools, not a static role table. Before planning each segment:
 
-### Available Anchors
-
-| Anchor | `--materials` syntax | What it locks | When to use |
-|--------|---------------------|---------------|-------------|
-| Character face / sheet | `FACE_MAT_ID:ref_image` | Face, body, wardrobe | Character appears in 2+ segments — reuse the same material ID each time |
-| Previous segment end frame (segment also has other image refs — the usual case) | `TAIL_ID:ref_image:0` + prompt opens "Use @Image1 as the first frame." | Opening composition/state (soft lock — back it with the verbatim opening-state description) | **Default** for continuous narrative; coexists with character/scene `ref_image`s (frame mode would not) |
-| Previous segment end frame (segment has **no** other image refs) | `ID:first_frame` | Exact opening composition/state (hard lock) | Only when no `ref_image` is attached — frame mode and reference mode are mutually exclusive |
-| Previous segment | `ID:ref_video` | Motion continuity, scene flow | Segment continues from the previous one |
-| Scene concept | `ID:ref_image` | Environment, lighting, palette | Location recurs or has specific visual requirements |
-| Text-only | Full description in prompt | Nothing locked visually | **Only** for a subject that appears in a single segment (B-roll, one-off extra). **Never** for a character recurring across segments — lock those with a character-sheet `ref_image`, generating the sheet first if none exists. |
-
-All `ref_*` roles combine freely within multimodal reference mode — use as many or as few as the segment requires. `ID:first_frame` is **frame mode** and cannot be combined with any `ref_image` (platform mode exclusion; `gemini-omni-flash` is the only model that allows the combination) — which is exactly why the tail frame rides as `ref_image:0` by default.
-
-### Deciding What Each Segment Needs
-
-Ask per segment:
-1. **Does a recurring character appear?** → add their face/character-sheet material ID as `ref_image` (same ID every segment)
-2. **Does the next segment need an exact opening frame from the previous one?** → extract the tail frame; if the segment carries any other `ref_image`, attach it as `TAIL_ID:ref_image:0` and open the prompt with "Use @Image1 as the first frame."; only if there is no other image reference, use `ID:first_frame`
-3. **Does it continue from the previous segment's motion/style?** → add ref_video
-4. **Is the location visually specific or shared with other segments?** → add scene ref_image
-5. **Is it a standalone establishing shot or B-roll?** → text-only may suffice
-
-Example Shot Mapping:
-```
-Shot  What's needed                           --materials
-S1    Maya + her apartment (first appearance)  "27:ref_image,201:ref_image"
-S2    Maya + continues S1 + same apartment     "27:ref_image,V1:ref_video,201:ref_image"
-S3    City skyline B-roll (no characters)      "202:ref_image"  (or text-only)
-S4    Maya + new location (café)               "27:ref_image,203:ref_image"
-```
-(`27` is Maya's character-sheet material — the same ID is reused in every segment she appears in.)
-
-**Prepare a recurring character:**
 ```bash
-# 1. Generate character sheet with seedream-5-0-pro (default image model)
-node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/renoise-cli.mjs task generate \
-  --model seedream-5-0-pro --resolution 2k --ratio 16:9 \
-  --prompt "<character sheet prompt>"
-
-# 2. Download and upload → returns the material ID to reuse as ref_image
-curl -s -o char.png "<image_url>"
-node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/renoise-cli.mjs material upload char.png
-# → e.g. material ID 27; pass "27:ref_image" in every segment featuring this character
+renoise model <selected-model> --json
 ```
 
----
+- Reuse the same approved character/product/location material ID through an advertised image role.
+- Use `renoise task chain <task-id> --json` only when the selected model advertises a compatible video-reference role.
+- Use an advertised frame role for an exact opening state; if only image references are available, order the tail frame first and describe the opening composition explicitly.
+- Never assume role combinations, limits, durations, or timeouts from examples.
 
-## Generation Commands
+Save each approved prompt to a file, then create and wait as separate terminal calls so the Task ID survives an interrupted wait:
 
-**Single clip:**
 ```bash
-node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/renoise-cli.mjs task generate \
-  --prompt "<prompt>" --duration 15 --ratio <ratio> \
-  [--materials "FACE_MAT_ID:ref_image"]
+renoise upload <reference-file> --json
+renoise task create <selected-model> \
+  --prompt-file <approved-prompt-file> \
+  [only flags and materials advertised by the selected model] --json
+renoise task wait <task-id> --timeout <duration> --json
 ```
 
-**Serial continuity option A — carried-over opening frame (reference-image-as-first-frame):**
-```bash
-# S1: generate the previous segment first
-node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/renoise-cli.mjs task generate \
-  --prompt "<S1 prompt>" --duration 15 --ratio <ratio> \
-  --materials "FACE_MAT_ID:ref_image,SCENE1_MAT_ID:ref_image"
+If waiting times out, rerun `wait` with the same Task ID; never blindly rerun `create`.
 
-# Extract a clean tail frame from the completed segment
-ffmpeg -sseof -0.2 -i generated/shots/S1.mp4 -frames:v 1 -q:v 2 -y generated/keyframes/S1-end.jpg
-
-# Upload the extracted frame
-node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/renoise-cli.mjs material upload generated/keyframes/S1-end.jpg
-# → returns material ID, e.g. TAIL_ID = 91
-
-# S2 (default): the tail frame rides as ref_image pinned to index 0 (`ID:role:index`
-# syntax) so it is @Image1; it coexists with the character/scene refs — native
-# first_frame would not (frame mode × reference mode are mutually exclusive).
-# The prompt's FIRST sentence declares it the opening frame.
-node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/renoise-cli.mjs task generate \
-  --prompt "Use @Image1 as the first frame. Continuing from the previous shot: <S2 prompt>" \
-  --duration 15 --ratio <ratio> \
-  --materials "FACE_MAT_ID:ref_image,TAIL_ID:ref_image:0,SCENE2_MAT_ID:ref_image"
-
-# S2 (fallback, ONLY if the segment has no other image reference — e.g. pure B-roll):
-node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/renoise-cli.mjs task generate \
-  --prompt "Continuing from the previous shot: <S2 prompt>" --duration 15 --ratio <ratio> \
-  --materials "TAIL_ID:first_frame"
-```
-
-**Serial continuity option B — motion/style carryover:**
-```bash
-# Chain S1 output → material in one step (download + upload)
-node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/renoise-cli.mjs task chain <S1_TASK_ID>
-# → prints material ID for ref_video
-
-# S2: character face + ref_video (S1) + scene ref
-node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/renoise-cli.mjs task generate \
-  --prompt "Continuing from the previous shot: <S2 prompt>" --duration 15 --ratio <ratio> \
-  --materials "FACE_MAT_ID:ref_image,S1_MAT_ID:ref_video,SCENE2_MAT_ID:ref_image"
-```
-
-> **Timeout note**: Multi-anchor generations take 8–12 minutes per segment. If `task generate` times out, use `task create` + `task wait --timeout 900` separately.
-
-**Assemble:**
-```bash
-cd "${PROJECT_DIR}/videos"
-printf "file '%s'\n" S1.mp4 S2.mp4 S3.mp4 > concat.txt
-ffmpeg -y -f concat -safe 0 -i concat.txt -c copy final.mp4
-# Strip AI audio, add BGM:
-ffmpeg -i final.mp4 -an -c:v copy silent.mp4
-ffmpeg -i silent.mp4 -i bgm.mp3 -c:v copy -c:a aac -shortest final-with-bgm.mp4
-```
-
-**Check balance:**
-```bash
-node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/renoise-cli.mjs credit me
-```
-
----
+After generation, assemble clips with ffmpeg and run the QC script before final delivery.
 
 ## When Things Go Wrong
 
 | Problem | Fix |
 |---------|-----|
-| `PrivacyInformation` error | Only on non-seedance models or output review — seedance input faces are auto-facepassed. If face review rejects an image (task `failed` + `INPUT_IMAGE_*`), swap the image and retry |
-| 402 insufficient credits | `credit me`, inform user, suggest top-up at https://www.renoise.ai |
-| Character drifts between segments | Reuse the same face/character-sheet material ID as `ref_image` in every segment + copy the full character description verbatim |
+| Input/reference rejection | Read the selected model's live guidance and the `renoise-gen` material policy; never invent a plugin-side preparation flow. |
+| 402 insufficient credits | Run `renoise account status --json`, inform the user, and suggest top-up at https://www.renoise.ai. |
+| Character drifts between segments | Reuse the same approved character material ID through a role advertised by the selected model, plus the verbatim character description. |
 | Video ignores actions in prompt | Prompt too dense — reduce to 3-4 actions per 5s window |
 | Video looks incoherent | Simplify: 2 camera stages, one mood, fewer actions |
-| Segments don't connect | Re-check the continuity choice: tail frame as `ref_image:0` + "Use @Image1 as the first frame." declaration (default when the segment has other image refs), native `first_frame` (only when it has none), or `ref_video` for motion carryover; add a 0.3–0.5s cross-dissolve in post if needed |
+| Segments don't connect | Re-check the selected model's advertised roles, opening-state bridge, and Transition Table; add a short cross-dissolve in post if needed. |
 
 ### Content-moderation error guidance
 
 When a task fails with a content-review error code (`INPUT_*` / `OUTPUT_*`), work through this before retrying:
 
-- **Baseline is permissive.** The byteplus (seedance series) and seedream pipelines have a relatively loose content scale — ordinary adult-oriented content usually passes.
+- Follow the selected model's live guidance and structured error; do not infer moderation behavior from old model-family notes.
 - **Four categories are hard blocks** (rewording will not get them through — do **not** send the user into repeated retries):
   1. Political content;
   2. Religiously sensitive content;

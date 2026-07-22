@@ -42,18 +42,14 @@ if [[ ! -f "$PROMPTS_FILE" ]]; then
   exit 1
 fi
 
-# ---- Locate renoise-cli ----
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-CLI="${SCRIPT_DIR}/../../renoise-gen/renoise-cli.mjs"
-
-if [[ ! -f "$CLI" ]]; then
-  echo "Error: renoise-cli.mjs not found at $CLI"
+# ---- Check native CLI and balance ----
+if ! command -v renoise >/dev/null 2>&1; then
+  echo "Error: native renoise CLI is required. Run the renoise-setup skill."
   exit 1
 fi
 
-# ---- Check balance ----
 echo "=== Checking balance ==="
-node "$CLI" credit me
+renoise account status
 echo ""
 
 # ---- Read prompts ----
@@ -77,10 +73,10 @@ for i in $(seq 0 $((SHOT_COUNT - 1))); do
 
   # Create task (segment task IDs are recorded locally in the project manifest below —
   # no server-side tags: the Renoise app does not filter by tag).
-  CREATE_OUTPUT=$(node "$CLI" task create \
-    --prompt "$PROMPT" \
+  CREATE_OUTPUT=$(printf '%s' "$PROMPT" | renoise task create \
+    --prompt-file - \
     --duration "$DURATION" \
-    --ratio "$RATIO" 2>&1) || {
+    --ratio "$RATIO" --json) || {
     echo "[FAILED] $SHOT_ID — create error:"
     echo "$CREATE_OUTPUT"
     FAILED=$((FAILED + 1))
@@ -90,8 +86,7 @@ for i in $(seq 0 $((SHOT_COUNT - 1))); do
     break
   }
 
-  # Extract task ID from create output
-  TASK_ID=$(echo "$CREATE_OUTPUT" | grep -oE 'id=[0-9]+' | head -1 | cut -d= -f2)
+  TASK_ID=$(jq -r '.task.id // empty' <<< "$CREATE_OUTPUT")
 
   if [[ -z "$TASK_ID" ]]; then
     echo "[FAILED] $SHOT_ID — could not parse task ID from output:"
@@ -104,19 +99,17 @@ for i in $(seq 0 $((SHOT_COUNT - 1))); do
   echo "Task created: #$TASK_ID"
 
   # Wait for completion
-  WAIT_OUTPUT=$(node "$CLI" task wait "$TASK_ID" --timeout "$TIMEOUT" 2>&1) || {
+  WAIT_OUTPUT=$(renoise task wait "$TASK_ID" --timeout "${TIMEOUT}s" --json) || {
     echo "[FAILED] $SHOT_ID (task #$TASK_ID) — wait error:"
     echo "$WAIT_OUTPUT"
     FAILED=$((FAILED + 1))
     RESULTS+=("$SHOT_ID|FAILED|#$TASK_ID|wait timeout/error")
     echo ""
-    echo "Stopping batch — the task may still be running. Check with: node renoise-cli.mjs task get $TASK_ID"
+    echo "Stopping batch — the task may still be running. Check with: renoise task get $TASK_ID"
     break
   }
 
-  # Get result
-  RESULT_OUTPUT=$(node "$CLI" task result "$TASK_ID" 2>&1)
-  VIDEO_URL=$(echo "$RESULT_OUTPUT" | jq -r '.result.videoUrl // .videoUrl // "unknown"' 2>/dev/null || echo "unknown")
+  VIDEO_URL=$(jq -r '.result.videoUrl // .videoUrl // "unknown"' <<< "$WAIT_OUTPUT")
 
   echo "[SUCCESS] $SHOT_ID → $VIDEO_URL"
   RESULTS+=("$SHOT_ID|SUCCESS|#$TASK_ID|$VIDEO_URL")
