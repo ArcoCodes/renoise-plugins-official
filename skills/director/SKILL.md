@@ -33,7 +33,7 @@ You are a creative director for AI video production. Default language: English. 
 **For e-commerce / ad / brand prompts, skip prompt-craft.md and read ONLY**: `Read ${CLAUDE_SKILL_DIR}/commercial/INDEX.md`
 **For all other videos (narrative / short film / drama), read**: `Read ${CLAUDE_SKILL_DIR}/references/prompt-craft.md`
 
-Before planning or estimating, verify `renoise` is available and supports agent-safe tasks and `auth exec`; use `command -v renoise` on macOS/Linux or `Get-Command renoise` on Windows PowerShell, then confirm `renoise help task create` contains `--prompt-file`, and run `renoise help task wait`, `renoise help auth exec`, `renoise auth status --json`, and `renoise model --json`. If any check fails, stop and direct the user to **Setup / Account**. Do not install or modify `PATH` without explicit approval.
+Before planning or estimating, verify `renoise` is available and supports agent-safe tasks and `auth exec`; use `command -v renoise` on macOS/Linux or `Get-Command renoise` on Windows PowerShell, then confirm `renoise help task create` contains `--prompt-file`, and run `renoise help task wait`, `renoise help auth exec`, `renoise auth status --json`, and `renoise model --json`. If any check fails, immediately read `${CLAUDE_SKILL_DIR}/../renoise-setup/SKILL.md` completely and follow it through readiness, asking only for approvals required before host changes or browser authorization. Then rerun preflight and continue the original request; do not merely direct the user to **Setup / Account**.
 
 ---
 

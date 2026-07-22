@@ -22,7 +22,7 @@ Handles files of any size automatically — small files are sent inline, large f
 
 ## Quick Start
 
-First verify the native CLI with `command -v renoise` on macOS/Linux or `Get-Command renoise` on Windows PowerShell, then run `renoise help auth exec` and `renoise auth status --json`. If a check fails, stop and direct the user to **Setup / Account**; never install software or edit `PATH` without explicit approval.
+First verify the native CLI with `command -v renoise` on macOS/Linux or `Get-Command renoise` on Windows PowerShell, then run `renoise help auth exec` and `renoise auth status --json`. If a check fails, immediately read `${CLAUDE_SKILL_DIR}/../renoise-setup/SKILL.md` completely and follow it through readiness, asking only for approvals required before host changes or browser authorization. Then rerun preflight and continue the original request; do not merely direct the user to **Setup / Account**.
 
 ```bash
 # Analyze a product photo

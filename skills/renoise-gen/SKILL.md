@@ -40,7 +40,7 @@ renoise auth status --json
 renoise model --json
 ```
 
-On Windows PowerShell, use `Get-Command renoise` instead of `command -v`, and confirm task help contains `renoise task create` plus `--prompt-file` and `renoise task wait`, and auth help contains `renoise auth exec`, instead of using `grep`. If the binary, required commands, or authentication is missing, stop and direct the user to **Setup / Account** (`renoise-setup`). That skill detects macOS/Windows/Linux and x64/ARM64, previews a checksum-verified user-local install, and requires explicit approval before downloading or replacing a binary. Never ask the user to paste an API key into chat.
+On Windows PowerShell, use `Get-Command renoise` instead of `command -v`, and confirm task help contains `renoise task create` plus `--prompt-file` and `renoise task wait`, and auth help contains `renoise auth exec`, instead of using `grep`. If the binary, required commands, or authentication is missing, immediately read `${CLAUDE_SKILL_DIR}/../renoise-setup/SKILL.md` completely and follow it through readiness, asking only for approvals required before host changes or browser authorization. Then rerun preflight and continue the original request; do not merely direct the user to **Setup / Account**. Never ask the user to paste an API key into chat.
 
 ## Select a Model Dynamically
 
