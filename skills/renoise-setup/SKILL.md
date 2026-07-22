@@ -4,7 +4,6 @@ description: >
   Set up, update, or diagnose Renoise on any agent host. Use when the user asks to install,
   upgrade, configure, connect, log in, check dependencies, enable the Renoise CLI, or fix
   missing RENOISE_API_KEY, ffmpeg, jq, yt-dlp, ImageMagick, or agent-browser.
-disable-model-invocation: true
 metadata:
   author: renoise
   version: 1.0.0
@@ -15,6 +14,8 @@ metadata:
 # Renoise Setup — Cross-Harness
 
 This is the host-neutral setup flow. Do not assume Claude Code, Codex, OpenClaw, or a specific config directory. Resolve `<PLUGIN_ROOT>` as two directories above this skill's directory.
+
+Another Renoise workflow may invoke this setup automatically when its preflight fails. Diagnose and preview immediately, then return to the original request after readiness is restored; do not make the user manually select **Setup / Account**.
 
 Never ask the user to paste an API key into chat. Never install software, move binaries, edit `PATH`, or change host configuration without explicit confirmation.
 

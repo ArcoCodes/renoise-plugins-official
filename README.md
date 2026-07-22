@@ -37,6 +37,10 @@ claude plugin install renoise@renoise-plugins-official
 /renoise:setup
 ```
 
+### Claude Desktop
+
+In **Cowork**, open **Customize → Plugins → + → Add marketplace → Add from a repository**, enter `https://github.com/ArcoCodes/renoise-plugins-official`, then install **renoise**. Cowork handles local CLI installation and browser sign-in; no separate Terminal is required.
+
 ### OpenClaw
 
 ```bash
@@ -57,11 +61,11 @@ Restart the ChatGPT desktop app, open **Plugins**, select the **Renoise** market
 
 The native Go CLI is required and is the single source of truth for authentication, model capabilities, generation, uploads, tasks, and machine-readable output.
 
-Explicitly select **Setup / Account** in Codex/ChatGPT Desktop, or run `/renoise:setup` in Claude Code; account and install actions are intentionally not invoked implicitly. The Agent handles detection, installation, browser sign-in, and verification; the user only approves installation and authorizes Renoise in the browser. Setup detects macOS/Windows/Linux and x64/ARM64, compares the installed CLI contract/version with the latest release, and previews the archive and user-local target. After confirmation, the same path installs or updates the matching `.tar.gz`/`.zip`, verifies `checksums.txt` and required commands before replacement, and rolls back a failed replacement. The default targets are `~/.local/bin/renoise` on macOS/Linux and `%LOCALAPPDATA%\Renoise\bin\renoise.exe` on Windows. It never updates in the background; any binary replacement or PATH change requires approval, and PATH changes require a Desktop restart.
+When a Renoise workflow finds a missing, outdated, or signed-out CLI, it automatically runs the **Setup / Account** flow and resumes the original request when ready. You can also select **Setup / Account** directly in Claude Desktop Cowork or Codex/ChatGPT Desktop, or run `/renoise:setup` in Claude Code. The Agent handles detection, installation, browser sign-in, and verification; the user only approves installation and authorizes Renoise in the browser. Setup detects macOS/Windows/Linux and x64/ARM64, compares the installed CLI contract/version with the latest release, and previews the archive and user-local target. After confirmation, the same path installs or updates the matching `.tar.gz`/`.zip`, verifies `checksums.txt` and required commands before replacement, and rolls back a failed replacement. The default targets are `~/.local/bin/renoise` on macOS/Linux and `%LOCALAPPDATA%\Renoise\bin\renoise.exe` on Windows. It never updates in the background; any binary replacement or PATH change requires approval, and PATH changes require a Desktop restart.
 
 Manual downloads are listed in `https://download.renoise.ai/cli/latest.json`; verify the matching version directory's `checksums.txt` before extracting the binary.
 
-Plugin updates remain owned by each host's plugin manager; CLI updates remain explicit through **Setup / Account**, so the two release tracks do not silently modify each other. There is no per-session setup notification. `renoise auth login --web` opens account authorization in the browser and stores the shared credential securely without terminal key entry; `RENOISE_API_KEY` remains the override for CI and containers. Plugin skills query `renoise model --json` at runtime, so new models and capability changes do not require duplicated plugin updates.
+Plugin updates remain owned by each host's plugin manager. CLI recovery happens on use but never replaces a binary without approval, so the two release tracks do not silently modify each other. There is no per-session setup notification. `renoise auth login --web` opens account authorization in the browser and stores the shared credential securely without terminal key entry; `RENOISE_API_KEY` remains the override for CI and containers. Plugin skills query `renoise model --json` at runtime, so new models and capability changes do not require duplicated plugin updates.
 
 Interactive account and CLI defaults are available through:
 

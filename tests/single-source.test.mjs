@@ -44,6 +44,7 @@ test('package metadata is the manifest source of truth', () => {
   assert.equal(codex.skills, './skills/');
   assert.ok(existsSync(codex.interface.composerIcon));
   assert.ok(existsSync(codex.interface.logo));
+  assert.match(readFileSync(codex.interface.logo, 'utf8'), /<rect[^>]+fill="#2B2B2B"/);
 
   const marketplace = readJSON('.agents/plugins/marketplace.json');
   assert.equal(marketplace.plugins[0].name, codex.name);
@@ -51,7 +52,7 @@ test('package metadata is the manifest source of truth', () => {
   assert.equal(marketplace.plugins[0].policy.authentication, 'ON_USE');
 });
 
-test('desktop metadata exposes four primary entries and keeps setup explicit', () => {
+test('desktop metadata exposes four primary entries and workflows recover through setup', () => {
   const entries = {
     director: 'Create with Renoise',
     'gemini-gen': 'Analyze Media',
@@ -63,8 +64,12 @@ test('desktop metadata exposes four primary entries and keeps setup explicit', (
     assert.match(metadata, new RegExp(`display_name: "${displayName.replace('/', '\\/')}"`));
     assert.match(metadata, new RegExp(`\\$${skill}`));
   }
-  assert.match(readFileSync('skills/renoise-setup/agents/openai.yaml', 'utf8'), /allow_implicit_invocation: false/);
-  assert.match(readFileSync('skills/renoise-setup/SKILL.md', 'utf8'), /disable-model-invocation: true/);
+  assert.match(readFileSync('skills/renoise-setup/agents/openai.yaml', 'utf8'), /allow_implicit_invocation: true/);
+  for (const skill of ['director', 'gemini-gen', 'renoise-gen', 'storyboard-sheet']) {
+    const instructions = readFileSync(`skills/${skill}/SKILL.md`, 'utf8');
+    assert.match(instructions, /renoise-setup\/SKILL\.md/);
+    assert.match(instructions, /continue the original request/);
+  }
 });
 
 test('installer selects and verifies macOS, Windows, and Linux archives', () => {

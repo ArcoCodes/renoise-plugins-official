@@ -3,4 +3,4 @@ interface:
   short_description: "Install or update the CLI, sign in, and check readiness"
   default_prompt: "Use $renoise-setup to set up, update, or diagnose my Renoise account."
 policy:
-  allow_implicit_invocation: false
+  allow_implicit_invocation: true

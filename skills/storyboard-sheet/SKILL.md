@@ -119,7 +119,7 @@ Rules:
 
 ## 3. Character and Scene References
 
-Before any paid generation, verify `renoise` with `command -v renoise` on macOS/Linux or `Get-Command renoise` on Windows PowerShell, confirm `renoise help task create` contains `--prompt-file`, then run `renoise help task wait`, `renoise auth status --json`, and `renoise model --json`. If a check fails, stop and direct the user to **Setup / Account**; never install software or edit `PATH` without explicit approval.
+Before any paid generation, verify `renoise` with `command -v renoise` on macOS/Linux or `Get-Command renoise` on Windows PowerShell, confirm `renoise help task create` contains `--prompt-file`, then run `renoise help task wait`, `renoise auth status --json`, and `renoise model --json`. If a check fails, immediately read `${CLAUDE_SKILL_DIR}/../renoise-setup/SKILL.md` completely and follow it through readiness, asking only for approvals required before host changes or browser authorization. Then rerun preflight and continue the original request; do not merely direct the user to **Setup / Account**.
 
 If a character appears more than once, create/register a reference first. Do not rely on text descriptions alone.
 
