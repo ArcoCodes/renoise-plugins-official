@@ -6,7 +6,7 @@ description: >
   missing RENOISE_API_KEY, ffmpeg, jq, yt-dlp, ImageMagick, or agent-browser.
 metadata:
   author: renoise
-  version: 1.0.0
+  version: 1.0.1
   category: setup
   tags: [setup, install, authentication, dependencies, renoise]
 ---
@@ -42,26 +42,34 @@ renoise help auth login
 
 The outputs must contain the exact usage paths `renoise task create`, `renoise task wait`, and `renoise auth exec`, the task flag `--prompt-file`, plus the `auth login` flag `--web`; older Cobra builds may show parent help and still exit successfully.
 
-If the binary is missing, either exact usage path is absent, or the user explicitly asks for an update, resolve `<PLUGIN_ROOT>` and preview the installer. This reads `https://download.renoise.ai/cli/latest.json` and prints the installed path/version/compatibility plus the latest release, archive, and target; it does not download or change files:
+Generation preflight auto-keeps the **managed** CLI current. It reads `https://download.renoise.ai/cli/latest.json` and installs/replaces only the managed target when missing, incompatible, or older than the latest public release — no prompt:
+
+```text
+node "<PLUGIN_ROOT>/skills/renoise-setup/scripts/install-cli.mjs" --ensure
+```
+
+| Host | Managed target |
+|---|---|
+| macOS / Linux | `~/.local/bin/renoise` |
+| Windows | `%LOCALAPPDATA%\Renoise\bin\renoise.exe` |
+
+After `--ensure`, prefer that managed binary for the session (`export PATH="$HOME/.local/bin:$PATH"` on Unix, or prepend `%LOCALAPPDATA%\Renoise\bin` on Windows). `--ensure` never edits shell profiles or the Windows user environment.
+
+For a dry run (no downloads), or when the user explicitly asks to inspect/install outside generation:
 
 ```text
 node "<PLUGIN_ROOT>/skills/renoise-setup/scripts/install-cli.mjs" --check
 ```
 
-The installer supports macOS, Windows, and Linux on x64 or ARM64. It selects `.tar.gz` on macOS/Linux or `.zip` on Windows, verifies the archive against the release's `checksums.txt`, and installs to:
+The installer supports macOS, Windows, and Linux on x64 or ARM64. It selects `.tar.gz` on macOS/Linux or `.zip` on Windows and verifies the archive against the release's `checksums.txt`.
 
-| Host | Default target |
-|---|---|
-| macOS / Linux | `~/.local/bin/renoise` |
-| Windows | `%LOCALAPPDATA%\Renoise\bin\renoise.exe` |
-
-Show the installed and latest versions, detected release archive, whether the target will replace an existing file, and target path. If the current version is already compatible, do not force an update during unrelated work. **Ask for explicit confirmation.** Only after approval run:
+Show the installed and latest versions, detected release archive, whether the target will replace an existing file, and target path. For **manual** `--install` outside generation preflight, **ask for explicit confirmation** first, then run:
 
 ```text
 node "<PLUGIN_ROOT>/skills/renoise-setup/scripts/install-cli.mjs" --install
 ```
 
-The same path handles first install and replacement updates. It does not auto-update in the background, and it never edits `PATH`. If the target directory is absent from `PATH` or another `renoise` binary wins PATH resolution, explain the platform-specific change and ask separately before editing shell profiles or the Windows user environment. Restart Codex/ChatGPT Desktop or Claude Desktop after a PATH change. Linux has no official Codex Desktop app, but the same CLI and skills work in Codex CLI and Claude Code.
+If the managed target directory is absent from `PATH` or another `renoise` binary wins PATH resolution, explain the platform-specific change and ask separately before editing shell profiles or the Windows user environment. Restart Codex/ChatGPT Desktop or Claude Desktop after a PATH change. Linux has no official Codex Desktop app, but the same CLI and skills work in Codex CLI and Claude Code.
 
 For manual installation, read the public release manifest at `https://download.renoise.ai/cli/latest.json`, download the matching archive and `checksums.txt` from its version directory, verify SHA-256, then extract the binary. Downloading, moving, or replacing files still requires confirmation.
 

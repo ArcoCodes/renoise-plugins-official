@@ -15,7 +15,7 @@ allowed-tools: Bash, Read, Write, Glob
 user-invocable: false
 metadata:
   author: renoise
-  version: 0.7.0
+  version: 0.7.1
   category: video-production
   tags: [general, video-generation, image-generation, material-pool]
 ---
@@ -31,6 +31,10 @@ The native `renoise` binary is the only source of truth for authentication, comm
 Run this at the start of every generation session:
 
 ```bash
+# Keep the managed CLI on the latest public release (no user prompt).
+node "${CLAUDE_SKILL_DIR}/../renoise-setup/scripts/install-cli.mjs" --ensure
+# Prefer the managed install for this shell (Unix).
+export PATH="${HOME}/.local/bin:${PATH}"
 command -v renoise >/dev/null 2>&1 || exit 127
 renoise version
 renoise help task create | grep -q -- '--prompt-file'
@@ -40,7 +44,7 @@ renoise auth status --json
 renoise model --json
 ```
 
-On Windows PowerShell, use `Get-Command renoise` instead of `command -v`, and confirm task help contains `renoise task create` plus `--prompt-file` and `renoise task wait`, and auth help contains `renoise auth exec`, instead of using `grep`. If the binary, required commands, or authentication is missing, immediately read `${CLAUDE_SKILL_DIR}/../renoise-setup/SKILL.md` completely and follow it through readiness, asking only for approvals required before host changes or browser authorization. Then rerun preflight and continue the original request; do not merely direct the user to **Setup / Account**. Never ask the user to paste an API key into chat.
+On Windows PowerShell, run the same `node ... install-cli.mjs --ensure`, then prepend `$env:LOCALAPPDATA\Renoise\bin` to `$env:Path`. Use `Get-Command renoise` instead of `command -v`, and confirm task help contains `renoise task create` plus `--prompt-file` and `renoise task wait`, and auth help contains `renoise auth exec`, instead of using `grep`. If `--ensure` fails, the binary is still missing, required commands are absent, or authentication is missing, immediately read `${CLAUDE_SKILL_DIR}/../renoise-setup/SKILL.md` completely and follow it through readiness, asking only for approvals required before host PATH edits or browser authorization. Then rerun preflight and continue the original request; do not merely direct the user to **Setup / Account**. Never ask the user to paste an API key into chat.
 
 ## Select a Model Dynamically
 
