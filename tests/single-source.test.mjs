@@ -106,14 +106,19 @@ test('installer selects and verifies macOS, Windows, and Linux archives', () => 
   assert.equal(compareVersions('0.2.0', '0.2.0'), 0);
 });
 
-test('setup only installs after explicit approval', () => {
+test('setup keeps managed CLI current and still gates manual install', () => {
   const setup = readFileSync('skills/renoise-setup/SKILL.md', 'utf8');
+  const gen = readFileSync('skills/renoise-gen/SKILL.md', 'utf8');
+  const installer = readFileSync('skills/renoise-setup/scripts/install-cli.mjs', 'utf8');
   assert.match(setup, /https:\/\/download\.renoise\.ai\/cli\/latest\.json/);
   assert.doesNotMatch(setup, /GitHub Releases|go install/);
   assert.match(setup, /--check/);
-  assert.match(setup, /Ask for explicit confirmation/);
+  assert.match(setup, /--ensure/);
+  assert.match(setup, /ask for explicit confirmation/i);
   assert.match(setup, /--install/);
   assert.match(setup, /renoise auth login --web --json/);
   assert.match(setup, /never ask them to open a terminal/);
-  assert.match(setup, /never edits `PATH`/);
+  assert.match(gen, /install-cli\.mjs" --ensure/);
+  assert.match(installer, /--ensure/);
+  assert.match(installer, /needsManagedUpdate/);
 });

@@ -210,32 +210,79 @@ async function install(plan) {
   }
 }
 
+function managedInstall(info) {
+  if (!existsSync(info.target)) return null;
+  try {
+    const path = resolve(info.target);
+    const versionOutput = execFileSync(path, ['version'], { encoding: 'utf8' }).trim();
+    const createHelp = execFileSync(path, ['help', 'task', 'create'], { encoding: 'utf8' });
+    const waitHelp = execFileSync(path, ['help', 'task', 'wait'], { encoding: 'utf8' });
+    const authHelp = execFileSync(path, ['help', 'auth', 'exec'], { encoding: 'utf8' });
+    const loginHelp = execFileSync(path, ['help', 'auth', 'login'], { encoding: 'utf8' });
+    return {
+      path,
+      version: versionOutput.match(/\b(v?\d+\.\d+\.\d+)\b/)?.[1]?.replace(/^v/, '') || 'unknown',
+      versionOutput,
+      compatible: hasRequiredCommands(createHelp, waitHelp, authHelp, loginHelp),
+    };
+  } catch {
+    return { path: resolve(info.target), version: 'unknown', versionOutput: 'unreadable', compatible: false };
+  }
+}
+
+function needsManagedUpdate(managed, latestVersion) {
+  if (!managed) return true;
+  if (!managed.compatible || managed.version === 'unknown') return true;
+  return compareVersions(managed.version, latestVersion) < 0;
+}
+
+function printBinaryHints(info) {
+  console.log(`Binary: ${info.target}`);
+  console.log(`PathPrepend: ${info.binDir}`);
+  console.log(pathMessage(info));
+}
+
 async function main() {
   const mode = process.argv[2] || '--check';
-  if (!['--check', '--install'].includes(mode)) throw new Error('Usage: install-cli.mjs [--check|--install]');
+  if (!['--check', '--install', '--ensure'].includes(mode)) {
+    throw new Error('Usage: install-cli.mjs [--check|--install|--ensure]');
+  }
 
   const plan = await releasePlan();
   const latestVersion = plan.release.tag_name.replace(/^v/, '');
+  const managed = managedInstall(plan.info);
   console.log(`Platform: ${plan.info.label} ${plan.info.arch.label}`);
   console.log(`Installed: ${plan.installed ? `${plan.installed.versionOutput} at ${plan.installed.path} (${plan.installed.compatible ? 'compatible' : 'incompatible'})` : 'not found'}`);
+  console.log(`Managed: ${managed ? `${managed.versionOutput} at ${managed.path} (${managed.compatible ? 'compatible' : 'incompatible'})` : 'not found'}`);
   console.log(`Latest release: ${plan.release.tag_name}`);
   console.log(`Archive: ${plan.archive.name}`);
   console.log(`Target: ${plan.info.target}${existsSync(plan.info.target) ? ' (will replace existing file)' : ''}`);
 
   if (mode === '--check') {
     console.log('No files changed. Run again with --install only after the user explicitly approves this install or update.');
+    console.log('Agent preflight may use --ensure to keep the managed install on the latest public release without a prompt.');
+    printBinaryHints(plan.info);
     return;
   }
 
-  if (plan.installed && plan.installed.version !== 'unknown' && compareVersions(plan.installed.version, latestVersion) >= 0) {
+  // --install keeps the old PATH-aware short-circuit for manual upgrades.
+  if (mode === '--install' && plan.installed && plan.installed.version !== 'unknown' && compareVersions(plan.installed.version, latestVersion) >= 0) {
     if (!plan.installed.compatible) throw new Error(`Installed CLI ${plan.installed.version} does not satisfy the plugin contract and no newer public release is available`);
     console.log(`${plan.installed.version === latestVersion ? 'Already current' : 'Installed version is newer than the latest release'} and compatible: ${plan.installed.path}`);
+    printBinaryHints(plan.info);
+    return;
+  }
+
+  // --ensure only mutates the managed target so a stale brew/PATH binary cannot block updates.
+  if (mode === '--ensure' && !needsManagedUpdate(managed, latestVersion)) {
+    console.log(`Already current: ${plan.info.target}`);
+    printBinaryHints(plan.info);
     return;
   }
 
   await install(plan);
   console.log(`Installed and verified: ${plan.info.target}`);
-  console.log(pathMessage(plan.info));
+  printBinaryHints(plan.info);
 }
 
 if (process.argv[1] && pathToFileURL(process.argv[1]).href === import.meta.url) {
