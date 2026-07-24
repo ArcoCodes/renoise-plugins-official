@@ -104,12 +104,14 @@ function extract(archive, destination, platform) {
   }
 }
 
-export function hasRequiredCommands(createHelp, waitHelp, authHelp, loginHelp) {
+export function hasRequiredCommands(createHelp, waitHelp, authHelp, loginHelp, analyzeHelp) {
   return createHelp.includes('renoise task create')
     && createHelp.includes('--prompt-file')
     && waitHelp.includes('renoise task wait')
     && authHelp.includes('renoise auth exec')
-    && loginHelp.includes('--web');
+    && loginHelp.includes('--web')
+    && analyzeHelp.includes('renoise analyze')
+    && analyzeHelp.includes('--mode');
 }
 
 export function compareVersions(left, right) {
@@ -127,7 +129,8 @@ function verify(target) {
   const waitHelp = execFileSync(target, ['help', 'task', 'wait'], { encoding: 'utf8' });
   const authHelp = execFileSync(target, ['help', 'auth', 'exec'], { encoding: 'utf8' });
   const loginHelp = execFileSync(target, ['help', 'auth', 'login'], { encoding: 'utf8' });
-  if (!hasRequiredCommands(createHelp, waitHelp, authHelp, loginHelp)) throw new Error('Release is incompatible: agent-safe tasks, auth exec, and browser login are required');
+  const analyzeHelp = execFileSync(target, ['help', 'analyze'], { encoding: 'utf8' });
+  if (!hasRequiredCommands(createHelp, waitHelp, authHelp, loginHelp, analyzeHelp)) throw new Error('Release is incompatible: agent-safe tasks, media analysis, auth exec, and browser login are required');
 }
 
 function findOnPath(binary) {
@@ -149,11 +152,12 @@ function inspectInstalled(info) {
     const waitHelp = execFileSync(path, ['help', 'task', 'wait'], { encoding: 'utf8' });
     const authHelp = execFileSync(path, ['help', 'auth', 'exec'], { encoding: 'utf8' });
     const loginHelp = execFileSync(path, ['help', 'auth', 'login'], { encoding: 'utf8' });
+    const analyzeHelp = execFileSync(path, ['help', 'analyze'], { encoding: 'utf8' });
     return {
       path,
       version: versionOutput.match(/\b(v?\d+\.\d+\.\d+)\b/)?.[1]?.replace(/^v/, '') || 'unknown',
       versionOutput,
-      compatible: hasRequiredCommands(createHelp, waitHelp, authHelp, loginHelp),
+      compatible: hasRequiredCommands(createHelp, waitHelp, authHelp, loginHelp, analyzeHelp),
     };
   } catch {
     return { path, version: 'unknown', versionOutput: 'unreadable', compatible: false };
@@ -219,11 +223,12 @@ function managedInstall(info) {
     const waitHelp = execFileSync(path, ['help', 'task', 'wait'], { encoding: 'utf8' });
     const authHelp = execFileSync(path, ['help', 'auth', 'exec'], { encoding: 'utf8' });
     const loginHelp = execFileSync(path, ['help', 'auth', 'login'], { encoding: 'utf8' });
+    const analyzeHelp = execFileSync(path, ['help', 'analyze'], { encoding: 'utf8' });
     return {
       path,
       version: versionOutput.match(/\b(v?\d+\.\d+\.\d+)\b/)?.[1]?.replace(/^v/, '') || 'unknown',
       versionOutput,
-      compatible: hasRequiredCommands(createHelp, waitHelp, authHelp, loginHelp),
+      compatible: hasRequiredCommands(createHelp, waitHelp, authHelp, loginHelp, analyzeHelp),
     };
   } catch {
     return { path: resolve(info.target), version: 'unknown', versionOutput: 'unreadable', compatible: false };

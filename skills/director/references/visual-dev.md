@@ -96,10 +96,10 @@ S2    #27               #92           #V1              <supported roles>
 ## Material Ingest
 
 ```bash
-renoise auth exec -- node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/scripts/material-ingest.mjs <paths-or-directory>
+node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/scripts/material-ingest.mjs <paths-or-directory>
 ```
 
-This uploads files, runs Gemini analysis, and writes `material-pool.json`.
+This uploads files, runs native `renoise analyze`, and writes `material-pool.json`.
 
 ## Storyboard Grid
 

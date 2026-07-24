@@ -59,7 +59,7 @@ Restart the ChatGPT desktop app, open **Plugins**, select the **Renoise** market
 
 ## Native Renoise CLI
 
-The native Go CLI is required and is the single source of truth for authentication, model capabilities, generation, uploads, tasks, and machine-readable output.
+The native Go CLI is required and is the single source of truth for authentication, media analysis, model capabilities, generation, uploads, tasks, and machine-readable output.
 
 When a Renoise workflow finds a missing, outdated, or signed-out CLI, it automatically runs the **Setup / Account** flow and resumes the original request when ready. You can also select **Setup / Account** directly in Claude Desktop Cowork or Codex/ChatGPT Desktop, or run `/renoise:setup` in Claude Code. The Agent handles detection, installation, browser sign-in, and verification; the user only approves installation and authorizes Renoise in the browser. Setup detects macOS/Windows/Linux and x64/ARM64, compares the installed CLI contract/version with the latest release, and previews the archive and user-local target. After confirmation, the same path installs or updates the matching `.tar.gz`/`.zip`, verifies `checksums.txt` and required commands before replacement, and rolls back a failed replacement. The default targets are `~/.local/bin/renoise` on macOS/Linux and `%LOCALAPPDATA%\Renoise\bin\renoise.exe` on Windows. It never updates in the background; any binary replacement or PATH change requires approval, and PATH changes require a Desktop restart.
 
@@ -83,7 +83,7 @@ renoise settings
 
 ### 1.1.0
 
-- Native Go `renoise` CLI integration as the single runtime and model-capability source.
+- Native Go `renoise` CLI integration as the single runtime for media analysis and generation, and the model-capability source.
 - Plugin commands and director scripts call the native CLI directly; model capabilities are discovered at runtime.
 - Unified setup checks the shared credential plus generation, Gemini, download, storyboard, QC, and post-production tool readiness.
 - Native CLI adds interactive generation/settings TUIs, secure saved credentials, model capabilities, owner-scoped tasks, shell completion, and human/JSON output.

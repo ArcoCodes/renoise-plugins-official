@@ -117,15 +117,13 @@ function matchMaterials(pool, shots) {
     // Score all materials against this shot
     const scored = pool.materials
       .map((m) => ({ material: m, score: computeScore(shot, m) }))
-      .filter((s) => s.score > 0)
+      .filter((s) => s.score > 0 && (s.material.type === "reference-video" || s.material.has_face === false))
       .sort((a, b) => b.score - a.score);
 
     // Take top 1-3 materials
     const assigned = [];
     for (let i = 0; i < Math.min(3, scored.length); i++) {
       const m = scored[i].material;
-      // Skip face-containing materials for ref_image
-      if (m.has_face && i === 0) continue;
       const role = assignRole(m, assigned.length);
       assigned.push({
         material_id: m.id,
@@ -149,8 +147,8 @@ function matchMaterials(pool, shots) {
     .map((m) => ({
       id: m.id,
       file: m.file,
-      reason: m.has_face
-        ? "Contains human face — excluded from ref_image matching"
+      reason: m.type !== "reference-video" && m.has_face !== false
+        ? "Face presence is present or uncertain — excluded from automatic image matching"
         : "No matching shot found",
     }));
 

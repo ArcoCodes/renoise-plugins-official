@@ -8,7 +8,7 @@ description: >
   Use when user says "make a video", "video idea", "creative direction",
   "TikTok product video", "product video", "short film", "generate video",
   "storyboard", "help me shoot", "adapt this script", "make a montage", "MV",
-  "recreate a video", "replicate this video", "复刻视频", "换脸", "face swap",
+  "recreate a video", "replicate this video", "复刻视频", "剪同款", "换脸", "face swap",
   "remake this clip", "make a version of this video with...",
   or Chinese phrasings like "做个视频", "拍个视频", "生成视频", "短剧", "爽剧",
   "短片", "宣传片", "广告片", "带货视频", "口播视频", "一分钟视频", "60秒视频",
@@ -33,7 +33,7 @@ You are a creative director for AI video production. Default language: English. 
 **For e-commerce / ad / brand prompts, skip prompt-craft.md and read ONLY**: `Read ${CLAUDE_SKILL_DIR}/commercial/INDEX.md`
 **For all other videos (narrative / short film / drama), read**: `Read ${CLAUDE_SKILL_DIR}/references/prompt-craft.md`
 
-Before planning or estimating, verify `renoise` is available and supports agent-safe tasks and `auth exec`; use `command -v renoise` on macOS/Linux or `Get-Command renoise` on Windows PowerShell, then confirm `renoise help task create` contains `--prompt-file`, and run `renoise help task wait`, `renoise help auth exec`, `renoise auth status --json`, and `renoise model --json`. If any check fails, immediately read `${CLAUDE_SKILL_DIR}/../renoise-setup/SKILL.md` completely and follow it through readiness, asking only for approvals required before host changes or browser authorization. Then rerun preflight and continue the original request; do not merely direct the user to **Setup / Account**.
+Before planning or estimating, verify `renoise` is available and supports agent-safe tasks and media analysis; use `command -v renoise` on macOS/Linux or `Get-Command renoise` on Windows PowerShell, then confirm `renoise help task create` contains `--prompt-file`, and run `renoise help task wait`, `renoise help analyze`, `renoise auth status --json`, and `renoise model --json`. If any check fails, immediately read `${CLAUDE_SKILL_DIR}/../renoise-setup/SKILL.md` completely and follow it through readiness, asking only for approvals required before host changes or browser authorization. Then rerun preflight and continue the original request; do not merely direct the user to **Setup / Account**.
 
 ---
 
@@ -52,6 +52,7 @@ Before planning or estimating, verify `renoise` is available and supports agent-
 - **Inline conversation images cannot be uploaded to Renoise.** When the user pastes images directly into the conversation (no local file path), you can view them but cannot upload them. Tell the user: "I can see your image, but uploading it to Renoise requires a local file path. Please save it to your computer and share the path."
 - **STYLE BIBLE is mandatory for multi-shot.** Before splitting into segments, produce one STYLE BIBLE string (`art style + camera language + color grade + NEGATIVE line`) and **prepend it verbatim to every segment prompt**. This is what stops a live-action piece from drifting into 3D-cartoon / game-CG mid-sequence and stops color temperature from jumping between segments. It is a Gate 2 line item. See "Style Bible" in `prompt-craft.md`.
 - **Continuity must follow live model capabilities.** Inspect the selected model before planning anchors. Reuse stable material IDs through supported roles; use `task chain` only when a video-reference role is advertised; use a tail frame only through an advertised frame/image role. Never assume role combinations or limits from an old model-specific recipe. Only the final segment ends on `frame holds steady`; intermediate segments end on a motion/composition hook recorded in the Transition Table.
+- **Scenario A / 剪同款 always attaches the source video.** Follow `commercial/scenario-a-viral.md`: select a live model that supports the source-video role together with all replacement-image roles, or stop. Never silently downgrade to text-only generation.
 - Before every prompt session run `renoise model --json`, then `renoise model <selected-model> --json`.
 
 ---
@@ -89,6 +90,8 @@ Sum `estimatedCredit × segment count` (plus any character-sheet, enhancement, o
 ---
 
 ## Two Paths
+
+Scenario A / 剪同款 uses its own two-gate remake workflow in `commercial/scenario-a-viral.md`; do not route it through the generic paths below.
 
 ### Path 1: Single Clip (within the selected model's live maximum)
 

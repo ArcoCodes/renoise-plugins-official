@@ -15,7 +15,7 @@ allowed-tools: Bash, Read, Write, Glob
 user-invocable: false
 metadata:
   author: renoise
-  version: 0.7.1
+  version: 0.7.2
   category: video-production
   tags: [general, video-generation, image-generation, material-pool]
 ---
@@ -31,6 +31,10 @@ The native `renoise` binary is the only source of truth for authentication, comm
 Run this at the start of every generation session:
 
 ```bash
+# If this plugin copy is behind the latest GitHub Release, tell the user how to
+# update the plugin on their host (exit 2). Continue only after they update, or
+# if the check fails open (network) and the CLI path below still works.
+node "${CLAUDE_SKILL_DIR}/../renoise-setup/scripts/check-plugin.mjs"
 # Keep the managed CLI on the latest public release (no user prompt).
 node "${CLAUDE_SKILL_DIR}/../renoise-setup/scripts/install-cli.mjs" --ensure
 # Prefer the managed install for this shell (Unix).
@@ -39,12 +43,13 @@ command -v renoise >/dev/null 2>&1 || exit 127
 renoise version
 renoise help task create | grep -q -- '--prompt-file'
 renoise help task wait | grep -q 'renoise task wait'
+renoise help analyze | grep -q -- '--mode'
 renoise help auth exec | grep -q 'renoise auth exec'
 renoise auth status --json
 renoise model --json
 ```
 
-On Windows PowerShell, run the same `node ... install-cli.mjs --ensure`, then prepend `$env:LOCALAPPDATA\Renoise\bin` to `$env:Path`. Use `Get-Command renoise` instead of `command -v`, and confirm task help contains `renoise task create` plus `--prompt-file` and `renoise task wait`, and auth help contains `renoise auth exec`, instead of using `grep`. If `--ensure` fails, the binary is still missing, required commands are absent, or authentication is missing, immediately read `${CLAUDE_SKILL_DIR}/../renoise-setup/SKILL.md` completely and follow it through readiness, asking only for approvals required before host PATH edits or browser authorization. Then rerun preflight and continue the original request; do not merely direct the user to **Setup / Account**. Never ask the user to paste an API key into chat.
+On Windows PowerShell, run the same `node ... check-plugin.mjs` and `node ... install-cli.mjs --ensure`, then prepend `$env:LOCALAPPDATA\Renoise\bin` to `$env:Path`. Use `Get-Command renoise` instead of `command -v`, and confirm task help contains `renoise task create` plus `--prompt-file` and `renoise task wait`, analyze help contains `--mode`, and auth help contains `renoise auth exec`, instead of using `grep`. If `check-plugin.mjs` exits 2, surface its upgrade commands to the user before continuing with generation features that need the new plugin. If `--ensure` fails, the binary is still missing, required commands are absent, or authentication is missing, immediately read `${CLAUDE_SKILL_DIR}/../renoise-setup/SKILL.md` completely and follow it through readiness, asking only for approvals required before host PATH edits or browser authorization. Then rerun preflight and continue the original request; do not merely direct the user to **Setup / Account**. Never ask the user to paste an API key into chat.
 
 ## Select a Model Dynamically
 
@@ -124,6 +129,8 @@ renoise material --search reference --json
 
 Material syntax is `ID:role[:index]`. The role is required; use only roles listed by `renoise model <model> --json`. `index` controls the ordering used by prompt references such as `@Image1` and `@Video1`.
 
+In prompt text, `@` mentions must use the material's **full file name including extension** (`lie.png` → `@lie.png`, not `@lie`). Stem-only mentions do not bind.
+
 Do not assume role combinations are portable across models. Inspect the selected model's capabilities and guidance, then let CLI/server validation reject unsupported combinations. Never run a plugin-side facepass/original-Seedance preparation flow; default selection and reference handling belong to the live model response.
 
 For a completed result that should become a reusable reference:
@@ -165,7 +172,7 @@ Do not hard-code reference limits or model-specific role exclusions here.
 Batch upload and Gemini analysis:
 
 ```bash
-renoise auth exec -- node ${CLAUDE_SKILL_DIR}/scripts/material-ingest.mjs ./materials/
+node ${CLAUDE_SKILL_DIR}/scripts/material-ingest.mjs ./materials/
 ```
 
 Auto-match a generated pool to shots:

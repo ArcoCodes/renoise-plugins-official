@@ -11,7 +11,7 @@ This command is a Claude Code wrapper, not the universal setup implementation.
 
 Read `${CLAUDE_PLUGIN_ROOT}/skills/renoise-setup/SKILL.md` completely and follow it through authentication verification and the readiness report.
 
-Do not ask the user to open a terminal or paste an API key into chat. The Agent runs `renoise auth login --web --json`, waits while the user authorizes in the browser, then continues automatically; the native CLI owns credential discovery and shares it with Gemini/upload through `renoise auth exec`. If the CLI is unavailable and the user declines installation, generation is not ready; do not recreate its behavior in the plugin.
+Do not ask the user to open a terminal or paste an API key into chat. The Agent runs `renoise auth login --web --json`, waits while the user authorizes in the browser, then continues automatically; the native CLI owns credentials, media analysis, uploads, and generation directly. If the CLI is unavailable and the user declines installation, generation is not ready; do not recreate its behavior in the plugin.
 
 After universal setup, select the Claude statusLine runtime with `command -v bun 2>/dev/null || command -v node 2>/dev/null` and save its absolute path as `{RUNTIME_PATH}`. Do not continue to the Claude-specific steps until Node.js exists and authentication verifies.
 

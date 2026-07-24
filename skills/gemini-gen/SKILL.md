@@ -1,204 +1,135 @@
 ---
 name: gemini-gen
 description: >
-  Visual understanding and multimodal analysis via Gemini 3.1 Pro.
-  Analyze product photos, extract video scripts/dialogue, understand video content,
-  compare visual assets, OCR/text extraction, describe scenes for prompt writing,
-  extract style/color/composition from reference footage.
-  Handles large files (>20MB) automatically via built-in upload.
-  Do NOT use for generating images or videos — use renoise-gen instead.
+  Structured image and video understanding via the native Renoise CLI and Gemini 3.1 Pro.
+  Extract standalone generation prompts, reusable replacement templates, timelines,
+  dialogue, camera language, style, subjects, audio, and uncertainty warnings.
+  Use for understanding local images/videos, reverse-prompting, script/style extraction,
+  and preparing media for Director workflows. Do NOT generate media here — use renoise-gen.
 allowed-tools: Bash, Read
 metadata:
   author: renoise
-  version: 0.3.0
+  version: 0.4.0
   category: ai-foundation
   tags: [vision, analysis, multimodal, gemini]
 ---
 
-# Gemini Gen — Visual Understanding & Multimodal Analysis
+# Analyze Media — Native Renoise CLI
 
-Gemini 3.1 Pro via Renoise gateway. Zero npm dependencies, native `fetch` only.
-Handles files of any size automatically — small files are sent inline, large files (>20MB) are uploaded first.
+`renoise analyze` is the only runtime for media understanding. It uses Gemini 3.1 Pro, validates structured output, streams large files through a temporary analysis upload, and never saves the source as a generation material or creates a paid media-generation task.
 
-## Quick Start
+## Preflight
 
-First verify the native CLI with `command -v renoise` on macOS/Linux or `Get-Command renoise` on Windows PowerShell, then run `renoise help auth exec` and `renoise auth status --json`. If a check fails, immediately read `${CLAUDE_SKILL_DIR}/../renoise-setup/SKILL.md` completely and follow it through readiness, asking only for approvals required before host changes or browser authorization. Then rerun preflight and continue the original request; do not merely direct the user to **Setup / Account**.
-
-```bash
-# Analyze a product photo
-renoise auth exec -- node ${CLAUDE_SKILL_DIR}/scripts/gemini.mjs --file photo.jpg --mode product
-
-# Extract a video script with timestamps
-renoise auth exec -- node ${CLAUDE_SKILL_DIR}/scripts/gemini.mjs --file clip.mp4 --mode video-script
-
-# Extract visual style keywords from a reference
-renoise auth exec -- node ${CLAUDE_SKILL_DIR}/scripts/gemini.mjs --file reference.jpg --mode style
-
-# Free-form analysis
-renoise auth exec -- node ${CLAUDE_SKILL_DIR}/scripts/gemini.mjs --file photo.jpg "Describe this image in detail"
-```
-
-## Analysis Modes
-
-Preset modes auto-select optimal resolution and output format. Use `--mode` for common tasks instead of writing custom prompts.
-
-### Product Analysis (`--mode product`)
-
-Analyzes product photos and returns structured JSON with type, color, material, selling points, brand tone, and scene suggestions. Auto-selects `high` resolution for maximum detail.
+Verify the native command and authentication:
 
 ```bash
-renoise auth exec -- node ${CLAUDE_SKILL_DIR}/scripts/gemini.mjs --file product.jpg --mode product
+command -v renoise
+renoise help analyze
+renoise auth status --json
 ```
 
-Output:
-```json
-{
-  "type": "resistance loop bands",
-  "color": "Pink 10lb, Blue 15lb, Mint green 20lb",
-  "material": "TPE elastic, matte finish",
-  "selling_points": ["3 resistance levels", "foldable and portable", "pastel color scheme"],
-  "brand_tone": "Youthful athletic, trendy fitness",
-  "scene_suggestions": ["living room workout", "hotel room fitness", "outdoor park"]
-}
-```
+On Windows PowerShell use `Get-Command renoise`. If any check fails, immediately read `${CLAUDE_SKILL_DIR}/../renoise-setup/SKILL.md` completely and follow it through readiness, asking only for approvals required before host changes or browser authorization. Then rerun preflight and continue the original request; do not merely direct the user to **Setup / Account**.
 
-### Video Script Extraction (`--mode video-script`)
-
-Watches a video and outputs timestamped dialogue, scene descriptions, and camera movements. Auto-selects `low` resolution to reduce token consumption.
+## Core Commands
 
 ```bash
-renoise auth exec -- node ${CLAUDE_SKILL_DIR}/scripts/gemini.mjs --file clip.mp4 --mode video-script
+# Image → self-contained image-generation prompt and observations
+renoise analyze photo.jpg --target image --language <user-language> --json
+
+# Image → self-contained video prompt with explicitly warned inferred motion
+renoise analyze photo.jpg --target video --language <user-language> --json
+
+# Video → timeline, dialogue, camera, style, audio, and standalone video prompt
+renoise analyze clip.mp4 --target video --language <user-language> --json
+
+# Image/video → reusable prompt with replacement slots
+renoise analyze reference.mp4 --mode template --target video --language <user-language> --json
+
+# Shell composition when only the English generation prompt is needed
+renoise analyze clip.mp4 --prompt-only
 ```
 
-### Style Extraction (`--mode style`)
+The default mode is `standalone`; its prompt contains no placeholders or reference requirements. `template` preserves composition/timing/style while replacing source-specific identities with model-neutral `{{slot_id}}` placeholders. Each slot includes a self-contained English reference-image prompt.
 
-Extracts visual style keywords from a reference image or video: color palette, lighting, camera language, composition, and mood.
+## Result Contract
 
-```bash
-renoise auth exec -- node ${CLAUDE_SKILL_DIR}/scripts/gemini.mjs --file reference.jpg --mode style
-```
-
-## CLI Usage
-
-```bash
-# Text only
-renoise auth exec -- node ${CLAUDE_SKILL_DIR}/scripts/gemini.mjs "Explain quantum computing"
-
-# Analyze an image (high resolution for product detail)
-renoise auth exec -- node ${CLAUDE_SKILL_DIR}/scripts/gemini.mjs --file photo.jpg --resolution high "Describe this product"
-
-# Analyze a video (low resolution to save tokens)
-renoise auth exec -- node ${CLAUDE_SKILL_DIR}/scripts/gemini.mjs --file clip.mp4 --resolution low "Summarize this clip"
-
-# Multiple images
-renoise auth exec -- node ${CLAUDE_SKILL_DIR}/scripts/gemini.mjs --file a.jpg --file b.jpg "Compare these two"
-
-# JSON output mode
-renoise auth exec -- node ${CLAUDE_SKILL_DIR}/scripts/gemini.mjs --json "Return a JSON object with name and age"
-```
-
-### Options
-
-| Flag                   | Default          | Description                                          |
-| ---------------------- | ---------------- | ---------------------------------------------------- |
-| `--file <path>`        | —                | Attach local file (repeatable). Files >20MB auto-uploaded |
-| `--file-uri <uri>`     | —                | Attach uploaded file by URI (requires `--file-mime`) |
-| `--file-mime <mime>`   | —                | MIME type for `--file-uri`                           |
-| `--resolution <level>` | `medium`         | `low` / `medium` / `high` / `ultra_high`             |
-| `--model <name>`       | `gemini-3.1-pro` | Model name                                           |
-| `--temperature <n>`    | `1.0`            | Temperature                                          |
-| `--max-tokens <n>`     | `8192`           | Max output tokens                                    |
-| `--json`               | off              | Request JSON response format                         |
-| `--mode <name>`        | —                | Preset analysis mode: `product`, `video-script`, `style` |
-
-### Resolution Levels
-
-`mediaResolution` controls token allocation per image/frame:
-
-| Level                         | Image Tokens | Video Frame Tokens | Best For |
-| ----------------------------- | ------------ | ------------------ | -------- |
-| `low`                         | 280          | 70                 | Bulk processing, video analysis |
-| `medium`                      | 560          | 140                | General use (default) |
-| `high`                        | 840          | 210                | Product photos, fine text |
-| `ultra_high`                  | 1120         | 280                | Extreme detail |
-
-## Large File Handling
-
-Files larger than 20MB are **automatically uploaded** before analysis — no manual steps needed. The upload goes through the Renoise file gateway and returns a temporary URL (valid for 1 hour).
-
-```bash
-# This just works — the script detects file size and auto-uploads if needed
-renoise auth exec -- node ${CLAUDE_SKILL_DIR}/scripts/gemini.mjs --file large-video.mp4 "Analyze this video"
-```
-
-For manual uploads (e.g. reusing the same large file across multiple calls):
-```bash
-# Upload once
-FILE_URL=$(renoise auth exec -- node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/scripts/upload.mjs large-video.mp4)
-
-# Use the URL in multiple calls
-renoise auth exec -- node ${CLAUDE_SKILL_DIR}/scripts/gemini.mjs --file-uri "$FILE_URL" --file-mime video/mp4 "Summarize"
-renoise auth exec -- node ${CLAUDE_SKILL_DIR}/scripts/gemini.mjs --file-uri "$FILE_URL" --file-mime video/mp4 "Extract dialogue"
-```
-
-## When to Use vs When Not
-
-| Use gemini-gen for | Use renoise-gen for |
-|---|---|
-| Analyzing product photos | Generating images |
-| Understanding video content | Generating videos |
-| Extracting scripts from video | Text-to-video / image-to-video |
-| Comparing visual assets | Product design sheets |
-| OCR / text extraction | Scene backgrounds |
-| Describing scenes for prompts | — |
-
-## API Reference (Advanced)
-
-### Endpoint
-
-```
-POST https://renoise.ai/api/public/llm/proxy/v1beta/models/{model}:generateContent?key={RENOISE_API_KEY}
-```
-
-### Request Format
+Use the structured fields rather than reparsing the generated prompt:
 
 ```json
 {
-  "contents": [
-    {
-      "role": "user",
-      "parts": [
-        { "inlineData": { "mimeType": "image/jpeg", "data": "<base64>" }, "mediaResolution": { "level": "media_resolution_high" } },
-        { "text": "Describe this image" }
-      ]
-    }
-  ],
-  "generationConfig": {
-    "temperature": 1.0,
-    "maxOutputTokens": 8192
-  }
+  "version": "v1",
+  "model": "gemini-3.1-pro",
+  "mode": "standalone",
+  "target": "video",
+  "source": {
+    "name": "clip.mp4",
+    "type": "video",
+    "mimeType": "video/mp4",
+    "size": 123456
+  },
+  "analysis": {
+    "summary": "...",
+    "durationSeconds": 8,
+    "aspectRatio": "9:16",
+    "composition": "...",
+    "facePresence": "present|absent|uncertain",
+    "timeline": [
+      {
+        "start": 0,
+        "end": 2,
+        "visual": "...",
+        "action": "...",
+        "camera": "...",
+        "dialogue": "...",
+        "sound": "..."
+      }
+    ],
+    "style": {
+      "lighting": "...",
+      "palette": ["..."],
+      "cameraLanguage": "...",
+      "pacing": "...",
+      "mood": "..."
+    },
+    "subjects": [{"id": "subject_1", "type": "character", "description": "..."}],
+    "audio": {"dialogue": "...", "music": "...", "effects": "..."}
+  },
+  "prompt": "complete English generation prompt",
+  "slots": [],
+  "warnings": []
 }
 ```
 
-### Supported MIME Types
+Schema keys and the final generation prompt are English. Analysis descriptions follow `--language`; dialogue remains verbatim in the detected source language.
 
-| Extension  | MIME Type       | Max Inline |
-| ---------- | --------------- | ---------- |
-| .jpg/.jpeg | image/jpeg      | 20MB       |
-| .png       | image/png       | 20MB       |
-| .webp      | image/webp      | 20MB       |
-| .gif       | image/gif       | 20MB       |
-| .mp4       | video/mp4       | 20MB       |
-| .mov       | video/quicktime | 20MB       |
-| .webm      | video/webm      | 20MB       |
+## Common Tasks
 
-### Error Handling
+### Script and Shot Extraction
 
-- 400: Bad request (check prompt format)
-- 403: Invalid API key
-- 429: Rate limited (wait and retry)
-- 500: Server error (retry with backoff)
+Use `analysis.timeline` for timestamped scenes, actions, camera movements, dialogue, and sound. Use `analysis.audio` for aggregate dialogue/music/effects. Timestamps are model observations, not frame-accurate edit decision lists; preserve warnings and verify critical dialogue with the user.
 
-## Authentication
+### Style Extraction
 
-Uses the credential securely saved by `renoise auth login`, or the `RENOISE_API_KEY` override. Ask the agent to set up Renoise (or run `/renoise:setup` on Claude Code) if neither exists.
+Use `analysis.style` plus `analysis.composition`. Do not infer style by scraping adjectives from `prompt` when structured fields are available.
+
+### Product or Character Understanding
+
+Use `analysis.subjects`, `analysis.summary`, `analysis.composition`, and `analysis.facePresence`. `uncertain` is not equivalent to `absent`; any privacy-sensitive automation must fail closed.
+
+### Compare Two Assets
+
+Analyze each local asset separately with the same target and language, then compare their structured `analysis` objects. Do not upload either as a generation material unless the downstream workflow explicitly requires it and the user approves.
+
+### Reference-Video Remake / 剪同款
+
+Route to the `director` skill and read `commercial/scenario-a-viral.md`. That workflow uses `--mode template`, persists `remake-analysis.json` and `remake-plan.json`, fills replacement slots, checks live model role combinations, and requires approval before slot generation and final video generation.
+
+## Input and Failure Rules
+
+- Supported local files: jpg/jpeg, png, webp, gif, mp4, mov, webm.
+- MIME/content mismatches are rejected.
+- Large media uses a temporary analysis URL; it is not added to the Renoise material library.
+- Cross-media output (`image → video`, `video → image`) records inferred details in `warnings`.
+- If output is truncated, malformed, blocked, or missing required fields, treat the command as failed; never fabricate a replacement result.
+- `analyze` may consume LLM analysis quota, but it never creates a media generation task.
+- For generation, pass the approved `prompt` into `renoise task create` through the `renoise-gen` or `director` workflow.

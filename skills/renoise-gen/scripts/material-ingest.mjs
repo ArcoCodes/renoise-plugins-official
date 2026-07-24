@@ -1,134 +1,122 @@
 #!/usr/bin/env node
 
 /**
- * Material Ingest — Batch upload + AI auto-tagging for video production.
- *
- * Scans a directory (or file list), uploads each to Renoise, analyzes with
- * Gemini for type/tags/face-detection, and writes material-pool.json.
- *
- * Usage:
- *   node material-ingest.mjs ./materials/
- *   node material-ingest.mjs product.jpg scene.jpg ref.mp4
- *   node material-ingest.mjs ./materials/ --output project/material-pool.json
- *   node material-ingest.mjs ./materials/ --skip-analysis   # upload only, no Gemini
- *
- * Authentication:
- *   `renoise auth login` saved credential, or RENOISE_API_KEY override
- *   (upload and Gemini share the same credential)
+ * Batch upload local media, analyze it through native `renoise analyze`, and
+ * write a reusable material-pool.json.
  */
 
 import fs from "fs";
 import path from "path";
 import { execFileSync } from "child_process";
-import { fileURLToPath } from "url";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dir = path.dirname(__filename);
-
-// ── Config ──────────────────────────────────────────────────────────────
-const GEMINI_PATH = path.join(__dir, "..", "..", "gemini-gen", "scripts", "gemini.mjs");
-
-const IMAGE_EXTS = new Set([".jpg", ".jpeg", ".png", ".webp", ".gif", ".bmp", ".tiff"]);
-const VIDEO_EXTS = new Set([".mp4", ".mov", ".webm", ".mkv", ".avi"]);
+const IMAGE_EXTS = new Set([".jpg", ".jpeg", ".png", ".webp", ".gif"]);
+const VIDEO_EXTS = new Set([".mp4", ".mov", ".webm"]);
 const ALL_EXTS = new Set([...IMAGE_EXTS, ...VIDEO_EXTS]);
 
-// ── Parse args ──────────────────────────────────────────────────────────
 function parseArgs(argv) {
   const paths = [];
   let output = "material-pool.json";
   let skipAnalysis = false;
-
+  let append = false;
   for (let i = 0; i < argv.length; i++) {
-    if (argv[i] === "--output" || argv[i] === "-o") {
-      output = argv[++i];
-    } else if (argv[i] === "--skip-analysis") {
-      skipAnalysis = true;
-    } else if (!argv[i].startsWith("-")) {
-      paths.push(argv[i]);
-    }
+    if (argv[i] === "--output" || argv[i] === "-o") output = argv[++i];
+    else if (argv[i] === "--skip-analysis") skipAnalysis = true;
+    else if (argv[i] === "--append") append = true;
+    else if (!argv[i].startsWith("-")) paths.push(argv[i]);
   }
-  return { paths, output, skipAnalysis };
+  return { paths, output, skipAnalysis, append };
 }
 
-// ── Collect files ───────────────────────────────────────────────────────
 function collectFiles(inputPaths) {
   const files = [];
-  for (const p of inputPaths) {
-    const stat = fs.statSync(p);
+  for (const input of inputPaths) {
+    const stat = fs.statSync(input);
     if (stat.isDirectory()) {
-      for (const entry of fs.readdirSync(p)) {
-        const full = path.join(p, entry);
-        const ext = path.extname(entry).toLowerCase();
-        if (fs.statSync(full).isFile() && ALL_EXTS.has(ext)) {
-          files.push(full);
-        }
+      for (const entry of fs.readdirSync(input)) {
+        const full = path.join(input, entry);
+        if (fs.statSync(full).isFile() && ALL_EXTS.has(path.extname(entry).toLowerCase())) files.push(full);
       }
-    } else if (stat.isFile()) {
-      const ext = path.extname(p).toLowerCase();
-      if (ALL_EXTS.has(ext)) {
-        files.push(p);
-      } else {
-        console.warn(`⚠️  Skipping unsupported file: ${p}`);
-      }
+    } else if (stat.isFile() && ALL_EXTS.has(path.extname(input).toLowerCase())) {
+      files.push(input);
+    } else {
+      console.warn(`⚠️  Skipping unsupported file: ${input}`);
     }
   }
   return files;
 }
 
-// ── Upload a single file ────────────────────────────────────────────────
+function runRenoise(args, timeout = 10 * 60_000) {
+  return execFileSync("renoise", args, { encoding: "utf-8", timeout, maxBuffer: 10 * 1024 * 1024 });
+}
+
 function uploadFile(filePath) {
-  const ext = path.extname(filePath).toLowerCase();
-  const type = VIDEO_EXTS.has(ext) ? "video" : "image";
+  const type = VIDEO_EXTS.has(path.extname(filePath).toLowerCase()) ? "video" : "image";
   try {
-    const data = JSON.parse(execFileSync(
-      "renoise",
-      ["upload", filePath, "--type", type, "--json"],
-      { encoding: "utf-8", timeout: 60000 }
-    ));
+    const data = JSON.parse(runRenoise(["upload", filePath, "--type", type, "--json"]));
     const material = data.material || data;
-    if (material?.id) return { id: material.id, type };
-    console.error(`⚠️  Could not parse upload result for ${filePath}`);
-    return null;
-  } catch (err) {
-    console.error(`❌ Upload failed for ${filePath}: ${err.message}`);
+    return material?.id ? { id: material.id, type } : null;
+  } catch (error) {
+    console.error(`❌ Upload failed for ${filePath}: ${error.message}`);
     return null;
   }
 }
 
-// ── Analyze a single file with Gemini ───────────────────────────────────
+function materialType(result, isVideo) {
+  if (isVideo) return "reference-video";
+  const types = new Set((result.analysis?.subjects || []).map(subject => subject.type));
+  if (types.has("product")) return "product";
+  if (types.has("character")) return "character-ref";
+  if (types.has("scene")) return "scene";
+  return "other";
+}
+
 function analyzeFile(filePath) {
-  const ext = path.extname(filePath).toLowerCase();
-  const isVideo = VIDEO_EXTS.has(ext);
-  const resolution = isVideo ? "low" : "high";
-
-  const prompt = `Analyze this ${isVideo ? "video" : "image"} for a video production material library.
-Return ONLY valid JSON (no markdown fences) with these fields:
-- type: one of "product", "scene", "character-ref", "mood-board", "reference-video", "other"
-- tags: array of descriptive keyword strings (e.g. "front-view", "white-background", "gym", "outdoor", "close-up")
-- description: one sentence describing the content
-- has_face: boolean — true if a realistic human face is clearly visible
-- colors: array of dominant color names
-- suitable_roles: array from ["ref_image", "image1", "image2", "ref_video", "first_frame", "last_frame"] — which material roles this file is suitable for`;
-
+  const isVideo = VIDEO_EXTS.has(path.extname(filePath).toLowerCase());
   try {
-    const output = execFileSync(
-      "renoise",
-      ["auth", "exec", "--", process.execPath, GEMINI_PATH, "--file", filePath, "--resolution", resolution, "--json", prompt],
-      { encoding: "utf-8", timeout: 120000 }
-    );
-    return JSON.parse(output);
-  } catch (err) {
-    console.error(`⚠️  Analysis failed for ${filePath}: ${err.message}`);
+    const result = JSON.parse(runRenoise([
+      "analyze", filePath,
+      "--target", isVideo ? "video" : "image",
+      "--language", "en",
+      "--json",
+    ]));
+    const subjects = result.analysis?.subjects || [];
+    const colors = result.analysis?.style?.palette || [];
+    const facePresence = result.analysis?.facePresence || "uncertain";
+    return {
+      type: materialType(result, isVideo),
+      tags: [...new Set([...subjects.map(subject => subject.type), ...colors])],
+      description: result.analysis?.summary || "",
+      has_face: facePresence === "present" ? true : facePresence === "absent" ? false : null,
+      face_presence: facePresence,
+      colors,
+      suitable_roles: [],
+      analysis_status: "completed",
+    };
+  } catch (error) {
+    console.error(`⚠️  Analysis failed for ${filePath}: ${error.message}`);
     return null;
   }
 }
 
-// ── Main ────────────────────────────────────────────────────────────────
+function fallbackMaterial(result, skipped = false) {
+  return {
+    id: result.id,
+    file: path.basename(result.file),
+    type: result.type === "video" ? "reference-video" : "other",
+    tags: [],
+    description: "",
+    has_face: null,
+    face_presence: "uncertain",
+    colors: [],
+    suitable_roles: [],
+    analysis_status: skipped ? "skipped" : "failed",
+  };
+}
+
 async function main() {
   const args = parseArgs(process.argv.slice(2));
-
   if (args.paths.length === 0) {
-    console.log(`Material Ingest — Batch upload + AI auto-tagging
+    console.log(`Material Ingest — native CLI upload + analysis
 
 Usage:
   node material-ingest.mjs <path|directory> [<path2> ...]
@@ -138,127 +126,61 @@ Usage:
 
 Options:
   --output, -o <file>   Output file path (default: material-pool.json)
-  --skip-analysis       Upload only, skip Gemini analysis
-  --append              Append to existing pool file instead of overwriting`);
-    process.exit(0);
+  --skip-analysis       Upload only; privacy state remains uncertain
+  --append              Preserve existing pool entries`);
+    return;
   }
 
-  // Step 1: Collect files
   const files = collectFiles(args.paths);
-  if (files.length === 0) {
-    console.error("No supported image/video files found.");
-    process.exit(1);
-  }
-  console.log(`📦 Found ${files.length} file(s) to ingest:\n`);
-  files.forEach((f) => console.log(`  ${path.basename(f)}`));
-  console.log();
+  if (!files.length) throw new Error("No supported image/video files found.");
+  console.log(`📦 Found ${files.length} file(s).`);
 
-  // Step 2: Upload all files
-  console.log("⬆️  Uploading files...\n");
-  const uploadResults = [];
+  const uploaded = [];
   for (const file of files) {
     process.stdout.write(`  Uploading ${path.basename(file)}... `);
     const result = uploadFile(file);
-    if (result) {
-      console.log(`✅ #${result.id}`);
-      uploadResults.push({ file, ...result });
-    } else {
-      console.log("❌ failed");
-    }
+    console.log(result ? `✅ #${result.id}` : "❌ failed");
+    if (result) uploaded.push({ file, ...result });
   }
-  console.log(`\n  ${uploadResults.length}/${files.length} uploaded successfully.\n`);
 
-  // Step 3: Analyze with Gemini (unless --skip-analysis)
   const materials = [];
-  if (args.skipAnalysis) {
-    console.log("⏭️  Skipping Gemini analysis (--skip-analysis).\n");
-    for (const r of uploadResults) {
-      const ext = path.extname(r.file).toLowerCase();
-      materials.push({
-        id: r.id,
-        file: path.basename(r.file),
-        type: r.type === "video" ? "reference-video" : "other",
-        tags: [],
-        description: "",
-        has_face: false,
-        colors: [],
-        suitable_roles: r.type === "video" ? ["ref_video"] : ["ref_image", "image1"],
-      });
+  for (const result of uploaded) {
+    if (args.skipAnalysis) {
+      materials.push(fallbackMaterial(result, true));
+      continue;
     }
-  } else {
-    console.log("🔍 Analyzing files with Gemini...\n");
-    for (const r of uploadResults) {
-      process.stdout.write(`  Analyzing ${path.basename(r.file)}... `);
-      const analysis = analyzeFile(r.file);
-      if (analysis) {
-        console.log(`✅ ${analysis.type} | has_face: ${analysis.has_face}`);
-        materials.push({
-          id: r.id,
-          file: path.basename(r.file),
-          type: analysis.type || "other",
-          tags: analysis.tags || [],
-          description: analysis.description || "",
-          has_face: !!analysis.has_face,
-          colors: analysis.colors || [],
-          suitable_roles: analysis.suitable_roles || ["ref_image"],
-        });
-      } else {
-        console.log("⚠️  analysis failed, using defaults");
-        materials.push({
-          id: r.id,
-          file: path.basename(r.file),
-          type: r.type === "video" ? "reference-video" : "other",
-          tags: [],
-          description: "",
-          has_face: false,
-          colors: [],
-          suitable_roles: r.type === "video" ? ["ref_video"] : ["ref_image", "image1"],
-        });
-      }
+    process.stdout.write(`  Analyzing ${path.basename(result.file)}... `);
+    const analysis = analyzeFile(result.file);
+    if (!analysis) {
+      console.log("⚠️ failed; excluded from privacy-sensitive auto-matching");
+      materials.push(fallbackMaterial(result));
+      continue;
     }
+    console.log(`✅ ${analysis.type} | face: ${analysis.face_presence}`);
+    materials.push({ id: result.id, file: path.basename(result.file), ...analysis });
   }
 
-  // Step 4: Write material-pool.json
   let existingMaterials = [];
   if (args.append && fs.existsSync(args.output)) {
     try {
-      const existing = JSON.parse(fs.readFileSync(args.output, "utf-8"));
-      existingMaterials = existing.materials || [];
-      console.log(`\n📂 Appending to existing pool (${existingMaterials.length} existing material(s)).`);
-    } catch (e) {
-      console.warn(`⚠️  Could not parse existing pool file, starting fresh.`);
+      existingMaterials = JSON.parse(fs.readFileSync(args.output, "utf-8")).materials || [];
+    } catch {
+      throw new Error(`Cannot append: invalid existing pool ${args.output}`);
     }
   }
-
-  // Deduplicate by material ID
-  const existingIds = new Set(existingMaterials.map((m) => m.id));
-  const newMaterials = materials.filter((m) => !existingIds.has(m.id));
+  const existingIds = new Set(existingMaterials.map(material => material.id));
+  const newMaterials = materials.filter(material => !existingIds.has(material.id));
   const allMaterials = [...existingMaterials, ...newMaterials];
+  fs.writeFileSync(args.output, JSON.stringify({ created_at: new Date().toISOString(), materials: allMaterials }, null, 2));
+  console.log(`✅ ${args.output}: ${allMaterials.length} material(s)${args.append ? ` (${newMaterials.length} new)` : ""}.`);
 
-  const pool = {
-    created_at: new Date().toISOString(),
-    materials: allMaterials,
-  };
-
-  fs.writeFileSync(args.output, JSON.stringify(pool, null, 2));
-  if (args.append && existingMaterials.length > 0) {
-    console.log(`\n✅ Material pool updated: ${args.output}`);
-    console.log(`   ${existingMaterials.length} existing + ${newMaterials.length} new = ${allMaterials.length} total.\n`);
-  } else {
-    console.log(`\n✅ Material pool written to ${args.output}`);
-    console.log(`   ${allMaterials.length} material(s) indexed.\n`);
-  }
-
-  // Summary
-  const withFace = materials.filter((m) => m.has_face);
-  if (withFace.length > 0) {
-    console.log(`⚠️  ${withFace.length} material(s) contain human faces and may trigger PrivacyInformation errors:`);
-    withFace.forEach((m) => console.log(`   #${m.id} ${m.file}`));
-    console.log(`   These will be excluded from ref_image auto-matching.\n`);
+  const unverified = materials.filter(material => material.has_face !== false && material.type !== "reference-video");
+  if (unverified.length) {
+    console.log(`⚠️  ${unverified.length} image material(s) have present/uncertain faces and must not be privacy-sensitive auto-matches.`);
   }
 }
 
-main().catch((err) => {
-  console.error("Fatal:", err.message);
+main().catch(error => {
+  console.error("Fatal:", error.message);
   process.exit(1);
 });

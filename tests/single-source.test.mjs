@@ -10,6 +10,8 @@ const removed = [
   'skills/renoise-gen/credential.mjs',
   'skills/renoise-gen/references/api-endpoints.md',
   'skills/renoise-gen/references/video-capabilities.md',
+  'skills/gemini-gen/scripts/gemini.mjs',
+  'skills/renoise-gen/scripts/upload.mjs',
   'hooks/hooks.json',
   'hooks/session-start.sh',
 ];
@@ -20,8 +22,12 @@ test('native CLI remains the only runtime and capability source', () => {
     assert.match(readFileSync(path, 'utf8'), /renoise model --json/, `${path} must use live models`);
   }
   const toolSkill = readFileSync('skills/renoise-gen/SKILL.md', 'utf8');
+  const analysisSkill = readFileSync('skills/gemini-gen/SKILL.md', 'utf8');
   assert.doesNotMatch(toolSkill, /## Supported Models|\/api\/public\/v1\/tasks/);
   assert.match(toolSkill, /user-invocable: false/);
+  assert.match(analysisSkill, /renoise analyze/);
+  assert.match(analysisSkill, /gemini-3\.1-pro/);
+  assert.doesNotMatch(analysisSkill, /auth exec|gemini\.mjs/);
 });
 
 test('package metadata is the manifest source of truth', () => {
@@ -99,9 +105,11 @@ test('installer selects and verifies macOS, Windows, and Linux archives', () => 
   assert.equal(expectedChecksum(`${'a'.repeat(64)}  ${assets[0].name}\n`, assets[0].name), 'a'.repeat(64));
   const createHelp = 'Usage: renoise task create\nFlags:\n      --prompt-file string';
   const waitHelp = 'Usage: renoise task wait';
-  assert.equal(hasRequiredCommands(createHelp, waitHelp, 'Usage: renoise auth exec', 'Flags:\n      --web'), true);
-  assert.equal(hasRequiredCommands('Usage: renoise task create', waitHelp, 'Usage: renoise auth exec', 'Flags:\n      --web'), false);
-  assert.equal(hasRequiredCommands(createHelp, waitHelp, 'Usage: renoise auth exec', 'Usage: renoise auth login'), false);
+  const analyzeHelp = 'Usage: renoise analyze <image-or-video>\nFlags:\n      --mode string';
+  assert.equal(hasRequiredCommands(createHelp, waitHelp, 'Usage: renoise auth exec', 'Flags:\n      --web', analyzeHelp), true);
+  assert.equal(hasRequiredCommands('Usage: renoise task create', waitHelp, 'Usage: renoise auth exec', 'Flags:\n      --web', analyzeHelp), false);
+  assert.equal(hasRequiredCommands(createHelp, waitHelp, 'Usage: renoise auth exec', 'Usage: renoise auth login', analyzeHelp), false);
+  assert.equal(hasRequiredCommands(createHelp, waitHelp, 'Usage: renoise auth exec', 'Flags:\n      --web', 'Usage: renoise analyze'), false);
   assert.ok(compareVersions('0.3.0', '0.2.0') > 0);
   assert.equal(compareVersions('0.2.0', '0.2.0'), 0);
 });
@@ -121,4 +129,16 @@ test('setup keeps managed CLI current and still gates manual install', () => {
   assert.match(gen, /install-cli\.mjs" --ensure/);
   assert.match(installer, /--ensure/);
   assert.match(installer, /needsManagedUpdate/);
+});
+
+test('reference-video remake uses native analysis and explicit approval gates', () => {
+  const director = readFileSync('skills/director/SKILL.md', 'utf8');
+  const scenario = readFileSync('skills/director/commercial/scenario-a-viral.md', 'utf8');
+  assert.match(director, /剪同款/);
+  assert.match(scenario, /renoise analyze[\s\S]*--mode template/);
+  assert.match(scenario, /remake-plan\.json/);
+  assert.match(scenario, /source video is always attached/i);
+  assert.match(scenario, /Gate 1/);
+  assert.match(scenario, /Gate 2/);
+  assert.doesNotMatch(scenario, /gemini\.mjs|auth exec/);
 });

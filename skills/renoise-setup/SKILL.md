@@ -6,7 +6,7 @@ description: >
   missing RENOISE_API_KEY, ffmpeg, jq, yt-dlp, ImageMagick, or agent-browser.
 metadata:
   author: renoise
-  version: 1.0.1
+  version: 1.0.2
   category: setup
   tags: [setup, install, authentication, dependencies, renoise]
 ---
@@ -19,6 +19,20 @@ Another Renoise workflow may invoke this setup automatically when its preflight 
 
 Never ask the user to paste an API key into chat. Never install software, move binaries, edit `PATH`, or change host configuration without explicit confirmation.
 
+## 0. Plugin copy freshness
+
+Before fixing the CLI, check whether **this installed plugin** is behind the latest public release:
+
+```text
+node "<PLUGIN_ROOT>/skills/renoise-setup/scripts/check-plugin.mjs"
+```
+
+- exit `0` — current (or newer than latest); continue
+- exit `2` — print the script's host-specific upgrade commands and **stop** until the user updates/reinstalls the plugin and restarts the host; do not claim new plugin behavior is already active
+- exit `1` — network/API failure; warn once and continue with CLI setup
+
+Plugin installs are owned by each host marketplace. This check only guides the user; it cannot replace the plugin in place.
+
 ## 1. Detect, Install, or Update the Core Runtime
 
 Detect without changing the host:
@@ -28,7 +42,7 @@ Detect without changing the host:
 | macOS / Linux shell | `command -v node; command -v renoise; uname -s; uname -m` |
 | Windows PowerShell | `Get-Command node, renoise -ErrorAction SilentlyContinue; [System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture` |
 
-Node.js is required by the plugin's Gemini, material, and cross-platform installer scripts; Bun is optional. The native CLI is required and is the single source of truth for authentication, model capabilities, generation, uploads, and task management.
+Node.js is required by the plugin's remaining material utilities and cross-platform installer scripts; Bun is optional. The native CLI is required and is the single source of truth for authentication, media analysis, model capabilities, generation, uploads, and task management.
 
 If `renoise` exists, verify the plugin contract rather than trusting a static version number:
 
@@ -36,11 +50,12 @@ If `renoise` exists, verify the plugin contract rather than trusting a static ve
 renoise version
 renoise help task create
 renoise help task wait
+renoise help analyze
 renoise help auth exec
 renoise help auth login
 ```
 
-The outputs must contain the exact usage paths `renoise task create`, `renoise task wait`, and `renoise auth exec`, the task flag `--prompt-file`, plus the `auth login` flag `--web`; older Cobra builds may show parent help and still exit successfully.
+The outputs must contain the exact usage paths `renoise task create`, `renoise task wait`, `renoise analyze`, and `renoise auth exec`, the task flag `--prompt-file`, the analyze flag `--mode`, plus the `auth login` flag `--web`; older Cobra builds may show parent help and still exit successfully.
 
 Generation preflight auto-keeps the **managed** CLI current. It reads `https://download.renoise.ai/cli/latest.json` and installs/replaces only the managed target when missing, incompatible, or older than the latest public release — no prompt:
 
@@ -73,7 +88,7 @@ If the managed target directory is absent from `PATH` or another `renoise` binar
 
 For manual installation, read the public release manifest at `https://download.renoise.ai/cli/latest.json`, download the matching archive and `checksums.txt` from its version directory, verify SHA-256, then extract the binary. Downloading, moving, or replacing files still requires confirmation.
 
-Before replacing an existing binary, the installer checks all four command contracts. After installation, rerun the checks above. If agent-safe `task create --prompt-file`, `task wait`, `auth exec`, or browser login is unavailable, the release is incompatible; stop and ask the user to upgrade rather than recreating the command in the plugin.
+Before replacing an existing binary, the installer checks all five command contracts. After installation, rerun the checks above. If agent-safe `task create --prompt-file`, `task wait`, `analyze --mode`, `auth exec`, or browser login is unavailable, the release is incompatible; stop and ask the user to upgrade rather than recreating the command in the plugin.
 
 ## 2. Authenticate Once
 
@@ -85,7 +100,7 @@ renoise auth login --web --json
 
 Keep the command running while it opens the Renoise authorization page. The user only signs in and selects **Allow and connect** in the browser; never ask them to open a terminal, copy an API key, or paste a secret into chat. The CLI receives the credential through a one-time localhost callback, validates it, and saves it in the OS user config directory with restricted permissions. After the command returns, continue setup automatically.
 
-Plugin generation and Credits call the CLI directly; Gemini and upload scripts run through `renoise auth exec` so they reuse the credential without printing it. `RENOISE_API_KEY` remains the credential override for CI and containers, but the native CLI binary is still required.
+Plugin generation, media understanding, uploads, and Credits call the CLI directly. `RENOISE_API_KEY` remains the credential override for CI and containers, but the native CLI binary is still required.
 
 Verify through the native CLI:
 

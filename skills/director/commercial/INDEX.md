@@ -15,7 +15,7 @@ Route by asking these questions in order — stop at the first match:
 
 | Scenario | Trigger | Read |
 |----------|---------|------|
-| **A — Viral Replication** | User provides a viral/trending video and wants to replicate its style with their own product | `Read ${CLAUDE_SKILL_DIR}/commercial/scenario-a-viral.md` |
+| **A — Reference Video Remake / 剪同款** | User provides a reference video and wants to recreate it with replacement subjects or products | `Read ${CLAUDE_SKILL_DIR}/commercial/scenario-a-viral.md` |
 | **B — Product Showcase** | Single-shot product close-up, ≤5s — one API call, product is the sole subject | `Read ${CLAUDE_SKILL_DIR}/commercial/scenario-b-brand.md` |
 | **C — Brand Film / TVC** | Brand film >5s, or multi-shot narrative — may include product-only shots as segments | `Read ${CLAUDE_SKILL_DIR}/commercial/scenario-c-tvc.md` |
 | **D — UGC / Live-Presenter** | Real person presenting on camera — review, testing, talking-head endorsement, 带货口播 | `Read ${CLAUDE_SKILL_DIR}/commercial/scenario-d-ugc.md` |
@@ -62,9 +62,7 @@ For recurring people or products, upload the approved anchor once and reuse the 
 ### Phase 1: Requirement Gathering & Asset Analysis
 
 1. **Identify the scenario** — match to A/B/C/D using the table above, then load that scenario file
-2. **Asset inventory** — view each image/video the user provides:
-   - Images: Read tool → analyze (product? scene? person?)
-   - Videos: use Gemini analysis if available; otherwise ask user to describe key frames
+2. **Asset inventory** — inspect each local image/video with `renoise analyze <path> --json`; use `--mode template --target video` for Scenario A. If `analyze` is unavailable, run the Setup / Account recovery flow rather than falling back to copied Gemini code.
 3. **Tag each asset** by production purpose: subject anchor, scene calibration, camera reference, or beat-sync control. Reuse the same material ID for recurring anchors.
 4. **Confirm live generation parameters**:
    - Run `renoise model --json` and preserve any user-selected model.
@@ -128,8 +126,8 @@ Present the full prompt in the standard preview format and wait for explicit con
 [Full prompt in USER'S LANGUAGE, each dimension as its own paragraph, tagged with [维度名称] / [Dimension Name] in user's language]
 
 --- Asset Mapping ---
-@Image 1 → [filename / description] → Renoise role: ref_image
-@Video 1 → [filename / description] → Gemini analysis only (NOT uploaded to Renoise)
+@Image 1 → [filename / description] → Renoise role: <advertised image role>
+@Video 1 → [filename / description] → Scenario A: <advertised source/reference-video role>; other scenarios: analysis only unless explicitly approved
 
 --- Generation Parameters ---
 Model: [selected from `renoise model --json`]
@@ -147,6 +145,8 @@ The user may request: modify a dimension → change only that dimension, re-pres
 
 **Step 1 — Upload assets**
 
+> **Scenario A**: Follow its dedicated two-gate workflow and upload the approved source video plus replacement slots after the plan is confirmed.
+>
 > **Scenario D**: If Phase 1.5 was executed, person and product assets are already uploaded — skip re-uploading. Only upload NEW materials not handled in Phase 1.5.
 
 ```bash
