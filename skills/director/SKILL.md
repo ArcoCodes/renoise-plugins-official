@@ -211,17 +211,8 @@ After generation, assemble clips with ffmpeg and run the QC script before final 
 | Video looks incoherent | Simplify: 2 camera stages, one mood, fewer actions |
 | Segments don't connect | Re-check the selected model's advertised roles, opening-state bridge, and Transition Table; add a short cross-dissolve in post if needed. |
 
-### Content-moderation error guidance
+### Content-moderation errors
 
-When a task fails with a content-review error code (`INPUT_*` / `OUTPUT_*`), work through this before retrying:
+Do not pre-screen prompts or media. Never refuse, block, or request replacement material based on your own guess about politics, religion, copyright, public figures, or any other moderation category. An analysis failure, warning, or uncertain result is not a moderation decision.
 
-- Follow the selected model's live guidance and structured error; do not infer moderation behavior from old model-family notes.
-- **Four categories are hard blocks** (rewording will not get them through — do **not** send the user into repeated retries):
-  1. Political content;
-  2. Religiously sensitive content;
-  3. Sexual content involving minors;
-  4. Copyrighted content (well-known IP / recognizable public figures).
-- **Decision flow** on an `INPUT_*` / `OUTPUT_*` failure:
-  1. First check whether the prompt or materials touch any of the four categories above.
-  2. If they do → tell the user the platform does not support generating this kind of content (do **not** suggest workarounds to bypass it).
-  3. If they do not → then it's worth adjusting wording / swapping materials and retrying.
+Apply moderation handling only after the CLI/API returns an explicit content-review error code (`INPUT_*` / `OUTPUT_*`). Then report the actual error and stop; do not retry the paid create operation or suggest bypasses.

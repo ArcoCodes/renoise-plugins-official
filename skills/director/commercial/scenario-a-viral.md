@@ -192,5 +192,5 @@ Return the result URL, task ID, source/slot mapping, and any warnings. If the us
 | Source video exceeds supported limits | Ask the user to provide/approve a shorter source; do not silently clamp it. |
 | Slot generation fails | Keep successful slot tasks/materials and retry only the failed slot after approval. |
 | Wait times out | Resume the recorded task ID. |
-| Copyright/public-figure/content block | Explain the platform limitation; do not propose bypasses. |
+| CLI/API returns `INPUT_*` / `OUTPUT_*` content-review error | Report the actual error and stop; do not retry the paid create operation or suggest bypasses. |
 | Output copies source identity despite slots | Strengthen the source lock or replace the conflicting source; never claim text guarantees isolation. |

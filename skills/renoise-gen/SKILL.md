@@ -191,11 +191,7 @@ renoise auth status --json
 renoise model <model> --json
 ```
 
-For input/output moderation failures:
-
-1. Check whether prompt or materials involve political or religiously sensitive content, sexual content involving minors, or copyrighted/public-figure content.
-2. If so, tell the user the platform does not support it; do not suggest bypasses.
-3. Otherwise adjust wording or materials once, then retry only with user approval when credits are involved.
+Do not pre-screen prompts or materials and do not infer a moderation result yourself. Continue the normal approval and submission flow unless the CLI/API returns an explicit content-review error (`INPUT_*` / `OUTPUT_*`). On that actual error, report it and stop; never retry the paid create operation or suggest bypasses.
 
 ## References
 

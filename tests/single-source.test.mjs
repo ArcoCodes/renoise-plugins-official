@@ -142,3 +142,17 @@ test('reference-video remake uses native analysis and explicit approval gates', 
   assert.match(scenario, /Gate 2/);
   assert.doesNotMatch(scenario, /gemini\.mjs|auth exec/);
 });
+
+test('moderation waits for an explicit API error', () => {
+  const director = readFileSync('skills/director/SKILL.md', 'utf8');
+  const gen = readFileSync('skills/renoise-gen/SKILL.md', 'utf8');
+  const scenario = readFileSync('skills/director/commercial/scenario-a-viral.md', 'utf8');
+  for (const skill of [director, gen]) {
+    assert.match(skill, /Do not pre-screen/);
+    assert.match(skill, /INPUT_\*/);
+    assert.match(skill, /OUTPUT_\*/);
+    assert.doesNotMatch(skill, /hard blocks|First check whether the prompt or materials/);
+  }
+  assert.match(scenario, /CLI\/API returns `INPUT_\*` \/ `OUTPUT_\*`/);
+  assert.doesNotMatch(scenario, /Copyright\/public-figure\/content block/);
+});
