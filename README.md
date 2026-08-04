@@ -6,12 +6,11 @@ AI video production skills by Renoise — creative direction, generation, analys
 
 | Skill | Description |
 |-------|-------------|
-| **Create with Renoise** (`director`) | Creative direction and production for product ads, short films, e-commerce, drama, and comedy |
-| **Analyze Media** (`gemini-gen`) | Visual understanding, product analysis, script extraction, and style analysis |
-| **Build Storyboard** (`storyboard-sheet`) | Script and novel adaptation into review sheets, shot lists, first frames, and video prompts |
-| **Setup / Account** (`renoise-setup`) | Cross-platform CLI installation/update, secure login, and readiness checks |
-| `renoise-gen` | Internal native-CLI tool layer used by creation workflows |
-| `video-download` | Video downloader utility (yt-dlp + Douyin/TikTok fallback) |
+| **Create with Renoise** (`director`) | Portable creative direction for product ads, short films, e-commerce, drama, and comedy |
+| **Build Storyboard** (`storyboard-sheet`) | Portable script/novel adaptation into review sheets, shot lists, first frames, and video prompts |
+| `renoise-cli` | Local-only CLI execution for capabilities, media analysis, generation, uploads, tasks, and production helpers |
+| **Setup / Account** (`renoise-setup`) | Local-only CLI installation/update, secure login, and readiness checks |
+| `video-download` | Local-only downloader utility (yt-dlp + Douyin/TikTok fallback) |
 
 ## Installation
 
@@ -59,15 +58,15 @@ Restart the ChatGPT desktop app, open **Plugins**, select the **Renoise** market
 
 ## Native Renoise CLI
 
-The native Go CLI is required and is the single source of truth for authentication, media analysis, model capabilities, generation, uploads, tasks, and machine-readable output.
+The native Go CLI is required only on local CLI hosts. It is their source of truth for authentication, media analysis, model capabilities, generation, uploads, tasks, and machine-readable output. Hosted Renoise Agent uses portable Skills plus its own typed capabilities and does not install or execute this CLI.
 
-When a Renoise workflow finds a missing, outdated, or signed-out CLI, it automatically runs the **Setup / Account** flow and resumes the original request when ready. You can also select **Setup / Account** directly in Claude Desktop Cowork or Codex/ChatGPT Desktop, or run `/renoise:setup` in Claude Code. The Agent handles detection, installation, browser sign-in, and verification; the user only approves installation and authorizes Renoise in the browser. Setup detects macOS/Windows/Linux and x64/ARM64, compares the installed CLI contract/version with the latest release, and previews the archive and user-local target. After confirmation, the same path installs or updates the matching `.tar.gz`/`.zip`, verifies `checksums.txt` and required commands before replacement, and rolls back a failed replacement. The default targets are `~/.local/bin/renoise` on macOS/Linux and `%LOCALAPPDATA%\Renoise\bin\renoise.exe` on Windows. It never updates in the background; any binary replacement or PATH change requires approval, and PATH changes require a Desktop restart.
+When a local Renoise workflow finds a missing, outdated, or signed-out CLI, it automatically runs the **Setup / Account** flow and resumes the original request when ready. You can also select **Setup / Account** directly in Claude Desktop Cowork or Codex/ChatGPT Desktop, or run `/renoise:setup` in Claude Code. The Agent handles detection, installation, browser sign-in, and verification; the user only approves installation and authorizes Renoise in the browser. Setup detects macOS/Windows/Linux and x64/ARM64, compares the installed CLI contract/version with the latest release, and previews the archive and user-local target. After confirmation, the same path installs or updates the matching `.tar.gz`/`.zip`, verifies `checksums.txt` and required commands before replacement, and rolls back a failed replacement. The default targets are `~/.local/bin/renoise` on macOS/Linux and `%LOCALAPPDATA%\Renoise\bin\renoise.exe` on Windows. It never updates in the background; any binary replacement or PATH change requires approval, and PATH changes require a Desktop restart.
 
 Manual downloads are listed in `https://download.renoise.ai/cli/latest.json`; verify the matching version directory's `checksums.txt` before extracting the binary.
 
-Plugin updates remain owned by each host's plugin manager. CLI recovery happens on use but never replaces a binary without approval, so the two release tracks do not silently modify each other. There is no per-session setup notification. `renoise auth login --web` opens account authorization in the browser and stores the shared credential securely without terminal key entry; `RENOISE_API_KEY` remains the override for CI and containers. Plugin skills query `renoise model --json` at runtime, so new models and capability changes do not require duplicated plugin updates.
+Plugin updates remain owned by each host's plugin manager. CLI recovery happens on use but never replaces a binary without approval, so the two release tracks do not silently modify each other. There is no per-session setup notification. `renoise auth login --web` opens account authorization in the browser and stores the shared credential securely without terminal key entry; `RENOISE_API_KEY` remains the override for CI and containers. The local-only `renoise-cli` Skill queries live capabilities, so new models do not require duplicated tables in creative Skills.
 
-Managed Renoise Agent hosts may expose structured `renoise_*` tools instead of Bash. In that mode the host owns the pinned CLI, scoped credential, approval, and idempotency; skills skip local setup/login and do not execute bundled scripts or write workspace files.
+`skills/manifest.json` classifies Skills by runtime. Hosted Renoise Agent loads only portable `director` and `storyboard-sheet` source files whose required capabilities are available; it never loads `renoise-cli`, `renoise-setup`, `video-download`, executable helpers, or local examples. Hosted execution uses its typed capabilities directly and does not run the native CLI.
 
 Interactive account and CLI defaults are available through:
 
@@ -82,6 +81,12 @@ renoise settings
 | `RENOISE_API_KEY` | Optional override for all Renoise tools | CI/container or host-secret override. Interactive setup prefers the credential securely saved by `renoise auth login`. |
 
 ## Version & upgrading
+
+### 1.3.0
+
+- Split portable `director` / `storyboard-sheet` methodology from the local-only `renoise-cli` execution Skill.
+- Removed `gemini-gen`; media-analysis guidance now lives in `director`, while local analysis commands live in `renoise-cli`.
+- Added `skills/manifest.json` for Hosted capability filtering and portability checks.
 
 ### 1.1.0
 

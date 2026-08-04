@@ -6,37 +6,16 @@
 
 ---
 
-## Phase 1.5: Asset Pre-Upload (Scenario D Only)
+## Phase 1.5: Asset Registration (Scenario D Only)
 
-Upload all assets **before writing the prompt**. Material IDs must be known before prompt construction.
+Register all host-authorized assets **before writing the prompt** so material IDs are known during construction.
 
-**1. Person image → upload as material**
+1. Register the presenter once and reuse the **same material ID** through an image-reference role advertised by the selected model.
+2. If the user did not provide a presenter, clarify the desired person, inspect a live image model, present the portrait prompt and estimate, wait for approval, generate it through the host, then show and register the approved result once.
+3. Register each approved product image once and assign only a role advertised by the selected video model.
+4. Record every material ID and full server filename, then proceed to Phase 2.
 
-Upload the presenter once and reuse the **same material ID** through an image-reference role advertised by the selected model. Follow the central `renoise-gen` material policy; do not add a commercial-specific preparation step.
-
-If the user provided a presenter face image:
-```bash
-renoise upload <person_image_path> --json
-# → use the returned ID through a role advertised by the selected video model
-```
-
-If the user did NOT provide a presenter image, ask what kind of presenter they want. Select an image model from `renoise model --json`, inspect it, generate a portrait with advertised parameters, and present it for approval before uploading.
-
-```bash
-renoise task create <selected-image-model> --prompt-file <portrait-prompt-file> --json
-renoise task wait <task-id> --timeout 15m --json
-curl -s -o presenter.png "<generated_image_url>"
-renoise upload presenter.png --json
-```
-
-**2. Product images → upload as material**
-
-```bash
-renoise upload <product_image_path> --json
-# → assign a role advertised by the selected video model
-```
-
-**3. Record all IDs**, then proceed to Phase 2.
+If the host cannot register a conversation attachment or generated result, explain the limitation; do not request host filesystem details or invent an upload fallback.
 
 ---
 

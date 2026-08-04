@@ -138,7 +138,7 @@ renoise task create \
   --prompt-file prompts/maya-character.txt --json
 renoise task wait <task-id> --timeout 15m --json
 
-# Download → upload; assign the role from live capabilities and renoise-gen policy
+# Download → upload; assign the role from live capabilities and renoise-cli policy
 curl -s -o maya.png "<image_url>"
 renoise upload maya.png
 # → material #101 (reuse this same ID in every segment Maya appears in)

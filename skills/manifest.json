@@ -1,0 +1,75 @@
+{
+  "schemaVersion": 1,
+  "pluginVersion": "1.3.0",
+  "skills": [
+    {
+      "id": "director",
+      "runtime": "portable",
+      "entry": "skills/director/SKILL.md",
+      "files": [
+        "skills/director/SKILL.md",
+        "skills/director/commercial/INDEX.md",
+        "skills/director/commercial/scenario-a-viral.md",
+        "skills/director/commercial/scenario-b-brand.md",
+        "skills/director/commercial/scenario-c-tvc.md",
+        "skills/director/commercial/scenario-d-ugc.md",
+        "skills/director/references/prompt-craft.md",
+        "skills/director/references/visual-dev.md"
+      ],
+      "requires": [
+        "models.read",
+        "account.read",
+        "tasks.estimate",
+        "tasks.create"
+      ],
+      "optional": [
+        "materials.read",
+        "media.analyze",
+        "media.edit"
+      ]
+    },
+    {
+      "id": "storyboard-sheet",
+      "runtime": "portable",
+      "entry": "skills/storyboard-sheet/SKILL.md",
+      "files": [
+        "skills/storyboard-sheet/SKILL.md"
+      ],
+      "requires": [],
+      "optional": [
+        "models.read",
+        "tasks.estimate",
+        "tasks.create"
+      ]
+    },
+    {
+      "id": "renoise-cli",
+      "runtime": "local-cli",
+      "entry": "skills/renoise-cli/SKILL.md",
+      "requires": [
+        "bash",
+        "filesystem"
+      ]
+    },
+    {
+      "id": "renoise-setup",
+      "runtime": "local-cli",
+      "entry": "skills/renoise-setup/SKILL.md",
+      "requires": [
+        "bash",
+        "filesystem",
+        "browser"
+      ]
+    },
+    {
+      "id": "video-download",
+      "runtime": "local-cli",
+      "entry": "skills/video-download/SKILL.md",
+      "requires": [
+        "bash",
+        "filesystem",
+        "network"
+      ]
+    }
+  ]
+}

@@ -23,7 +23,7 @@
 
 ### Mode A: Single clip within the selected model's live maximum — PREFERRED
 
-Generate as **one single API call**. Write all visual stages into one prompt + a unified audio direction at the end. The model renders them as a continuous flowing video with coherent audio. No assembly needed.
+Generate as **one single task**. Write all visual stages into one prompt plus a unified audio direction at the end. The model renders them as a continuous flowing video with coherent audio. No assembly is needed.
 
 **The prompt has three parts:**
 1. **Shot descriptions** — each shot as its own paragraph, labeled `[Shot N | Xs | label]`. Camera, subject, action, environment per shot. The model flows between shots as smooth transitions, not hard cuts.
@@ -57,23 +57,11 @@ Generate as **one single API call**. Write all visual stages into one prompt + a
 
 ### Mode B: Multi-clip — when duration exceeds the selected model's live maximum
 
-Split into segments whose durations are advertised by `renoise model <selected-model> --json`; each segment follows the same Mode A format.
+Split into segments whose durations are advertised by the selected model's live capabilities; each segment follows the same Mode A format.
 
-After all segments are generated, concatenate and replace audio:
+After all segments are approved, assemble them only when the current host exposes a dedicated media-edit capability. Otherwise return the ordered clips, cut plan, and unified audio direction without guessing a local command.
 
-```bash
-# Concatenate
-printf "file '%s'\n" S1.mp4 S2.mp4 S3.mp4 > concat.txt
-ffmpeg -y -f concat -safe 0 -i concat.txt -c copy final.mp4
-
-# Strip AI audio, apply unified BGM
-ffmpeg -y -i final.mp4 -an -c:v copy final-silent.mp4
-ffmpeg -y -i final-silent.mp4 -i bgm.mp3 -c:v copy -c:a aac -shortest final-with-bgm.mp4
-```
-
-Before assembly, ask: **"Do you have a BGM file? If not, I can deliver the silent version for you to add music in post."**
-
-If the user wants to redo a specific segment: regenerate that segment only, replace the file, re-run assembly.
+Before assembly, ask whether the user has an approved BGM asset. If a segment fails, regenerate only that segment and preserve the approved outputs.
 
 ---
 
@@ -97,8 +85,8 @@ Present all shots together so the user sees the complete video in one view:
 @Image 1 → [filename] → ref_image (all shots)
 
 --- Generation Parameters ---
-Model: [live-capability selection] | Ratio: [advertised value] | Total estimated cost: run `renoise task cost <model> --json` per segment and sum
-Note: Each shot is a separate segment, assembled by ffmpeg.
+Model: [live-capability selection] | Ratio: [advertised value] | Total estimated cost: request a live estimate per segment and sum
+Note: Each shot is a separate segment; assembly requires a dedicated host media-edit capability.
 ---
 ```
 
@@ -110,9 +98,9 @@ Note: Each shot is a separate segment, assembled by ffmpeg.
 
 **Assets**:
 - `@Image 1` (product flat-lay photo) → subject anchor
-- Viral reference video (Gemini analysis only — not uploaded to Renoise)
+- Viral reference video (host media analysis only — not registered as a generation material)
 
-**Gemini analysis**:
+**Media analysis**:
 - Camera: fast whip-pan at 3s, handheld close-up in opening
 - Expression: mother's anxious close-up, furrowed brows
 - Pacing: rapid cuts every 1–2s, tension builds in first half
@@ -130,4 +118,4 @@ Note: Each shot is a separate segment, assembled by ffmpeg.
 >
 > Actions must not drag, steam effect must be natural without exaggeration, packaging text must be clearly readable, facial features must remain stable and undistorted. **[Post-Production Constraints]**
 
-**Why it works**: The reference video was analyzed by Gemini first — camera, pacing, and expression are encoded as text. The video itself is never uploaded to Renoise. "Breathable" is translated into the visible action of steam penetrating.
+**Why it works**: The reference video was analyzed first—camera, pacing, and expression are encoded as text without registering the video as a generation material. "Breathable" is translated into the visible action of steam penetrating.

@@ -1,8 +1,9 @@
 ---
-name: renoise-gen
+name: renoise-cli
 description: >
-  Renoise platform CLI — generate AI videos, images, and audio, upload materials,
-  poll results. This is the tool layer.
+  Local Renoise CLI execution — install and verify the CLI, inspect live capabilities,
+  analyze media, generate AI videos/images/audio, upload materials, poll results,
+  and run approved local production helpers. This skill is local-only.
   For creative direction (story, prompts, visual development, anchoring strategy),
   use the director skill.
   Use when user asks to "generate video", "create video", "text to video",
@@ -25,18 +26,6 @@ metadata:
 The native `renoise` binary is the only source of truth for authentication, commands, models, capabilities, defaults, validation, API behavior, uploads, task state, and output formats. Do not maintain model tables or reproduce API logic in this plugin.
 
 > Platform URL: **https://www.renoise.ai** — never renoise.com.
-
-## Managed Agent Runtime
-
-When the host exposes structured `renoise_model`, `renoise_account`, `renoise_library`, `renoise_analyze`, `renoise_upload`, and `renoise_task` tools, use those tools instead of the shell commands shown below. In that runtime:
-
-- skip CLI installation, update, PATH, login, and `auth status` steps;
-- use `renoise_model` as the readiness and live-capability check;
-- map every CLI example to the matching structured tool and preserve the same parameters;
-- never fall back to Bash, Write, Edit, bundled scripts, or arbitrary local execution when a structured tool is missing;
-- return plans/prompts in the conversation unless the host provides a dedicated save/export tool.
-
-The host owns credentials, task approval, idempotency, and caller attribution. A successful `renoise_task` create result containing the real task ID remains the only proof that submission happened.
 
 ## Preflight
 
@@ -77,6 +66,22 @@ renoise model <model> --json
 ```
 
 Only pass ratios, resolutions, durations, material roles, reference counts, and audio options advertised there. Never copy those values into project documentation; new models and capability changes must work without a plugin release.
+
+## Analyze Media
+
+Use the native analysis command for local images and videos:
+
+```bash
+# Standalone image/video understanding
+renoise analyze <local-media-path> --target image|video --language <user-language> --json
+
+# Replacement template for reference-video remake workflows
+renoise analyze <local-media-path> --mode template --target video --language <user-language> --json
+```
+
+Use the structured `analysis`, `prompt`, `slots`, and `warnings` fields. Preserve source dialogue verbatim and label inferred motion or cross-media details as warnings. If analysis is unavailable, malformed, blocked, or truncated, treat it as failed; do not fabricate a result or fall back to copied model code.
+
+Analysis never proves that generation will pass moderation, never creates a paid generation task, and must not silently upload the source to the material library.
 
 ## Generate
 
@@ -179,19 +184,21 @@ renoise upload generated/keyframes/S1-end.jpg --json
 
 Do not hard-code reference limits or model-specific role exclusions here.
 
-## Material Pool
+## Local Production Helpers
 
-Batch upload and Gemini analysis:
+All executable helpers live under this local-only skill. Run only the helper needed for the current task:
 
 ```bash
+# Batch upload/analyze materials, then match them to shots
 node ${CLAUDE_SKILL_DIR}/scripts/material-ingest.mjs ./materials/
-```
-
-Auto-match a generated pool to shots:
-
-```bash
 node ${CLAUDE_SKILL_DIR}/scripts/match-materials.mjs --pool material-pool.json --shots project.json
+
+# Preview/QC and grid helpers used by director workflows
+bash ${CLAUDE_SKILL_DIR}/scripts/qc-preview.sh --videos-dir <videos-dir>
+bash ${CLAUDE_SKILL_DIR}/scripts/split-grid.sh storyboard.png output-dir/ 2 3
 ```
+
+Other bundled helpers (`batch-generate.sh`, `generate-preview.mjs`, `analyze-beats.py`) are local implementation tools. Inspect their help/source before use; never run them in a Hosted Agent. Local end-to-end command examples live under `examples/` in this Skill.
 
 ## Errors
 
