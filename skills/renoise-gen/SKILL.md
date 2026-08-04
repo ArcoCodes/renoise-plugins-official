@@ -26,6 +26,18 @@ The native `renoise` binary is the only source of truth for authentication, comm
 
 > Platform URL: **https://www.renoise.ai** — never renoise.com.
 
+## Managed Agent Runtime
+
+When the host exposes structured `renoise_model`, `renoise_account`, `renoise_library`, `renoise_analyze`, `renoise_upload`, and `renoise_task` tools, use those tools instead of the shell commands shown below. In that runtime:
+
+- skip CLI installation, update, PATH, login, and `auth status` steps;
+- use `renoise_model` as the readiness and live-capability check;
+- map every CLI example to the matching structured tool and preserve the same parameters;
+- never fall back to Bash, Write, Edit, bundled scripts, or arbitrary local execution when a structured tool is missing;
+- return plans/prompts in the conversation unless the host provides a dedicated save/export tool.
+
+The host owns credentials, task approval, idempotency, and caller attribution. A successful `renoise_task` create result containing the real task ID remains the only proof that submission happened.
+
 ## Preflight
 
 Run this at the start of every generation session:
@@ -195,6 +207,6 @@ Do not pre-screen prompts or materials and do not infer a moderation result your
 
 ## References
 
-- [Prompt Craft](${CLAUDE_PLUGIN_ROOT}/skills/director/references/prompt-craft.md) — creative prompt and continuity methodology
+- [Prompt Craft](../director/references/prompt-craft.md) — creative prompt and continuity methodology
 - Native CLI help: `renoise --help`, `renoise <command> --help`
 - Live capabilities: `renoise model --json`

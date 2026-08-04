@@ -18,6 +18,10 @@ metadata:
 
 `renoise analyze` is the only runtime for media understanding. It uses Gemini 3.1 Pro, validates structured output, streams large files through a temporary analysis upload, and never saves the source as a generation material or creates a paid media-generation task.
 
+## Managed Agent Runtime
+
+When the host exposes `renoise_analyze`, use it instead of every shell command below. Skip CLI setup, PATH, login, and authentication preflight; the host supplies a scoped credential. Analyze only a host-authorized workspace/material/task source. Do not fall back to Bash, Write, Edit, or bundled scripts, and do not create local analysis files unless a dedicated export tool exists.
+
 ## Preflight
 
 Verify the native command and authentication:

@@ -30,8 +30,12 @@ metadata:
 
 You are a creative director for AI video production. Default language: English. Adapt to the user's language. Video prompts are in English by default — **except any prompt that contains dialogue / voiceover / narration lines** (any path: narrative, drama, brand, and Scenario D live-presenter / 带货口播). The model generates spoken audio from the dialogue text in the prompt, so the dialogue line must be written in the confirmed spoken language and translating it changes the voice's language. See the **Spoken-language Hard Rule** below — this is not limited to e-commerce.
 
-**For e-commerce / ad / brand prompts, skip prompt-craft.md and read ONLY**: `Read ${CLAUDE_SKILL_DIR}/commercial/INDEX.md`
-**For all other videos (narrative / short film / drama), read**: `Read ${CLAUDE_SKILL_DIR}/references/prompt-craft.md`
+## Managed Agent Runtime
+
+When structured `renoise_*` tools are available, use them instead of every shell command in this skill. Skip local CLI setup, update, PATH, login, and `auth status`; use `renoise_model` for live capabilities and `renoise_task` for cost/create/wait/result. Do not fall back to Bash, Write, Edit, ffmpeg, or bundled scripts. Keep storyboards, manifests, and prompts in the conversation unless the host exposes a dedicated save/export tool. Task approval and idempotency remain host-controlled.
+
+**For e-commerce / ad / brand prompts, skip prompt-craft.md and read ONLY** `commercial/INDEX.md` relative to this skill directory (Claude hosts: `${CLAUDE_SKILL_DIR}/commercial/INDEX.md`).
+**For all other videos (narrative / short film / drama), read** `references/prompt-craft.md` relative to this skill directory (Claude hosts: `${CLAUDE_SKILL_DIR}/references/prompt-craft.md`).
 
 Before planning or estimating, verify `renoise` is available and supports agent-safe tasks and media analysis; use `command -v renoise` on macOS/Linux or `Get-Command renoise` on Windows PowerShell, then confirm `renoise help task create` contains `--prompt-file`, and run `renoise help task wait`, `renoise help analyze`, `renoise auth status --json`, and `renoise model --json`. If any check fails, immediately read `${CLAUDE_SKILL_DIR}/../renoise-setup/SKILL.md` completely and follow it through readiness, asking only for approvals required before host changes or browser authorization. Then rerun preflight and continue the original request; do not merely direct the user to **Setup / Account**.
 
@@ -125,7 +129,7 @@ Write and present the story; **wait for the user to confirm before touching anyt
 
 #### Gate 2 — Consistency Manifest
 
-After the story is locked and segments are drafted, but **before generating any video segment**, present the **Consistency Manifest** to the user in one block, let them edit any row, and wait for confirmation. Once confirmed, each row's content is **copied verbatim into every segment prompt it applies to.** Full visual-dev details: `Read ${CLAUDE_SKILL_DIR}/references/visual-dev.md`.
+After the story is locked and segments are drafted, but **before generating any video segment**, present the **Consistency Manifest** to the user in one block, let them edit any row, and wait for confirmation. Once confirmed, each row's content is **copied verbatim into every segment prompt it applies to.** Read `references/visual-dev.md` relative to this skill directory for full details (Claude hosts: `${CLAUDE_SKILL_DIR}/references/visual-dev.md`).
 
 | Manifest item | What to lock |
 |---|---|

@@ -19,6 +19,10 @@ Purpose: turn source text into **usable visual planning for short drama and AI v
 
 Do not paste raw novel/script text into image prompts. First adapt it into visual beats.
 
+## Managed Agent Runtime
+
+When structured `renoise_*` tools are available, use them instead of shell commands. Skip local CLI setup/login and do not use Bash, Write, Edit, or bundled scripts. Return the adaptation bible, episode beats, shot list, and prompts in the conversation; only persist them when the host exposes a dedicated save/export tool. Use `renoise_model` for capabilities and `renoise_task` for cost/create/wait/result.
+
 Core pipeline:
 
 ```text

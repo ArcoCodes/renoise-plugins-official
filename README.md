@@ -67,6 +67,8 @@ Manual downloads are listed in `https://download.renoise.ai/cli/latest.json`; ve
 
 Plugin updates remain owned by each host's plugin manager. CLI recovery happens on use but never replaces a binary without approval, so the two release tracks do not silently modify each other. There is no per-session setup notification. `renoise auth login --web` opens account authorization in the browser and stores the shared credential securely without terminal key entry; `RENOISE_API_KEY` remains the override for CI and containers. Plugin skills query `renoise model --json` at runtime, so new models and capability changes do not require duplicated plugin updates.
 
+Managed Renoise Agent hosts may expose structured `renoise_*` tools instead of Bash. In that mode the host owns the pinned CLI, scoped credential, approval, and idempotency; skills skip local setup/login and do not execute bundled scripts or write workspace files.
+
 Interactive account and CLI defaults are available through:
 
 ```bash

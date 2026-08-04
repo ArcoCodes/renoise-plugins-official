@@ -16,6 +16,19 @@ const removed = [
   'hooks/session-start.sh',
 ];
 
+test('managed Agent runtime uses structured Renoise tools without generic execution', () => {
+  const managedSkills = ['director', 'gemini-gen', 'renoise-gen', 'storyboard-sheet'];
+  for (const skill of managedSkills) {
+    const instructions = readFileSync(`skills/${skill}/SKILL.md`, 'utf8');
+    assert.match(instructions, /Managed Agent Runtime/);
+    assert.match(instructions, /`renoise_(?:model|analyze|\*)/);
+    assert.match(instructions, /never fall back to Bash|Do not fall back to Bash|do not use Bash/i);
+  }
+  const toolLayer = readFileSync('skills/renoise-gen/SKILL.md', 'utf8');
+  assert.match(toolLayer, /credentials, task approval, idempotency/);
+  assert.match(toolLayer, /return plans\/prompts in the conversation/);
+});
+
 test('native CLI remains the only runtime and capability source', () => {
   for (const path of removed) assert.equal(existsSync(path), false, `${path} must not return`);
   for (const path of ['skills/director/SKILL.md', 'skills/renoise-gen/SKILL.md', 'skills/storyboard-sheet/SKILL.md']) {
