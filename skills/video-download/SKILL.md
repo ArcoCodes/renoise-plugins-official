@@ -81,7 +81,7 @@ After a successful download, the user may want to:
 
 2. **Add to Material Pool** — for use as reference material in video generation:
    ```bash
-   node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/scripts/material-ingest.mjs <path>
+   node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-cli/scripts/material-ingest.mjs <path>
    ```
 
 Suggest these options to the user after download completes.

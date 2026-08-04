@@ -1,8 +1,9 @@
 ---
-name: renoise-gen
+name: renoise-cli
 description: >
-  Renoise platform CLI — generate AI videos, images, and audio, upload materials,
-  poll results. This is the tool layer.
+  Local Renoise CLI execution — install and verify the CLI, inspect live capabilities,
+  analyze media, generate AI videos/images/audio, upload materials, poll results,
+  and run approved local production helpers. This skill is local-only.
   For creative direction (story, prompts, visual development, anchoring strategy),
   use the director skill.
   Use when user asks to "generate video", "create video", "text to video",
@@ -65,6 +66,22 @@ renoise model <model> --json
 ```
 
 Only pass ratios, resolutions, durations, material roles, reference counts, and audio options advertised there. Never copy those values into project documentation; new models and capability changes must work without a plugin release.
+
+## Analyze Media
+
+Use the native analysis command for local images and videos:
+
+```bash
+# Standalone image/video understanding
+renoise analyze <local-media-path> --target image|video --language <user-language> --json
+
+# Replacement template for reference-video remake workflows
+renoise analyze <local-media-path> --mode template --target video --language <user-language> --json
+```
+
+Use the structured `analysis`, `prompt`, `slots`, and `warnings` fields. Preserve source dialogue verbatim and label inferred motion or cross-media details as warnings. If analysis is unavailable, malformed, blocked, or truncated, treat it as failed; do not fabricate a result or fall back to copied model code.
+
+Analysis never proves that generation will pass moderation, never creates a paid generation task, and must not silently upload the source to the material library.
 
 ## Generate
 
@@ -167,19 +184,21 @@ renoise upload generated/keyframes/S1-end.jpg --json
 
 Do not hard-code reference limits or model-specific role exclusions here.
 
-## Material Pool
+## Local Production Helpers
 
-Batch upload and Gemini analysis:
+All executable helpers live under this local-only skill. Run only the helper needed for the current task:
 
 ```bash
+# Batch upload/analyze materials, then match them to shots
 node ${CLAUDE_SKILL_DIR}/scripts/material-ingest.mjs ./materials/
-```
-
-Auto-match a generated pool to shots:
-
-```bash
 node ${CLAUDE_SKILL_DIR}/scripts/match-materials.mjs --pool material-pool.json --shots project.json
+
+# Preview/QC and grid helpers used by director workflows
+bash ${CLAUDE_SKILL_DIR}/scripts/qc-preview.sh --videos-dir <videos-dir>
+bash ${CLAUDE_SKILL_DIR}/scripts/split-grid.sh storyboard.png output-dir/ 2 3
 ```
+
+Other bundled helpers (`batch-generate.sh`, `generate-preview.mjs`, `analyze-beats.py`) are local implementation tools. Inspect their help/source before use; never run them in a Hosted Agent. Local end-to-end command examples live under `examples/` in this Skill.
 
 ## Errors
 
@@ -195,6 +214,6 @@ Do not pre-screen prompts or materials and do not infer a moderation result your
 
 ## References
 
-- [Prompt Craft](${CLAUDE_PLUGIN_ROOT}/skills/director/references/prompt-craft.md) — creative prompt and continuity methodology
+- [Prompt Craft](../director/references/prompt-craft.md) — creative prompt and continuity methodology
 - Native CLI help: `renoise --help`, `renoise <command> --help`
 - Live capabilities: `renoise model --json`

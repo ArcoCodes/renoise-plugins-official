@@ -4,30 +4,92 @@ import test from 'node:test';
 import { compareVersions, expectedChecksum, hasRequiredCommands, planFromManifest, platformInfo, selectArchive } from '../skills/renoise-setup/scripts/install-cli.mjs';
 
 const readJSON = (path) => JSON.parse(readFileSync(path, 'utf8'));
+
 const removed = [
-  'skills/renoise-gen/renoise-cli.mjs',
-  'skills/renoise-gen/renoise-cli-legacy.mjs',
-  'skills/renoise-gen/credential.mjs',
-  'skills/renoise-gen/references/api-endpoints.md',
-  'skills/renoise-gen/references/video-capabilities.md',
-  'skills/gemini-gen/scripts/gemini.mjs',
-  'skills/renoise-gen/scripts/upload.mjs',
+  'skills/renoise-gen',
+  'skills/gemini-gen',
+  'skills/renoise-cli/renoise-cli.mjs',
+  'skills/renoise-cli/renoise-cli-legacy.mjs',
+  'skills/renoise-cli/credential.mjs',
+  'skills/renoise-cli/references/api-endpoints.md',
+  'skills/renoise-cli/references/video-capabilities.md',
+  'skills/renoise-cli/scripts/upload.mjs',
+  'skills/director/scripts',
+  'skills/director/examples',
   'hooks/hooks.json',
   'hooks/session-start.sh',
 ];
 
-test('native CLI remains the only runtime and capability source', () => {
-  for (const path of removed) assert.equal(existsSync(path), false, `${path} must not return`);
-  for (const path of ['skills/director/SKILL.md', 'skills/renoise-gen/SKILL.md', 'skills/storyboard-sheet/SKILL.md']) {
-    assert.match(readFileSync(path, 'utf8'), /renoise model --json/, `${path} must use live models`);
+test('skill manifest separates portable creative methods from local execution', () => {
+  const manifest = readJSON('skills/manifest.json');
+  assert.equal(manifest.schemaVersion, 1);
+  assert.equal(manifest.pluginVersion, readJSON('package.json').version);
+
+  const byId = new Map(manifest.skills.map((skill) => [skill.id, skill]));
+  assert.deepEqual([...byId.keys()].sort(), [
+    'director',
+    'renoise-cli',
+    'renoise-setup',
+    'storyboard-sheet',
+    'video-download',
+  ]);
+  assert.equal(byId.get('director').runtime, 'portable');
+  assert.equal(byId.get('storyboard-sheet').runtime, 'portable');
+  for (const id of ['renoise-cli', 'renoise-setup', 'video-download']) {
+    assert.equal(byId.get(id).runtime, 'local-cli');
   }
-  const toolSkill = readFileSync('skills/renoise-gen/SKILL.md', 'utf8');
-  const analysisSkill = readFileSync('skills/gemini-gen/SKILL.md', 'utf8');
-  assert.doesNotMatch(toolSkill, /## Supported Models|\/api\/public\/v1\/tasks/);
-  assert.match(toolSkill, /user-invocable: false/);
-  assert.match(analysisSkill, /renoise analyze/);
-  assert.match(analysisSkill, /gemini-3\.1-pro/);
-  assert.doesNotMatch(analysisSkill, /auth exec|gemini\.mjs/);
+  assert.ok(byId.get('director').requires.includes('tasks.create'));
+  assert.ok(byId.get('director').optional.includes('media.analyze'));
+  assert.ok(byId.get('storyboard-sheet').optional.includes('tasks.create'));
+});
+
+test('portable skill files contain no local execution instructions', () => {
+  const manifest = readJSON('skills/manifest.json');
+  const forbidden = [
+    /allowed-tools:[^\n]*(?:Bash|Write|Edit)/i,
+    /```(?:bash|sh|shell|powershell)/i,
+    /(?:^|\n)\s*(?:renoise|ffmpeg|curl|wget|node|python|docker)\s+/i,
+    /\$\{(?:CLAUDE_SKILL_DIR|CLAUDE_PLUGIN_ROOT)\}/,
+    /command -v|Get-Command|prompt-file|Managed Agent Runtime/,
+    /`renoise_[a-z]/,
+  ];
+
+  for (const skill of manifest.skills.filter((entry) => entry.runtime === 'portable')) {
+    assert.ok(skill.files?.length, `${skill.id} must list its portable source files`);
+    assert.ok(skill.files.includes(skill.entry), `${skill.id} entry must be portable`);
+    for (const path of skill.files) {
+      assert.ok(existsSync(path), `${path} must exist`);
+      const instructions = readFileSync(path, 'utf8');
+      for (const pattern of forbidden) {
+        assert.doesNotMatch(instructions, pattern, `${path} must stay runtime-neutral`);
+      }
+    }
+  }
+});
+
+test('local renoise-cli remains the only CLI execution skill', () => {
+  for (const path of removed) assert.equal(existsSync(path), false, `${path} must not return`);
+  const cli = readFileSync('skills/renoise-cli/SKILL.md', 'utf8');
+  assert.match(cli, /^name: renoise-cli$/m);
+  assert.match(cli, /local-only/i);
+  assert.match(cli, /user-invocable: false/);
+  assert.match(cli, /renoise model --json/);
+  assert.match(cli, /renoise analyze/);
+  assert.match(cli, /renoise task create/);
+  assert.match(cli, /renoise upload/);
+  assert.match(cli, /renoise-setup\/SKILL\.md/);
+  assert.doesNotMatch(cli, /Managed Agent Runtime|renoise_[a-z]/);
+  for (const helper of [
+    'analyze-beats.py',
+    'batch-generate.sh',
+    'generate-preview.mjs',
+    'match-materials.mjs',
+    'material-ingest.mjs',
+    'qc-preview.sh',
+    'split-grid.sh',
+  ]) {
+    assert.ok(existsSync(`skills/renoise-cli/scripts/${helper}`));
+  }
 });
 
 test('package metadata is the manifest source of truth', () => {
@@ -58,10 +120,9 @@ test('package metadata is the manifest source of truth', () => {
   assert.equal(marketplace.plugins[0].policy.authentication, 'ON_USE');
 });
 
-test('desktop metadata exposes four primary entries and workflows recover through setup', () => {
+test('desktop metadata exposes portable entries plus setup', () => {
   const entries = {
     director: 'Create with Renoise',
-    'gemini-gen': 'Analyze Media',
     'storyboard-sheet': 'Build Storyboard',
     'renoise-setup': 'Setup / Account',
   };
@@ -71,11 +132,10 @@ test('desktop metadata exposes four primary entries and workflows recover throug
     assert.match(metadata, new RegExp(`\\$${skill}`));
   }
   assert.match(readFileSync('skills/renoise-setup/agents/openai.yaml', 'utf8'), /allow_implicit_invocation: true/);
-  for (const skill of ['director', 'gemini-gen', 'renoise-gen', 'storyboard-sheet']) {
-    const instructions = readFileSync(`skills/${skill}/SKILL.md`, 'utf8');
-    assert.match(instructions, /renoise-setup\/SKILL\.md/);
-    assert.match(instructions, /continue the original request/);
-  }
+  const openclawSkills = readJSON('openclaw.plugin.json').skills;
+  assert.ok(openclawSkills.includes('skills/renoise-cli'));
+  assert.ok(!openclawSkills.includes('skills/renoise-gen'));
+  assert.ok(!openclawSkills.includes('skills/gemini-gen'));
 });
 
 test('installer selects and verifies macOS, Windows, and Linux archives', () => {
@@ -116,7 +176,7 @@ test('installer selects and verifies macOS, Windows, and Linux archives', () => 
 
 test('setup keeps managed CLI current and still gates manual install', () => {
   const setup = readFileSync('skills/renoise-setup/SKILL.md', 'utf8');
-  const gen = readFileSync('skills/renoise-gen/SKILL.md', 'utf8');
+  const cli = readFileSync('skills/renoise-cli/SKILL.md', 'utf8');
   const installer = readFileSync('skills/renoise-setup/scripts/install-cli.mjs', 'utf8');
   assert.match(setup, /https:\/\/download\.renoise\.ai\/cli\/latest\.json/);
   assert.doesNotMatch(setup, /GitHub Releases|go install/);
@@ -126,33 +186,31 @@ test('setup keeps managed CLI current and still gates manual install', () => {
   assert.match(setup, /--install/);
   assert.match(setup, /renoise auth login --web --json/);
   assert.match(setup, /never ask them to open a terminal/);
-  assert.match(gen, /install-cli\.mjs" --ensure/);
+  assert.match(cli, /install-cli\.mjs" --ensure/);
   assert.match(installer, /--ensure/);
   assert.match(installer, /needsManagedUpdate/);
 });
 
-test('reference-video remake uses native analysis and explicit approval gates', () => {
+test('reference-video remake keeps source attachment and approval gates', () => {
   const director = readFileSync('skills/director/SKILL.md', 'utf8');
   const scenario = readFileSync('skills/director/commercial/scenario-a-viral.md', 'utf8');
   assert.match(director, /剪同款/);
-  assert.match(scenario, /renoise analyze[\s\S]*--mode template/);
-  assert.match(scenario, /remake-plan\.json/);
+  assert.match(scenario, /media-analysis capability/i);
   assert.match(scenario, /source video is always attached/i);
   assert.match(scenario, /Gate 1/);
   assert.match(scenario, /Gate 2/);
-  assert.doesNotMatch(scenario, /gemini\.mjs|auth exec/);
+  assert.doesNotMatch(scenario, /renoise analyze|prompt-file|remake-plan\.json/);
 });
 
-test('moderation waits for an explicit API error', () => {
+test('moderation waits for an explicit host error', () => {
   const director = readFileSync('skills/director/SKILL.md', 'utf8');
-  const gen = readFileSync('skills/renoise-gen/SKILL.md', 'utf8');
+  const cli = readFileSync('skills/renoise-cli/SKILL.md', 'utf8');
   const scenario = readFileSync('skills/director/commercial/scenario-a-viral.md', 'utf8');
-  for (const skill of [director, gen]) {
+  for (const skill of [director, cli]) {
     assert.match(skill, /Do not pre-screen/);
     assert.match(skill, /INPUT_\*/);
     assert.match(skill, /OUTPUT_\*/);
     assert.doesNotMatch(skill, /hard blocks|First check whether the prompt or materials/);
   }
-  assert.match(scenario, /CLI\/API returns `INPUT_\*` \/ `OUTPUT_\*`/);
-  assert.doesNotMatch(scenario, /Copyright\/public-figure\/content block/);
+  assert.match(scenario, /Host returns `INPUT_\*` \/ `OUTPUT_\*`/);
 });

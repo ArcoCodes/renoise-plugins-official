@@ -144,7 +144,7 @@ Offer only relevant missing tools, and install only after confirmation:
 - Windows/winget: `winget install jqlang.jq Gyan.FFmpeg yt-dlp.yt-dlp ImageMagick.ImageMagick`
 - Optional browser fallback: `npm install -g agent-browser && agent-browser install`
 
-Missing optional tools do not block generation or Gemini.
+Missing optional tools do not block generation or media analysis.
 
 ## 4. Report
 
@@ -153,7 +153,7 @@ Return a short readiness summary:
 ```text
 Renoise CLI: ready / missing
 Authentication: ready / action needed
-Generation + Gemini: ready / action needed
+Generation + media analysis: ready / action needed
 Director/QC: ready / limited by ...
 Downloads: ready / limited by ...
 Optional browser fallback: ready / not installed

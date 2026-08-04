@@ -1,6 +1,6 @@
 # Prompt Craft - Writing High-Density Video Prompts
 
-This is the main creative reference in the director skill. Model capabilities and guidance come from `renoise model <selected-model> --json`; this document only covers model-independent prompt craft.
+This is the main creative reference in the director Skill. Model capabilities and guidance come from the current host's live capability source; this document only covers model-independent prompt craft.
 
 ---
 
@@ -230,17 +230,12 @@ Design the **ending of each segment** to set up the next:
 
 ### Serial continuity routing
 
-Inspect `renoise model <selected-model> --json` before choosing anchors. Never assume a role or role combination from an old recipe.
+Inspect the selected model's live capabilities before choosing anchors. Never assume a role or role combination from an old recipe.
 
 - Reuse an approved character/product/scene material through an advertised image-reference role when appearance matters.
-- Use `renoise task chain <task-id> --json` only when the selected model advertises a compatible video-reference role and motion carryover matters.
-- For an exact opening state, extract the previous tail frame and attach it through an advertised frame role. If only image references are available, order the tail frame first and explicitly describe the intended opening composition; treat that as a soft lock.
-- Reinforce every handoff with the verbatim opening-state bridge and a match cut in the Transition Table. Use a short cross-dissolve in post if residual variance remains.
-
-```bash
-ffmpeg -sseof -0.2 -i previous-segment.mp4 -frames:v 1 -q:v 2 -y next-first-frame.jpg
-renoise upload next-first-frame.jpg --json
-```
+- Reuse a completed result only when the selected model advertises a compatible video-reference capability and motion carryover matters.
+- For an exact opening state, use a dedicated media capability to extract the previous tail frame and attach it through an advertised frame role. If that capability is unavailable, use an existing approved image reference and describe the intended opening composition; do not guess a local command.
+- Reinforce every handoff with the verbatim opening-state bridge and a match cut in the Transition Table. Use a short cross-dissolve only when the host exposes media editing.
 
 Design the end of each intermediate segment as a readable motion/composition hook the next segment can continue.
 
@@ -330,25 +325,13 @@ When adapting existing material (novels, screenplays, manga):
 
 ## Referencing Materials in Prompts - The `@name` Syntax
 
-When you attach reference images (character photos, product shots, scene refs) as materials, you **must** also reference them in the prompt text using `@name`. This tells the model which uploaded image corresponds to which character or object in your prompt.
+When the host attaches reference images (character photos, product shots, scene refs) as materials, also reference them in the prompt text using the exact `@name` returned for each material. This tells the model which image corresponds to which character or object.
 
-### Setup: Upload → Write `@name` in prompt
+### Register → Write `@name` in prompt
 
-**Step 1: Upload materials** (see visual-dev.md for details)
-
-```bash
-# Upload the approved character image
-renoise upload avatar_girl.png --json
-# → material ID #101
-
-# Same for second character
-renoise upload avatar_boy.png
-# → material ID #102
-```
-
-**Step 2: Use `@name` in the prompt** to bind each reference to its character.
-
-`@name` does NOT include file extensions - use `@avatar_girl`, not `@avatar_girl.png`.
+1. Register or select each user-authorized reference through the host's material capability.
+2. Record the returned material ID and full server filename.
+3. Use that exact full filename, including extension, in the prompt mention (`avatar_girl.png` → `@avatar_girl.png`).
 
 ```
 [CHARACTERS]
@@ -364,29 +347,19 @@ She hands it to @avatar_boy with the energy of someone presenting a solution.
 @avatar_boy receives it. Holds it at arm's length.
 ```
 
-**Step 3: Attach materials via CLI when generating:**
-
-```bash
-renoise task create \
-  --prompt-file <approved-prompt-file> \
-  --materials "101:ref_image,102:ref_image" \
-  --duration 15 --ratio 16:9 --json
-renoise task wait <task-id> --timeout 15m --json
-```
-
-The `@name` in the prompt is matched to the attached materials by file name (the server rewrites `@<filename>` to `@ImageN`/`@VideoN` in materials order). The model uses the reference images to maintain the character's visual identity throughout the video.
+Attach the registered materials through roles advertised by the selected model. The server maps exact filename mentions to materials order so the model can maintain visual identity.
 
 ### Rules
 
-- **`@name` must match the material's file name** (e.g. `avatar_girl.png` → `@avatar_girl` in prompt). Do NOT include file extensions.
-- **Use `@name` every time the character appears** - not just in the character definition block. In the timeline, write `@avatar_girl reaches into the case` so the model knows which face to apply to that action.
-- **Multiple characters**: each gets their own `@name` and their own material entry in the comma-separated `--materials` flag: `--materials "101:ref_image,102:ref_image"`
-- **Works for non-face materials too**: product shots, scene references, etc. Upload as material, reference with `@name` in the prompt.
-- **Face-containing images**: inspect the selected model's live roles and guidance, then reuse the same approved material ID for a recurring character.
+- **`@name` must match the full server filename**, including extension.
+- **Use `@name` every time the character appears**—not just in the character definition block.
+- **Multiple characters**: each gets a distinct material ID, exact `@name`, and advertised role.
+- **Works for non-face materials too**: product shots, scene references, and props.
+- **Face-containing images**: inspect live roles/guidance and reuse the same approved material ID for a recurring character.
 
 ### Without `@name` (weaker)
 
-If you pass `--materials "101:ref_image"` but don't use `@name` in the prompt, the model receives the reference image but doesn't know which character it maps to. It may apply the reference randomly or ignore it. **Always use `@name` in the prompt when attaching reference materials.**
+If you attach a material without its exact `@name` in the prompt, the model may not know which character or object it maps to. It may apply the reference randomly or ignore it. **Always use the exact `@name` when attaching reference materials.**
 
 ---
 

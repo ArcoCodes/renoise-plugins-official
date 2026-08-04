@@ -1,20 +1,21 @@
 # Visual Dev — Character & Scene Anchors
 
-Use this for projects with recurring characters, products, props, wardrobe, or locations. Model selection and material capabilities always come from the native CLI.
+Use this for projects with recurring characters, products, props, wardrobe, or locations. Model selection and material capabilities always come from the current host's live capability source.
 
 ## Live Capability Check
 
-```bash
-renoise model --json
-renoise model <selected-image-model> --json
-renoise model <selected-video-model> --json
-```
+Before planning anchors:
 
-Choose the server-advertised default unless the user names a model or another model's live `guidance` better matches the job. Only use advertised resolutions, ratios, material roles, and reference limits. Do not maintain a model matrix here.
+1. Preserve a user-selected model.
+2. Otherwise choose the advertised default for the requested media kind.
+3. Inspect the selected image and video models.
+4. Use only advertised resolutions, ratios, material roles, reference limits, and guidance.
+
+Do not maintain a model matrix in this Skill.
 
 ## Character Design Sheet
 
-A character appearing in more than one segment needs one approved visual anchor. Generate it once, show it to the user, upload it, and reuse the same material ID through an image-reference role supported by the selected video model.
+A character appearing in more than one segment needs one approved visual anchor. Generate it once through the host's approval-controlled generation flow, show it to the user, register it as a reusable material, and reuse the same material ID through an image-reference role supported by the selected video model.
 
 Prompt template:
 
@@ -32,19 +33,15 @@ Row 2: two expressions, one full-body pose.
 Consistent appearance across every panel. No labels or background elements.
 ```
 
-```bash
-renoise task create <selected-image-model> \
-  --prompt-file <character-sheet-prompt-file> \
-  <ratio/resolution flags advertised by the model> --json
-renoise task wait <task-id> --timeout 15m --json
-renoise upload character-sheet.png --json
-```
+Before generating:
 
-Before attaching it to video, inspect the selected video model and use one of its advertised material roles:
-
-```bash
-renoise model <selected-video-model> --json
-```
+- inspect the selected image model;
+- present prompt, parameters, and estimate;
+- wait for approval;
+- record the returned task ID;
+- show the result for approval;
+- register the approved result once;
+- inspect the selected video model before assigning its role.
 
 ## Props and Wardrobe
 
@@ -63,47 +60,43 @@ Hero robe, Act II    black silk, gold embroidery, high collar  Plot-driven from 
 
 ## Scene References
 
-For recurring locations, generate an environment-only concept image that fixes layout, lighting, palette, and key props. Upload once and reuse its material ID wherever that location returns.
-
-```bash
-renoise task create <selected-image-model> \
-  --prompt-file <environment-prompt-file> --json
-renoise task wait <task-id> --timeout 15m --json
-renoise upload scene-reference.png --json
-```
+For recurring locations, create an environment-only concept image that fixes layout, lighting, palette, and key props. Approve and register it once, then reuse the same material ID wherever that location returns.
 
 ## Continuity Routing
 
-Never assume roles combine across models. Inspect `materialRoles` and `guidance` first.
+Never assume roles combine across models. Inspect live material roles and guidance first.
 
-- Identity/product/location continuity: reuse the same uploaded material ID through a supported image role.
-- Motion continuity: use `renoise task chain <task-id> --json` only when the next model advertises a compatible video-reference role.
-- Exact opening-state continuity: extract the previous tail frame and use an advertised frame role; if only image references are available, place the tail frame first and state the opening composition explicitly.
-
-```bash
-ffmpeg -sseof -0.2 -i previous.mp4 -frames:v 1 -q:v 2 -y previous-end.jpg
-renoise upload previous-end.jpg --json
-```
+- Identity/product/location continuity: reuse the same approved material through a supported image role.
+- Motion continuity: reuse a completed result only when the next model advertises a compatible video-reference capability.
+- Exact opening-state continuity: use a dedicated media capability to extract the previous tail frame and attach it through an advertised frame role.
+- If tail-frame extraction is unavailable, use an existing approved image reference and explicitly describe the opening composition; do not guess a local command.
 
 Record the actual role and material ID chosen for every shot:
 
 ```text
-Shot  Character anchor  Scene anchor  Previous result  CLI materials
+Shot  Character anchor  Scene anchor  Previous result  Material roles
 S1    #27               #91           —                <supported roles>
 S2    #27               #92           #V1              <supported roles>
 ```
 
-## Material Ingest
+## Material Inventory
 
-```bash
-node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-gen/scripts/material-ingest.mjs <paths-or-directory>
+Inventory only references authorized by the current host. For every item capture:
+
+```text
+material ID
+full server filename
+kind
+visual description
+intended shots
+advertised role
 ```
 
-This uploads files, runs native `renoise analyze`, and writes `material-pool.json`.
+Do not require a directory scan, local upload script, or generated workspace file. Local CLI hosts may use the separate `renoise-cli` Skill for those operations.
 
 ## Storyboard Grid
 
-For multi-segment visual review, generate one grid after character sheets are approved. A shared canvas helps palette and styling stay coherent; split it into per-segment references only if the selected video model supports the needed image role.
+For multi-segment visual review, create one grid after character sheets are approved. A shared canvas helps palette and styling stay coherent; split it into per-segment references only when the host exposes media editing and the selected video model supports the needed image role.
 
 ```text
 Storyboard grid for "[TITLE]", [N] panels.
@@ -112,8 +105,4 @@ Storyboard grid for "[TITLE]", [N] panels.
 Panel 1: [key visual moment]
 Panel 2: [key visual moment]
 Consistent designs and palette. No labels.
-```
-
-```bash
-bash ${CLAUDE_SKILL_DIR}/scripts/split-grid.sh storyboard.png output_dir/ 2 3
 ```

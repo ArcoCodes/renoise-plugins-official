@@ -1,31 +1,25 @@
 ---
 name: storyboard-sheet
 description: >
-  Convert novels, scripts, outlines, or episode beats into short-drama-friendly
-  storyboard outputs. Use for 分镜, 短剧改编分镜, storyboard sheets, shot lists,
-  image prompts, and video-generation planning. Supports two modes: episode-level
-  storyboard sheet for review, or shot-by-shot images/prompts for video generation.
-allowed-tools: Bash, Read, Write
+  Runtime-neutral conversion of novels, scripts, outlines, or episode beats into
+  short-drama storyboard sheets, shot lists, image prompts, and video-generation
+  plans. Supports episode-level review sheets and shot-by-shot planning.
 metadata:
   author: renoise
-  version: 0.2.0
+  version: 0.3.0
   category: video-production
-  tags: [storyboard, short-drama, script-adaptation, novel-adaptation, image-generation, video-generation, renoise]
+  tags: [storyboard, short-drama, adaptation, image-generation, video-generation, portable]
 ---
 
 # Storyboard Sheet / Short Drama Board
 
-Purpose: turn source text into **usable visual planning for short drama and AI video generation**.
+Turn source text into usable visual planning for short drama and AI video generation. Do not paste raw novel/script text into image prompts; first adapt it into visual beats.
 
-Do not paste raw novel/script text into image prompts. First adapt it into visual beats.
-
-Core pipeline:
+Use only capabilities exposed by the current host. Planning works without generation capability. If the user asks to generate outputs, query live capabilities and use the host's approval-controlled generation flow. If generation is unavailable, return the complete plan and prompts in the conversation; never guess commands or require host filesystem access.
 
 ```text
-source → adaptation bible → episode beats → shot list / sheet plan → references → prompts → generation → QA → targeted rerun
+source → adaptation bible → episode beats → shot list/sheet plan → references → prompts → optional generation → QA → targeted rerun
 ```
-
----
 
 ## 1. First Ask: What Output?
 
@@ -38,18 +32,15 @@ B. 每个 shot 单独一张图，用于后续视频生成
 C. 两者都要：先 sheet 审稿，再拆 shot 图和视频 prompt
 ```
 
-Default for short-drama/video work: **B or C**, not only sheet.
+Default for short-drama/video work: B or C, not only a sheet.
 
-### Modes
-
-#### A. Storyboard Sheet / 审稿预览
+### A. Storyboard Sheet / 审稿预览
 
 ```text
 one episode = one image containing multiple panels
 ```
 
-Good for: pitch, visual overview, client review, director preview.
-Not ideal as direct video-model input.
+Good for pitch, visual overview, client review, and director preview. It is not ideal as direct video-model input.
 
 Default:
 
@@ -60,13 +51,13 @@ ratio: 16:9 unless user wants vertical short drama
 text: only tiny P1-P6 labels
 ```
 
-#### B. Shot-by-shot / 视频生成
+### B. Shot-by-shot / 视频生成
 
 ```text
-one shot = one image + one video prompt
+one shot = one image prompt + one video prompt
 ```
 
-Good for: AI video generation, first-frame workflow, precise continuity.
+Good for video generation, first-frame workflows, and precise continuity.
 
 Default for short drama:
 
@@ -76,15 +67,9 @@ shots per 60-90s episode: 8-12
 style: vertical mobile drama, close-up heavy, emotion readable
 ```
 
----
+## 2. Short Drama Adaptation
 
-## 2. Short Drama Adaptation Rules
-
-Before prompts, convert prose into playable screen action.
-
-### Extract adaptation bible
-
-Save or maintain:
+Build an adaptation bible in the conversation:
 
 ```text
 - title / genre
@@ -98,9 +83,7 @@ Save or maintain:
 - continuity constraints: age, wardrobe, injuries, props, money, rules
 ```
 
-### Rewrite for short-drama rhythm
-
-Each episode should usually have:
+Each episode should usually follow:
 
 ```text
 opening hook → setup → conflict → escalation → reversal/reveal → cliffhanger
@@ -110,20 +93,16 @@ Rules:
 
 - Internal thought → visible action, prop, expression, or dialogue.
 - Long exposition → conflict scene or reaction beat.
-- One beat should be visually clear in one shot/panel.
-- Keep the first 3 seconds strong.
-- End each episode with a hook, reversal, danger, or emotional question.
+- One beat must be visually clear in one shot/panel.
+- Keep the first three seconds strong.
+- End with a hook, reversal, danger, or emotional question.
 - Prefer faces, reactions, hands, phones, doors, documents, money, wounds, and reveals over abstract narration.
-
----
 
 ## 3. Character and Scene References
 
-Before any paid generation, verify `renoise` with `command -v renoise` on macOS/Linux or `Get-Command renoise` on Windows PowerShell, confirm `renoise help task create` contains `--prompt-file`, then run `renoise help task wait`, `renoise auth status --json`, and `renoise model --json`. If a check fails, immediately read `${CLAUDE_SKILL_DIR}/../renoise-setup/SKILL.md` completely and follow it through readiness, asking only for approvals required before host changes or browser authorization. Then rerun preflight and continue the original request; do not merely direct the user to **Setup / Account**.
+A character appearing more than once needs one approved visual anchor; do not rely on text description alone. Use a user-authorized image or create a reference through the host's generation flow, show it for approval, and reuse the same resulting material through a role advertised by the selected model.
 
-If a character appears more than once, create/register a reference first. Do not rely on text descriptions alone.
-
-Character ref prompt:
+Character reference prompt:
 
 ```text
 角色设定图，干净背景，现实主义竖屏短剧风格。
@@ -133,34 +112,20 @@ Character ref prompt:
 不要水印，不要多余文字，不要夸张动漫风。
 ```
 
-For recurring locations, create scene refs only when needed. Too many references can confuse layout/identity.
+For recurring locations, create a scene reference only when needed. Too many references can confuse layout and identity.
 
-Select an image model from `renoise model --json`, inspect it, then use only advertised parameters:
+Before optional generation:
 
-Save the approved prompt to a file, create the task, record `task.id`, then wait separately:
-
-```bash
-renoise task create <selected-image-model> \
-  --prompt-file <approved-prompt-file> \
-  --tags "<project>,character-ref,<character>" --json
-renoise task wait <task-id> --timeout 15m --json
-```
-
-Upload useful references to the Renoise material pool, keep the returned material ID, and pass it directly:
-
-```bash
-renoise upload /path/to/reference.png --json
-```
-
-Assign the returned ID through a material role advertised by the selected generation model. The deprecated `asset:` prefix must not be used.
-
----
+1. Query live image-model capabilities.
+2. Preserve a user-selected model; otherwise use the advertised default for the requested kind.
+3. Use only advertised ratio, resolution, duration, material roles, and limits.
+4. Present the prompt, references, parameters, and estimate.
+5. Wait for explicit approval.
+6. Record the returned task ID before waiting or polling.
 
 ## 4. Output Templates
 
-### A. Episode Sheet Plan
-
-Use this when user wants one image per episode:
+### Episode Sheet Plan
 
 ```json
 {
@@ -194,9 +159,7 @@ P5 ...
 P6 ...
 ```
 
-### B. Shot List for Video Generation
-
-Use this for real video workflow:
+### Shot List for Video Generation
 
 ```json
 {
@@ -218,46 +181,18 @@ Use this for real video workflow:
 }
 ```
 
-Video-friendly prompt rules:
+Video-friendly rules:
 
 - One shot = one action.
 - Avoid time jumps inside one shot.
 - Avoid complex crowd/blocking unless necessary.
 - Use simple camera language: static, slow push-in, handheld slight shake, over-shoulder.
-- Keep text/UI minimal; exact numbers often fail.
+- Keep text/UI minimal; exact generated text often fails.
 - Generate first frames individually, not from a multi-panel sheet.
 
----
+## 5. QA
 
-## 5. Recommended Directory Layout
-
-Keep it simple:
-
-```text
-<project>_storyboard/
-  adaptation_bible.md
-  episode_beats.jsonl
-  shot_list.jsonl
-  prompts/
-    character_refs.jsonl
-    sheets.jsonl
-    shots.jsonl
-    reruns.jsonl
-  assets/
-  sheets/
-  shots/
-  logs/
-```
-
-Do not overwrite reruns. Use `_v2`, `_v3`.
-
----
-
-## 6. QA Checklist
-
-After generation, compare against source/adaptation bible.
-
-### Story QA
+Story QA:
 
 ```text
 [ ] hook is strong enough
@@ -267,7 +202,7 @@ After generation, compare against source/adaptation bible.
 [ ] internal monologue became visible action
 ```
 
-### Visual QA
+Visual QA:
 
 ```text
 [ ] correct characters, age, wardrobe
@@ -278,47 +213,18 @@ After generation, compare against source/adaptation bible.
 [ ] no harmful/confusing generated text
 ```
 
-Give direct result:
+Give a direct result:
 
 ```text
 Keep: EP01, EP02
 Rerun: EP03_SH04 - character age drifted; EP04 sheet - layout became poster
 ```
 
----
+Rerun only failed sheets/shots unless the whole visual system is wrong. Preserve approved references and add the specific failed constraint to the revised prompt.
 
-## 7. Rerun Strategy
+## 6. User-Facing Summary
 
-Rerun only failed sheets/shots unless the whole visual system is wrong.
-
-Patch the prompt with:
-
-```text
-- what failed last time
-- stricter age/identity/wardrobe constraint
-- stricter layout or shot constraint
-- same reference assets
-```
-
-Examples:
-
-```text
-角色必须是22岁普通学生，不是中年老板，不是黑帮，不是成熟总裁。
-```
-
-```text
-严格生成单个竖屏 9:16 首帧，不要分格，不要海报，不要文字。
-```
-
-```text
-严格生成 storyboard sheet：2行3列，6个 panel，黑色边框，不要单张海报。
-```
-
----
-
-## 8. User-Facing Summary
-
-When explaining, keep it short:
+Keep the explanation short:
 
 ```text
 我会先把原文改成短剧节奏：开场钩子、冲突升级、反转和集尾悬念。

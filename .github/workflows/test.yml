@@ -9,15 +9,15 @@ permissions:
 
 jobs:
   plugin:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted-aws
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 22
       - run: npm test
-      - run: node --check skills/renoise-gen/scripts/material-ingest.mjs
-      - run: node --check skills/renoise-gen/scripts/match-materials.mjs
+      - run: node --check skills/renoise-cli/scripts/material-ingest.mjs
+      - run: node --check skills/renoise-cli/scripts/match-materials.mjs
       - run: node --check skills/renoise-setup/scripts/install-cli.mjs
-      - run: bash -n skills/director/scripts/batch-generate.sh
+      - run: bash -n skills/renoise-cli/scripts/batch-generate.sh
       - run: npm pack --dry-run
