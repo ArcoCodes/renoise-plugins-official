@@ -76,6 +76,8 @@ test('local renoise-cli remains the only CLI execution skill', () => {
   assert.match(cli, /renoise model --json/);
   assert.match(cli, /renoise analyze/);
   assert.match(cli, /renoise task create/);
+  assert.match(cli, /RENOISE_CLIENT_NAME=codex/);
+  assert.match(cli, /`first_frame` anchors the opening/);
   assert.match(cli, /renoise upload/);
   assert.match(cli, /renoise-setup\/SKILL\.md/);
   assert.doesNotMatch(cli, /Managed Agent Runtime|renoise_[a-z]/);
@@ -90,6 +92,12 @@ test('local renoise-cli remains the only CLI execution skill', () => {
   ]) {
     assert.ok(existsSync(`skills/renoise-cli/scripts/${helper}`));
   }
+});
+
+test('prompt examples use exact material filenames', () => {
+  const promptCraft = readFileSync('skills/director/references/prompt-craft.md', 'utf8');
+  assert.match(promptCraft, /@avatar_girl\.png/);
+  assert.doesNotMatch(promptCraft, /@avatar_(?:girl|boy)(?!\.)/);
 });
 
 test('package metadata is the manifest source of truth', () => {

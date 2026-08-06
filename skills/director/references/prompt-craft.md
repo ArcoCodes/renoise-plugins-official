@@ -38,7 +38,7 @@ Not a checklist - a **visual world declaration**. The model should feel the text
 Each character gets: **identity lock + appearance + wardrobe + narrative function + behavioral pattern**.
 
 ```
-@avatar_girl — Prop Sourcer. Female, identity lock.
+@avatar_girl.png — Prop Sourcer. Female, identity lock.
 Utility vest, all pockets stuffed with visibly wrong items, clipboard permanently in hand.
 She was responsible for bringing the props. She brought everything except the correct one.
 She has an explanation for this. She always has an explanation for this.
@@ -149,8 +149,8 @@ with realistic wind physics and material cascade, final assemblage has plausible
 structural integrity for its two-second hold.
 Clipboard tug-of-war: realistic paper tension, neither character releases it.
 Walkie-talkie crackle: accurate radio audio texture.
-@avatar_girl — female, zero identity drift. Vest pockets depleting continuously.
-@avatar_boy — male, zero identity drift. Gaffer tape roll visibly smaller across takes.
+@avatar_girl.png — female, zero identity drift. Vest pockets depleting continuously.
+@avatar_boy.png — male, zero identity drift. Gaffer tape roll visibly smaller across takes.
 No music. No voiceover. No subtitles. No text. Diegetic audio only.
 16:9 enforced. No glitches, no floating objects, no duplicated limbs.
 ```
@@ -335,16 +335,16 @@ When the host attaches reference images (character photos, product shots, scene 
 
 ```
 [CHARACTERS]
-@avatar_girl - Prop Sourcer. Female, identity lock. Utility vest, clipboard in hand.
+@avatar_girl.png - Prop Sourcer. Female, identity lock. Utility vest, clipboard in hand.
 She was responsible for bringing the props. She brought everything except the correct one.
 
-@avatar_boy - Prop Executor. Male, identity lock. Matching utility vest, tool belt,
+@avatar_boy.png - Prop Executor. Male, identity lock. Matching utility vest, tool belt,
 walkie-talkie on shoulder.
 
 [TIMELINE]
-0-2s: @avatar_girl reaches into the case. Pulls out a thermos.
-She hands it to @avatar_boy with the energy of someone presenting a solution.
-@avatar_boy receives it. Holds it at arm's length.
+0-2s: @avatar_girl.png reaches into the case. Pulls out a thermos.
+She hands it to @avatar_boy.png with the energy of someone presenting a solution.
+@avatar_boy.png receives it. Holds it at arm's length.
 ```
 
 Attach the registered materials through roles advertised by the selected model. The server maps exact filename mentions to materials order so the model can maintain visual identity.
@@ -389,11 +389,11 @@ Hyperrealistic skin, zero retouching. Hard overhead sun, ink-black shadows.
 Motion blur on all fast prop handling, gestures, reactive stumbles.
 
 [CHARACTERS]
-@avatar_girl - Prop Sourcer. Female, identity lock. Utility vest, all pockets stuffed
+@avatar_girl.png - Prop Sourcer. Female, identity lock. Utility vest, all pockets stuffed
 with visibly wrong items, clipboard permanently in hand. She was responsible for bringing
 the props. She brought everything except the correct one. She has an explanation for this.
 
-@avatar_boy - Prop Executor. Male, identity lock. Matching utility vest, tool belt,
+@avatar_boy.png - Prop Executor. Male, identity lock. Matching utility vest, tool belt,
 walkie-talkie on shoulder. He receives what she gives him and makes it work on set.
 Nothing she gives him works.
 
@@ -476,8 +476,8 @@ collapse - plastic on earth, reflector crumpling, tape releasing, pen on paper.
 two voices still arguing - not angry, just automatic - fading into black.
 
 [REALISM LOCK]
-@avatar_girl - female, zero identity drift. Vest pockets depleting continuously.
-@avatar_boy - male, zero identity drift. Gaffer tape roll visibly smaller.
+@avatar_girl.png - female, zero identity drift. Vest pockets depleting continuously.
+@avatar_boy.png - male, zero identity drift. Gaffer tape roll visibly smaller.
 Prop physics: thermos rings accurately, cone construction topples with realistic wind physics.
 Clipboard: same physical object throughout, edges worn by end.
 No music. No voiceover. No subtitles. No text. Diegetic audio only.
