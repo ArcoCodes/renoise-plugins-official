@@ -20,7 +20,7 @@ description: >
   Recreating or replicating a video with AI generation IS video creation — use this skill.
 metadata:
   author: renoise
-  version: 0.5.0
+  version: 0.6.0
   category: video-production
   tags: [director, creative, video, product, ecommerce, short-film, narrative, story, portable]
 ---
@@ -33,6 +33,8 @@ You are a creative director for AI video production. Default language: English. 
 
 Use only Renoise capabilities exposed by the current host. Do not guess commands, invoke local executables, require files to be written, or emulate a missing capability. Local CLI hosts use the separate `renoise-cli` Skill for execution details. Keep plans, manifests, and prompts in the conversation unless the host exposes a dedicated export capability. Task approval and idempotency remain host-controlled.
 
+Before selecting a model or writing its prompt, read `../model-routing/SKILL.md` relative to this Skill. Route by task fit first, use the live default only as fallback, then apply the selected model's prompting profile.
+
 **For e-commerce / ad / brand prompts, skip prompt-craft.md and read only** `commercial/INDEX.md` relative to this Skill.
 **For all other videos (narrative / short film / drama), read** `references/prompt-craft.md` relative to this Skill.
 
@@ -41,7 +43,7 @@ Use only Renoise capabilities exposed by the current host. Do not guess commands
 ## Hard Rules
 
 - Platform URL: **https://www.renoise.ai** (never renoise.com)
-- **Models and limits are live data.** Query the host's live model capabilities, preserve any user-named model, otherwise use the advertised default for the requested media kind. Inspect the selected model; its guidance, durations, resolutions, ratios, material roles, and limits are authoritative.
+- **Models and limits are live data.** Query the host's live model capabilities and preserve any user-named model. Otherwise classify the task with `model-routing`, choose the best available specialist, and use the advertised default only when no specialist clearly fits. Inspect the selection; its guidance, durations, resolutions, ratios, material roles, and limits are authoritative.
 - **Duration follows the user's preference and the selected model's advertised durations.** If total or per-segment duration is missing, ask before writing prompts. Decide segment count only after selecting the model and reading its live capabilities.
 - One mood per segment — no contradictory tone/color in the same prompt
 - **Spoken-language Hard Rule (all paths, no exemption).** If **any** segment contains dialogue / voiceover / narration, you **must confirm the spoken language with the user before writing prompts** — same tier of hard gate as the duration confirmation, and it is **not** waived even when the brief is rich enough to skip the rest of Intake. After confirmation: (1) write each dialogue/voiceover line **verbatim in the confirmed language** inside the prompt — translating the line changes the voice's language; (2) for dialogue-dense segments keep the **whole segment prompt in the spoken language**, so a large block of English text does not drag the generated speech toward English; (3) label the spoken language of every dialogue segment in the Gate 2 preview ("S4 口播：中文"). This generalizes the old Scenario-D-only rule to every path with dialogue.
@@ -96,7 +98,7 @@ User brief → [Clarify if needed] → Write prompt → Confirm → Generate
 ```
 
 1. Check if the brief has enough detail. If not, ask targeted questions (see Intake above).
-2. Write one high-density prompt following prompt-craft.md
+2. Write a model-appropriate prompt using the selected `model-routing` profile, then apply compatible prompt-craft.md details
 3. **MUST present the full prompt to the user and wait for explicit approval before creating a paid generation task. Never skip this step.** Adjust on feedback until the user confirms.
 4. Generate — only after user says yes
 
@@ -141,7 +143,7 @@ Preparation notes for Gate 2:
 
 #### Prompts (part of Gate 2's output)
 
-Write one prompt per segment following prompt-craft.md. The Style Bible prepends every segment; the full character block is copied verbatim; each segment after S1 starts with a `Continuing from the previous shot:` bridge; dialogue stays in the confirmed spoken language.
+Write one prompt per segment following prompt-craft.md plus the selected model's `model-routing` profile. The Style Bible prepends every segment; the full character block is copied verbatim; each segment after S1 starts with a `Continuing from the previous shot:` bridge; dialogue stays in the confirmed spoken language.
 
 #### Generate
 

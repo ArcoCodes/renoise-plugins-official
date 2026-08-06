@@ -7,6 +7,7 @@ AI video production skills by Renoise — creative direction, generation, analys
 | Skill | Description |
 |-------|-------------|
 | **Create with Renoise** (`director`) | Portable creative direction for product ads, short films, e-commerce, drama, and comedy |
+| `model-routing` | Internal task-to-model router and model-specific prompting guide |
 | **Build Storyboard** (`storyboard-sheet`) | Portable script/novel adaptation into review sheets, shot lists, first frames, and video prompts |
 | `renoise-cli` | Local-only CLI execution for capabilities, media analysis, generation, uploads, tasks, and production helpers |
 | **Setup / Account** (`renoise-setup`) | Local-only CLI installation/update, secure login, and readiness checks |
@@ -64,9 +65,9 @@ When a local Renoise workflow finds a missing, outdated, or signed-out CLI, it a
 
 Manual downloads are listed in `https://download.renoise.ai/cli/latest.json`; verify the matching version directory's `checksums.txt` before extracting the binary.
 
-Plugin updates remain owned by each host's plugin manager. CLI recovery happens on use but never replaces a binary without approval, so the two release tracks do not silently modify each other. There is no per-session setup notification. `renoise auth login --web` opens account authorization in the browser and stores the shared credential securely without terminal key entry; `RENOISE_API_KEY` remains the override for CI and containers. The local-only `renoise-cli` Skill queries live capabilities, so new models do not require duplicated tables in creative Skills.
+Plugin updates remain owned by each host's plugin manager. CLI recovery happens on use but never replaces a binary without approval, so the two release tracks do not silently modify each other. There is no per-session setup notification. `renoise auth login --web` opens account authorization in the browser and stores the shared credential securely without terminal key entry; `RENOISE_API_KEY` remains the override for CI and containers. The local-only `renoise-cli` Skill queries live capabilities. Creative Skills keep researched routing and prompting profiles, but never duplicate availability, defaults, roles, limits, or other hard capability data; unknown models safely fall back to their live guidance and default status.
 
-`skills/manifest.json` classifies Skills by runtime. Hosted Renoise Agent loads only portable `director` and `storyboard-sheet` source files whose required capabilities are available; it never loads `renoise-cli`, `renoise-setup`, `video-download`, executable helpers, or local examples. Hosted execution uses its typed capabilities directly and does not run the native CLI.
+`skills/manifest.json` classifies Skills by runtime. Hosted Renoise Agent loads only portable `director`, `model-routing`, and `storyboard-sheet` source files whose required capabilities are available; it never loads `renoise-cli`, `renoise-setup`, `video-download`, executable helpers, or local examples. Hosted execution uses its typed capabilities directly and does not run the native CLI.
 
 Interactive account and CLI defaults are available through:
 
@@ -81,6 +82,12 @@ renoise settings
 | `RENOISE_API_KEY` | Optional override for all Renoise tools | CI/container or host-secret override. Interactive setup prefers the credential securely saved by `renoise auth login`. |
 
 ## Version & upgrading
+
+### 1.4.0
+
+- Added task-aware model routing across image, video, and audio generation.
+- Added researched prompting profiles and replacement guidance for superseded model variants.
+- Kept live capabilities authoritative for availability, defaults, roles, limits, and parameters.
 
 ### 1.3.0
 

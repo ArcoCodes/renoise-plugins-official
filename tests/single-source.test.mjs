@@ -28,12 +28,14 @@ test('skill manifest separates portable creative methods from local execution', 
   const byId = new Map(manifest.skills.map((skill) => [skill.id, skill]));
   assert.deepEqual([...byId.keys()].sort(), [
     'director',
+    'model-routing',
     'renoise-cli',
     'renoise-setup',
     'storyboard-sheet',
     'video-download',
   ]);
   assert.equal(byId.get('director').runtime, 'portable');
+  assert.equal(byId.get('model-routing').runtime, 'portable');
   assert.equal(byId.get('storyboard-sheet').runtime, 'portable');
   for (const id of ['renoise-cli', 'renoise-setup', 'video-download']) {
     assert.equal(byId.get(id).runtime, 'local-cli');
@@ -76,6 +78,8 @@ test('local renoise-cli remains the only CLI execution skill', () => {
   assert.match(cli, /renoise model --json/);
   assert.match(cli, /renoise analyze/);
   assert.match(cli, /renoise task create/);
+  assert.match(cli, /RENOISE_CLIENT_NAME=codex/);
+  assert.match(cli, /`first_frame` anchors the opening/);
   assert.match(cli, /renoise upload/);
   assert.match(cli, /renoise-setup\/SKILL\.md/);
   assert.doesNotMatch(cli, /Managed Agent Runtime|renoise_[a-z]/);
@@ -90,6 +94,26 @@ test('local renoise-cli remains the only CLI execution skill', () => {
   ]) {
     assert.ok(existsSync(`skills/renoise-cli/scripts/${helper}`));
   }
+});
+
+test('model routing covers every live family without replacing capabilities', () => {
+  const routing = readFileSync('skills/model-routing/SKILL.md', 'utf8');
+  for (const model of [
+    'seedance-2.0-byteplus', 'seedance-2.0-fast-byteplus', 'seedance-2.0-mini-byteplus',
+    'nano-banana-2', 'nano-banana-2-lite', 'nano-banana-pro',
+    'midjourney-v7', 'mj-v8.1', 'mj-v8.2', 'gpt-image-2',
+    'seedream-5-0-lite', 'seedream-5-0-pro', 'happyhorse-1.0', 'kling-3.0-omni',
+    'lyria-clip', 'seed-audio-1.0', 'grok-image', 'grok-image-quality',
+    'grok-video', 'grok-video-1.5', 'gemini-omni-flash', 'hailuo-h3',
+  ]) assert.ok(routing.includes(model), `${model} routing missing`);
+  assert.match(routing, /Live model capabilities are authoritative/);
+  assert.match(routing, /Do not auto-select/);
+});
+
+test('prompt examples use exact material filenames', () => {
+  const promptCraft = readFileSync('skills/director/references/prompt-craft.md', 'utf8');
+  assert.match(promptCraft, /@avatar_girl\.png/);
+  assert.doesNotMatch(promptCraft, /@avatar_(?:girl|boy)(?!\.)/);
 });
 
 test('package metadata is the manifest source of truth', () => {

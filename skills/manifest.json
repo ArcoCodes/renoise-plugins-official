@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pluginVersion": "1.3.0",
+  "pluginVersion": "1.4.0",
   "skills": [
     {
       "id": "director",
@@ -26,6 +26,17 @@
         "materials.read",
         "media.analyze",
         "media.edit"
+      ]
+    },
+    {
+      "id": "model-routing",
+      "runtime": "portable",
+      "entry": "skills/model-routing/SKILL.md",
+      "files": [
+        "skills/model-routing/SKILL.md"
+      ],
+      "requires": [
+        "models.read"
       ]
     },
     {

@@ -6,7 +6,7 @@ description: >
   plans. Supports episode-level review sheets and shot-by-shot planning.
 metadata:
   author: renoise
-  version: 0.3.0
+  version: 0.4.0
   category: video-production
   tags: [storyboard, short-drama, adaptation, image-generation, video-generation, portable]
 ---
@@ -114,11 +114,11 @@ Character reference prompt:
 
 For recurring locations, create a scene reference only when needed. Too many references can confuse layout and identity.
 
-Before optional generation:
+Before optional generation, read `../model-routing/SKILL.md`, then:
 
 1. Query live image-model capabilities.
-2. Preserve a user-selected model; otherwise use the advertised default for the requested kind.
-3. Use only advertised ratio, resolution, duration, material roles, and limits.
+2. Preserve a user-selected model; otherwise choose the best available specialist for the shot/sheet task and use the advertised default only as fallback.
+3. Apply that model's prompting profile and use only advertised ratio, resolution, duration, material roles, and limits.
 4. Present the prompt, references, parameters, and estimate.
 5. Wait for explicit approval.
 6. Record the returned task ID before waiting or polling.
