@@ -16,7 +16,7 @@ allowed-tools: Bash, Read, Write, Glob
 user-invocable: false
 metadata:
   author: renoise
-  version: 0.7.2
+  version: 0.8.0
   category: video-production
   tags: [general, video-generation, image-generation, material-pool]
 ---
@@ -54,12 +54,12 @@ On Windows PowerShell, run the same `node ... check-plugin.mjs` and `node ... in
 
 ## Select a Model Dynamically
 
-Treat `renoise model --json` as authoritative and current:
+Treat `renoise model --json` as authoritative and current. Read `../model-routing/SKILL.md` before choosing:
 
 1. If the user names a model, preserve that choice.
-2. Otherwise choose the server-advertised `isDefault` model for the requested media `kind`.
-3. Use each model's `guidance` to choose among non-default models.
-4. Before submitting, inspect the selected model:
+2. Otherwise classify the task and filter candidates by required live capabilities.
+3. Choose the best available specialist from `model-routing`; use the server-advertised `isDefault` only when no specialist clearly fits.
+4. Apply the selected model's prompting profile, then inspect it before submitting:
 
 ```bash
 renoise model <model> --json
@@ -162,7 +162,7 @@ renoise task chain <task-id> --json
 
 ## Prompt Basics
 
-- Follow the selected model's live `guidance` first.
+- Follow the selected model's live `guidance` and `model-routing` prompting profile.
 - Describe subject, action, camera, scene, lighting/style, and sound as concrete sentences.
 - Put technical controls such as ratio, resolution, duration, and material roles in CLI flags, not prose.
 - Keep spoken lines verbatim in the user-confirmed language.

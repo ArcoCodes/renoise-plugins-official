@@ -1,6 +1,6 @@
 # Prompt Craft - Writing High-Density Video Prompts
 
-This is the main creative reference in the director Skill. Model capabilities and guidance come from the current host's live capability source; this document only covers model-independent prompt craft.
+This is the main creative reference in the director Skill. Model capabilities and guidance come from the current host's live capability source; this document only covers model-independent prompt craft. The selected `model-routing` profile overrides this document when a model needs a different structure, density, or reference style.
 
 ---
 
@@ -484,4 +484,4 @@ No music. No voiceover. No subtitles. No text. Diegetic audio only.
 16:9 enforced. No glitches, no floating objects, no duplicated limbs.
 ```
 
-This is the target. Every prompt you write should aim for this level of density, specificity, and physical reality.
+This is the target for models that reward dense director briefs. Always keep the specificity and physical reality, but let the selected `model-routing` profile set the final density and structure.
