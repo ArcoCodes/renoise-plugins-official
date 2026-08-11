@@ -104,7 +104,7 @@ Inspect the selected video model again immediately before generation. Then:
 2. Assign it a compatible advertised source/reference-video role.
 3. Assign every approved slot a compatible advertised image role.
 4. Verify combined reference counts and role combinations.
-5. Replace every `{{slot_id}}` with the corresponding exact `@full-filename.ext` mention.
+5. Replace every `{{slot_id}}` with the corresponding exact `@material:{id}` token returned for its registered replacement material.
 6. Add an explicit source lock: source video controls motion/editing/style; slot materials control identities and replaceable content.
 7. Preserve source dialogue only when the user explicitly wants it and spoken language has been confirmed.
 

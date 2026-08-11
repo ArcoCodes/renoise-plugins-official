@@ -12,7 +12,7 @@
 |-----------|----------|
 | **Subject** | Person + product exist together as storytelling elements — neither dominates; anchor both with `@` references |
 | **Selling-Point Action** | Replace feature callouts with cinematic micro-moments: product interacting with environment (boot crushing wet grass, jacket catching wind), body language conveying effort or freedom |
-| **Scene & Tone** | Rich, specific environments — anchor with `@scene image`; describe light quality (golden morning haze, blue-hour ridge glow), atmosphere, and how the environment feels physically |
+| **Scene & Tone** | Rich, specific environments — anchor with the scene's `@material:{id}` token; describe light quality (golden morning haze, blue-hour ridge glow), atmosphere, and how the environment feels physically |
 | **Camera Language** | Follow the user's shot ideas if specified. If unspecified, propose a shot plan and wait for confirmation before writing prompts. |
 | **Audio** | No dialogue — music-driven. Write a **unified audio direction** spanning the entire video, with per-shot accents. |
 | **Post-Production** | Person consistency across all shots; end frame reserved for slogan/logo (fade to black + centered text); no jump cuts |
@@ -43,9 +43,9 @@ Generate as **one single task**. Write all visual stages into one prompt plus a 
 
 **Example prompt** (hiking boot TVC; timing shown for one example duration):
 
-> Ultra-wide panoramic of mountain ranges and open ridge, referencing the environment from @Image 1. Golden morning mist drifts across the slopes, camera slowly and steadily pushes forward through the landscape. **[Shot 1 | 5s | Establishing]**
+> Ultra-wide panoramic of mountain ranges and open ridge, referencing the environment from @material:101. Golden morning mist drifts across the slopes, camera slowly and steadily pushes forward through the landscape. **[Shot 1 | 5s | Establishing]**
 >
-> A man wearing the hiking boots from @Image 2 strides along a mountain trail with purpose, follow-cam tracking alongside him at ground level. Wind moves his clothing and the surrounding tall grass, natural and unposed. **[Shot 2 | 5s | Character in Motion]**
+> A man wearing the hiking boots from @material:102 strides along a mountain trail with purpose, follow-cam tracking alongside him at ground level. Wind moves his clothing and the surrounding tall grass, natural and unposed. **[Shot 2 | 5s | Character in Motion]**
 >
 > Macro slow-motion close-up of the hiking boots stepping into wet grass — grass blades bending under the sole, morning dew splashing in soft arcs. Camera orbits slowly to reveal the boot from multiple angles. Frame holds, then fades to black. **[Shot 3 | 5s | Product Detail]**
 >
@@ -82,7 +82,7 @@ Present all shots together so the user sees the complete video in one view:
 [Full prompt for shot N]
 
 --- Asset Mapping ---
-@Image 1 → [filename] → ref_image (all shots)
+@material:101 → [filename] → <advertised image role> (all shots)
 
 --- Generation Parameters ---
 Model: [live-capability selection] | Ratio: [advertised value] | Total estimated cost: request a live estimate per segment and sum
@@ -97,7 +97,7 @@ Note: Each shot is a separate segment; assembly requires a dedicated host media-
 **Brief**: Push an ultra-thin diaper. First 3 seconds must hook moms on the pain point (baby with diaper rash crying), then cut to the product and demonstrate breathability. Fast pace.
 
 **Assets**:
-- `@Image 1` (product flat-lay photo) → subject anchor
+- `@material:101` (product flat-lay photo) → subject anchor
 - Viral reference video (host media analysis only — not registered as a generation material)
 
 **Media analysis**:
@@ -110,7 +110,7 @@ Note: Each shot is a separate segment; assembly requires a dedicated host media-
 
 > Close-up of a young mother with furrowed brows, holding a crying baby, expressing extreme anxiety — handheld camera, slightly shaky, tight on face. **[Visual Hook (Opening)]**
 >
-> At the 3-second mark, camera whip-pans horizontally to the baby diaper product from @Image 1. **[Subject]**
+> At the 3-second mark, camera whip-pans horizontally to the baby diaper product from @material:101. **[Subject]**
 >
 > Product lies flat on a table surface as a burst of steam instantly penetrates from the bottom through the top layer, viscerally demonstrating breathability. **[Selling-Point Action]**
 >

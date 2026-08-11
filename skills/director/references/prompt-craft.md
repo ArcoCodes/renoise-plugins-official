@@ -38,7 +38,7 @@ Not a checklist - a **visual world declaration**. The model should feel the text
 Each character gets: **identity lock + appearance + wardrobe + narrative function + behavioral pattern**.
 
 ```
-@avatar_girl.png — Prop Sourcer. Female, identity lock.
+@material:101 — Prop Sourcer. Female, identity lock.
 Utility vest, all pockets stuffed with visibly wrong items, clipboard permanently in hand.
 She was responsible for bringing the props. She brought everything except the correct one.
 She has an explanation for this. She always has an explanation for this.
@@ -149,8 +149,8 @@ with realistic wind physics and material cascade, final assemblage has plausible
 structural integrity for its two-second hold.
 Clipboard tug-of-war: realistic paper tension, neither character releases it.
 Walkie-talkie crackle: accurate radio audio texture.
-@avatar_girl.png — female, zero identity drift. Vest pockets depleting continuously.
-@avatar_boy.png — male, zero identity drift. Gaffer tape roll visibly smaller across takes.
+@material:101 — female, zero identity drift. Vest pockets depleting continuously.
+@material:102 — male, zero identity drift. Gaffer tape roll visibly smaller across takes.
 No music. No voiceover. No subtitles. No text. Diegetic audio only.
 16:9 enforced. No glitches, no floating objects, no duplicated limbs.
 ```
@@ -195,7 +195,7 @@ Linking techniques: **match-cut composition** (same framing/shape), **motion mat
 
 **Good-transition reference — S3→S4**: when S3 ended on a warm-gold, centered, symmetric hero composition and S4 opened on the *same* gold grade and the *same* centered symmetric hero framing, the join was seamless. Match the out-frame's grade **and** composition to the next in-frame; that combination (tonal carry + match-cut) is the strongest continuous-narrative join.
 
-The Transition Table is also what backs the default continuity chain: when the next segment opens on the previous tail frame carried as `ref_image:0` + a "Use @Image1 as the first frame." prompt declaration (see "Serial continuity routing" below), that declaration is a soft lock — the out-frame/in-frame match recorded here is what makes it hold.
+The Transition Table is also what backs the default continuity chain: when the next segment opens on the previous tail frame carried as `ref_image:0` + a "Use @material:101 as the first frame." prompt declaration (see "Serial continuity routing" below), that declaration is a soft lock — the out-frame/in-frame match recorded here is what makes it hold.
 
 ### Ending strategy (holds steady is last-segment only)
 
@@ -323,43 +323,44 @@ When adapting existing material (novels, screenplays, manga):
 
 ---
 
-## Referencing Materials in Prompts - The `@name` Syntax
+## Referencing Materials in Prompts — The `@material:{id}` Syntax
 
-When the host attaches reference images (character photos, product shots, scene refs) as materials, also reference them in the prompt text using the exact `@name` returned for each material. This tells the model which image corresponds to which character or object.
+When the host attaches reference images, videos, or audio as materials, reference each one by its returned material ID using `@material:{id}`. IDs bind precisely even when files share a name. IDs such as 101/102 in examples are placeholders—substitute the IDs returned in the current workflow.
 
-### Register → Write `@name` in prompt
+### Register → Write `@material:{id}` in prompt
 
 1. Register or select each user-authorized reference through the host's material capability.
-2. Record the returned material ID and full server filename.
-3. Use that exact full filename, including extension, in the prompt mention (`avatar_girl.png` → `@avatar_girl.png`).
+2. Record the returned material ID.
+3. Write `@material:` followed by that ID (`101` → `@material:101`) and attach the same ID through an advertised material role.
 
 ```
 [CHARACTERS]
-@avatar_girl.png - Prop Sourcer. Female, identity lock. Utility vest, clipboard in hand.
+@material:101 - Prop Sourcer. Female, identity lock. Utility vest, clipboard in hand.
 She was responsible for bringing the props. She brought everything except the correct one.
 
-@avatar_boy.png - Prop Executor. Male, identity lock. Matching utility vest, tool belt,
+@material:102 - Prop Executor. Male, identity lock. Matching utility vest, tool belt,
 walkie-talkie on shoulder.
 
 [TIMELINE]
-0-2s: @avatar_girl.png reaches into the case. Pulls out a thermos.
-She hands it to @avatar_boy.png with the energy of someone presenting a solution.
-@avatar_boy.png receives it. Holds it at arm's length.
+0-2s: @material:101 reaches into the case. Pulls out a thermos.
+She hands it to @material:102 with the energy of someone presenting a solution.
+@material:102 receives it. Holds it at arm's length.
 ```
 
-Attach the registered materials through roles advertised by the selected model. The server maps exact filename mentions to materials order so the model can maintain visual identity.
+Attach the registered materials through roles advertised by the selected model. The server converts ID tokens to each provider's positional syntax using the submitted material order.
 
 ### Rules
 
-- **`@name` must match the full server filename**, including extension.
-- **Use `@name` every time the character appears**—not just in the character definition block.
-- **Multiple characters**: each gets a distinct material ID, exact `@name`, and advertised role.
-- **Works for non-face materials too**: product shots, scene references, and props.
+- **The token ID and attached material ID must match.** An unattached/orphan token is removed by the server.
+- **Use the same token every time the character or object appears**, not just in its definition block.
+- **Multiple references**: each gets a distinct material ID, token, purpose, and advertised role; IDs avoid filename collisions.
+- **Separate tokens with whitespace or punctuation.** Never concatenate tokens or put digit-leading text directly after one.
+- **Works for non-face materials too**: product shots, scene references, props, video, and audio when the model advertises those roles.
 - **Face-containing images**: inspect live roles/guidance and reuse the same approved material ID for a recurring character.
 
-### Without `@name` (weaker)
+### Without an ID token (weaker)
 
-If you attach a material without its exact `@name` in the prompt, the model may not know which character or object it maps to. It may apply the reference randomly or ignore it. **Always use the exact `@name` when attaching reference materials.**
+Attaching a material without mapping it in the prompt may leave the model unsure which subject or purpose it represents. Use `@material:{id}` whenever the prompt needs precise assignment.
 
 ---
 
@@ -389,11 +390,11 @@ Hyperrealistic skin, zero retouching. Hard overhead sun, ink-black shadows.
 Motion blur on all fast prop handling, gestures, reactive stumbles.
 
 [CHARACTERS]
-@avatar_girl.png - Prop Sourcer. Female, identity lock. Utility vest, all pockets stuffed
+@material:101 - Prop Sourcer. Female, identity lock. Utility vest, all pockets stuffed
 with visibly wrong items, clipboard permanently in hand. She was responsible for bringing
 the props. She brought everything except the correct one. She has an explanation for this.
 
-@avatar_boy.png - Prop Executor. Male, identity lock. Matching utility vest, tool belt,
+@material:102 - Prop Executor. Male, identity lock. Matching utility vest, tool belt,
 walkie-talkie on shoulder. He receives what she gives him and makes it work on set.
 Nothing she gives him works.
 
@@ -476,8 +477,8 @@ collapse - plastic on earth, reflector crumpling, tape releasing, pen on paper.
 two voices still arguing - not angry, just automatic - fading into black.
 
 [REALISM LOCK]
-@avatar_girl.png - female, zero identity drift. Vest pockets depleting continuously.
-@avatar_boy.png - male, zero identity drift. Gaffer tape roll visibly smaller.
+@material:101 - female, zero identity drift. Vest pockets depleting continuously.
+@material:102 - male, zero identity drift. Gaffer tape roll visibly smaller.
 Prop physics: thermos rings accurately, cone construction topples with realistic wind physics.
 Clipboard: same physical object throughout, edges worn by end.
 No music. No voiceover. No subtitles. No text. Diegetic audio only.

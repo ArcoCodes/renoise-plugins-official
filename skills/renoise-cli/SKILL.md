@@ -93,13 +93,13 @@ Agents must create the task first, record `task.id` from stdout, then wait separ
 renoise task create [model] \
   --prompt-file /path/to/prompt.txt \
   [--type video|image|audio] \
-  [--duration N] [--ratio X:Y] [--resolution VALUE] \
+  [--duration N|-1] [--ratio X:Y] [--resolution VALUE] \
   [--materials "ID:role[:index],..."] \
   [--watermark] [--audio-generation=false] --json
 renoise task wait <task-id> --timeout 15m --json
 ```
 
-Use `--prompt-file -` to read a prompt from stdin, or `--prompt` only for short shell-safe text. The two flags are mutually exclusive. Omit the model to use the server default, or pass the selected model explicitly.
+Use `--prompt-file -` to read a prompt from stdin, or `--prompt` only for short shell-safe text. The two flags are mutually exclusive. Omit the model to use the server default, or pass the selected model explicitly. Use `--duration -1` only when the selected model's live guidance advertises automatic edit duration; otherwise pass a positive advertised duration.
 
 If `wait` times out or the terminal call is interrupted, rerun `wait` with the same task ID; do not rerun `create`.
 
@@ -129,7 +129,7 @@ Use `renoise <command> --help` rather than documenting every flag here.
 
 Before spending credits:
 
-1. Run `renoise task cost <model> ... --json` with the actual generation parameters.
+1. Run `renoise task cost <model> ... --json` with the actual generation parameters. For an automatic-duration edit, estimate with the source video's known positive duration, then create with `--duration -1`; stop if the source duration is unavailable.
 2. Multiply `estimatedCredit` by the planned number of generations.
 3. Add character-sheet, upscale, audio, and retry costs when applicable.
 4. Compare with `renoise account status --json`.
@@ -146,9 +146,9 @@ renoise upload /path/to/reference.png --json
 renoise material --search reference --json
 ```
 
-Material syntax is `ID:role[:index]`. The role is required; use only roles listed by `renoise model <model> --json`. `index` controls the ordering used by prompt references such as `@Image1` and `@Video1`.
+Material syntax is `ID:role[:index]`. The role is required; use only roles listed by `renoise model <model> --json`. `index` controls provider reference ordering.
 
-In prompt text, `@` mentions must use the material's **full file name including extension** (`lie.png` → `@lie.png`, not `@lie`). The CLI repairs only unambiguous legacy stem mentions; do not rely on that compatibility fallback.
+In prompt text, reference an attached material as `@material:<ID>` using the same positive ID passed in `--materials` (for example, `@material:3683`). IDs are exact even when filenames collide. Separate tokens with whitespace or punctuation; text following a token should not begin with a digit.
 
 Frame roles are positional: `first_frame` anchors the opening and `last_frame` anchors the ending. Use either only when advertised, and follow the selected model's guidance for allowed role combinations.
 

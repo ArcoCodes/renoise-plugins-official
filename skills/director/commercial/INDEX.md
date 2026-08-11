@@ -44,14 +44,14 @@ Subject + Selling-Point Action + Scene & Tone + Camera Language + Audio + Post-P
 
 ## Asset Reference Rules
 
-Use `@` references in prompts to anchor visuals to the user's assets. Each reference must state **what is being referenced** and **what it's being used for**:
+Use canonical `@material:{id}` references to anchor visuals to the user's assets. Each reference must state **what is being referenced** and **what it's being used for**. Numeric IDs in examples are illustrative; always replace them with IDs returned in the current workflow:
 
 ```
-the serum glass bottle from @Image 1         ← what was referenced + what info was extracted
-reference the camera movement of @Video 1    ← explicitly only partial features, not everything
+the serum glass bottle from @material:101        ← what was referenced + what info was extracted
+reference only the camera movement of @material:201 ← explicitly partial features, not everything
 ```
 
-Resolve roles and limits from the selected model's live capabilities. Use only advertised material roles, preserve ordering for `@ImageN`/`@VideoN`, and never copy numeric limits into this guide.
+Resolve roles and limits from the selected model's live capabilities. Use advertised material roles and keep each token paired with the same attached material ID and ordering.
 
 For recurring people or products, register the approved anchor once and reuse the same material ID through a role supported by the selected model. Follow live guidance for face handling and incompatible role combinations.
 
@@ -126,8 +126,8 @@ Present the full prompt in the standard preview format and wait for explicit con
 [Full prompt in USER'S LANGUAGE, each dimension as its own paragraph, tagged with [维度名称] / [Dimension Name] in user's language]
 
 --- Asset Mapping ---
-@Image 1 → [filename / description] → Renoise role: <advertised image role>
-@Video 1 → [filename / description] → Scenario A: <advertised source/reference-video role>; other scenarios: analysis only unless explicitly approved
+@material:101 → [image filename / description] → Renoise role: <advertised image role>
+@material:201 → [video filename / description] → Scenario A: <advertised source/reference-video role>; other scenarios: analysis only unless explicitly approved
 
 --- Generation Parameters ---
 Model: [selected from live capabilities]
