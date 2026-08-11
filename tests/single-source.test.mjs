@@ -78,6 +78,7 @@ test('local renoise-cli remains the only CLI execution skill', () => {
   assert.match(cli, /renoise model --json/);
   assert.match(cli, /renoise analyze/);
   assert.match(cli, /renoise task create/);
+  assert.match(cli, /automatic-duration edit/);
   assert.match(cli, /RENOISE_CLIENT_NAME=codex/);
   assert.match(cli, /`first_frame` anchors the opening/);
   assert.match(cli, /renoise upload/);
@@ -99,7 +100,7 @@ test('local renoise-cli remains the only CLI execution skill', () => {
 test('model routing covers every live family without replacing capabilities', () => {
   const routing = readFileSync('skills/model-routing/SKILL.md', 'utf8');
   for (const model of [
-    'seedance-2.0-byteplus', 'seedance-2.0-fast-byteplus', 'seedance-2.0-mini-byteplus',
+    'seedance-2.5-byteplus', 'seedance-2.0-byteplus', 'seedance-2.0-fast-byteplus', 'seedance-2.0-mini-byteplus',
     'nano-banana-2', 'nano-banana-2-lite', 'nano-banana-pro',
     'midjourney-v7', 'mj-v8.1', 'mj-v8.2', 'gpt-image-2',
     'seedream-5-0-lite', 'seedream-5-0-pro', 'happyhorse-1.0', 'kling-3.0-omni',
@@ -110,10 +111,18 @@ test('model routing covers every live family without replacing capabilities', ()
   assert.match(routing, /Do not auto-select/);
 });
 
-test('prompt examples use exact material filenames', () => {
+test('prompt examples use canonical material ID tokens', () => {
   const promptCraft = readFileSync('skills/director/references/prompt-craft.md', 'utf8');
-  assert.match(promptCraft, /@avatar_girl\.png/);
-  assert.doesNotMatch(promptCraft, /@avatar_(?:girl|boy)(?!\.)/);
+  const cli = readFileSync('skills/renoise-cli/SKILL.md', 'utf8');
+  const directorFiles = [
+    promptCraft,
+    ...['INDEX.md', 'scenario-a-viral.md', 'scenario-b-brand.md', 'scenario-c-tvc.md', 'scenario-d-ugc.md']
+      .map((file) => readFileSync(`skills/director/commercial/${file}`, 'utf8')),
+  ].join('\n');
+  assert.match(promptCraft, /@material:101/);
+  assert.match(cli, /@material:<ID>/);
+  assert.doesNotMatch(directorFiles, /@(?:Image|Video)\s*\d/i);
+  assert.doesNotMatch(directorFiles, /@[\w-]+\.(?:png|jpe?g|webp|mp4|mov)\b/i);
 });
 
 test('package metadata is the manifest source of truth', () => {

@@ -83,6 +83,12 @@ renoise settings
 
 ## Version & upgrading
 
+### 1.5.0
+
+- Added Seedance 2.5 and MiniMax H3 routing, reference workflows, and model-specific prompting guidance.
+- Standardized material references on `@material:<ID>` across generation workflows.
+- Refreshed routing and prompting practices for every live image, video, and audio model.
+
 ### 1.4.0
 
 - Added task-aware model routing across image, video, and audio generation.
