@@ -894,9 +894,11 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--accent, #e6
   color: var(--content-secondary);
   font-size: 12px;
 }
-.review-stage-heading > span { display: flex; align-items: center; gap: 6px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.review-stage-heading-main { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.review-stage-heading-main > span { display: flex; align-items: center; gap: 6px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .review-stage-heading svg { color: var(--accent); }
 .review-stage-heading button { height: 28px; font-size: 11px; }
+.review-stage-heading button:disabled { opacity: .45; cursor: default; }
 .review-stage {
   position: relative;
   width: 100%;

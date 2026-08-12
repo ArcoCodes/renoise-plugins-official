@@ -87,6 +87,16 @@ function objectId(prefix = "obj") {
   return `${prefix}_${randomIdToken()}`;
 }
 
+function resetDocumentForMediaReplacement(document: WhiteboardDocument, retainedAssetIds: string[]) {
+  const next = structuredClone(document);
+  const retained = new Set(retainedAssetIds);
+  next.page.objects = [];
+  next.page.annotations = [];
+  next.page.assets = Object.fromEntries(Object.entries(next.page.assets)
+    .filter(([assetId]) => retained.has(assetId)));
+  return next;
+}
+
 function annotationForTarget(document: WhiteboardDocument, targetId: string, markObjectIds: string[]): AnnotationRecord {
   const target = document.page.objects.find(({ id }) => id === targetId);
   if (!target || (target.type !== "image" && target.type !== "video-card")) throw new Error("The annotation target must be an image, video, or video frame");
@@ -218,6 +228,7 @@ export function App() {
   const [videoTransfer, setVideoTransfer] = useState<{ phase: "upload" | "process" | "read"; loaded: number; total: number }>();
   const [stageBusy, setStageBusy] = useState(false);
   const fileInput = useRef<HTMLInputElement>(null);
+  const replaceOnNextMediaSelection = useRef(false);
   const videoStageRef = useRef<VideoReviewStageHandle>(null);
   const annotatorRef = useRef<FixedMediaAnnotatorHandle>(null);
   const intentSelectionRef = useRef(intentSelection);
@@ -894,7 +905,37 @@ export function App() {
     if (frozenVideoDraft && frozenVideoDraft.target.id !== activeTargetId) clearFrozenVideoDraft();
   }, [activeTargetId, clearFrozenVideoDraft, frozenVideoDraft]);
 
-  const importFile = async (file: File) => {
+  const finalizeImportedTarget = async (targetId: string, replaceExisting: boolean) => {
+    if (!replaceExisting) {
+      activateTarget(targetId);
+      return;
+    }
+    clearTimeout(viewSaveTimer.current);
+    annotatorRef.current?.clear();
+    clearFrozenVideoDraft();
+    setVideoResumeTime(undefined);
+    setTool("select");
+    setDraftStatus({ markCount: 0, canUndo: false, canRedo: false });
+    setDraftResetKey((value) => value + 1);
+    activeTargetRef.current = targetId;
+    setActiveTargetId(targetId);
+    const promptDrafts = { ...viewRef.current.promptDrafts };
+    delete promptDrafts[documentRef.current.page.id];
+    const nextView: ViewState = {
+      ...viewRef.current,
+      pageId: documentRef.current.page.id,
+      activeTargetId: targetId,
+      promptDrafts,
+    };
+    viewRef.current = nextView;
+    setView(nextView);
+    await Promise.all([
+      saveSelection([]),
+      call("save_renoise_whiteboard_view", { canvasSessionId: sessionRef.current, view: nextView }),
+    ]);
+  };
+
+  const importFile = async (file: File, replaceExisting = false) => {
     await saveChain.current;
     const sourceUrl = localBlobUrl(file);
     const decodedSource = await imageBlobToCanvas(file);
@@ -931,7 +972,9 @@ export function App() {
       createdAt: now,
       updatedAt: now,
     };
-    const next = structuredClone(base);
+    const next = replaceExisting
+      ? resetDocumentForMediaReplacement(base, [payload.asset.id])
+      : structuredClone(base);
     next.page.objects.push(record);
     primeLocalImageAsset(
       payload.asset.id,
@@ -941,11 +984,11 @@ export function App() {
     );
     const persisted = await saveDocument(next);
     if (!persisted.saved) throw new Error("The image was uploaded but could not be saved to the annotation board. Try again");
-    activateTarget(record.id);
+    await finalizeImportedTarget(record.id, replaceExisting);
     return record.id;
   };
 
-  const importVideo = async (file: File) => {
+  const importVideo = async (file: File, replaceExisting = false) => {
     setError("");
     await saveChain.current;
     const prepared = await prepareVideoFile(file);
@@ -1052,7 +1095,11 @@ export function App() {
       createdAt: now,
       updatedAt: now,
     };
-    const next = structuredClone(base);
+    const retainedAssetIds = [payload.asset.id, payload.playbackAsset?.id, payload.posterAsset?.id]
+      .filter((assetId): assetId is string => Boolean(assetId));
+    const next = replaceExisting
+      ? resetDocumentForMediaReplacement(base, retainedAssetIds)
+      : structuredClone(base);
     next.page.objects.push(record);
     const localPosterBlob = prepared.posterDataUrl ? imageDataUrlToBlob(prepared.posterDataUrl) : undefined;
     if (payload.posterAsset?.id && localPosterBlob) {
@@ -1064,7 +1111,7 @@ export function App() {
     }
     const persisted = await saveDocument(next);
     if (!persisted.saved) throw new Error("The video was uploaded but could not be saved to the annotation board. Try again");
-    activateTarget(record.id);
+    await finalizeImportedTarget(record.id, replaceExisting);
     return record.id;
   };
 
@@ -1133,7 +1180,7 @@ export function App() {
     return record.id;
   };
 
-  const importSelectedMedia = async (file: File) => {
+  const importSelectedMedia = async (file: File, replaceExisting = false) => {
     if (stageBusy) throw new Error("The current media is still being processed. Try again shortly");
     setStageBusy(true);
     setTool("select");
@@ -1150,7 +1197,9 @@ export function App() {
       const normalizedFile = file.type && file.type !== "application/octet-stream"
         ? file
         : new File([file], file.name, { type: inferredMime, lastModified: file.lastModified });
-      return kind === "image" ? await importFile(normalizedFile) : await importVideo(normalizedFile);
+      return kind === "image"
+        ? await importFile(normalizedFile, replaceExisting)
+        : await importVideo(normalizedFile, replaceExisting);
     } finally {
       setStageBusy(false);
     }
@@ -1382,6 +1431,12 @@ export function App() {
     : undefined;
   const annotationSessionActive = activeTarget?.type === "image" && (tool !== "select" || draftStatus.markCount > 0);
 
+  const openMediaPicker = (replaceExisting: boolean) => {
+    replaceOnNextMediaSelection.current = replaceExisting;
+    if (fileInput.current) fileInput.current.value = "";
+    fileInput.current?.click();
+  };
+
   if (displayMode !== "fullscreen") {
     return (
       <ReviewLauncher
@@ -1416,13 +1471,18 @@ export function App() {
     <main className={`whiteboard-app focused-review-app ${view.theme}`} data-theme={view.theme}>
       <input ref={fileInput} hidden type="file" accept="image/png,image/jpeg,image/webp,image/gif,video/mp4,video/webm" onChange={(event) => {
         const file = event.target.files?.[0];
-        if (file) void importSelectedMedia(file).catch((caught) => setError(caught instanceof Error ? caught.message : String(caught)));
+        const replaceExisting = replaceOnNextMediaSelection.current;
+        replaceOnNextMediaSelection.current = false;
+        if (file) void importSelectedMedia(file, replaceExisting).catch((caught) => setError(caught instanceof Error ? caught.message : String(caught)));
         event.target.value = "";
       }} />
       <section className="review-workspace">
         <div className="review-stage-shell">
           <div className="review-stage-heading">
-            <span>{activeTarget?.type === "video-card" ? <Film /> : null}{activeTarget?.type === "video-card" ? activeTarget.data.fileName : activeTarget?.type === "image" ? activeTarget.data.alt || "Image" : "Waiting for media"}</span>
+            <div className="review-stage-heading-main">
+              {activeTarget ? <button type="button" disabled={stageBusy || Boolean(videoTransfer)} onClick={() => openMediaPicker(true)}><Upload />Replace media</button> : null}
+              <span>{activeTarget?.type === "video-card" ? <Film /> : null}{activeTarget?.type === "video-card" ? activeTarget.data.fileName : activeTarget?.type === "image" ? activeTarget.data.alt || "Image" : "Waiting for media"}</span>
+            </div>
             {activeFrameSource ? <button type="button" onClick={() => void returnToSourceVideo(true)}><ArrowLeft />Choose another video frame</button> : null}
           </div>
           <div className={`review-stage ${stageBusy ? "busy" : ""}`}>
@@ -1443,7 +1503,7 @@ export function App() {
                 onStateChange={setDraftStatus}
               />
             ) : (
-              <button type="button" className="empty-media-stage" onClick={() => fileInput.current?.click()}><Upload /><strong>Add an image or video</strong><span>Supports PNG, JPEG, WebP, GIF, MP4, and WebM</span></button>
+              <button type="button" className="empty-media-stage" onClick={() => openMediaPicker(false)}><Upload /><strong>Add an image or video</strong><span>Supports PNG, JPEG, WebP, GIF, MP4, and WebM</span></button>
             )}
           </div>
           {videoTransfer ? (

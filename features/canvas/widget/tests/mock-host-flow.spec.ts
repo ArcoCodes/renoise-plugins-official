@@ -284,6 +284,39 @@ test("the first direct image upload on an empty focused stage remains stable and
   expect(await page.evaluate(() => window.__mockCalls?.filter(({ name }) => name === "save_renoise_whiteboard_state").length)).toBeGreaterThanOrEqual(2);
 });
 
+test("replacing the target media clears annotations, clips, and the persisted prompt", async ({ page }) => {
+  const { widget } = await fixture(page);
+  await widget.getByRole("button", { name: "Approve and open annotation board" }).click();
+  await expect(widget.getByRole("button", { name: "Replace media" })).toBeVisible();
+
+  await widget.getByRole("button", { name: "Numbered marker" }).click();
+  await widget.getByLabel("Annotation layer").click({ position: { x: 200, y: 170 } });
+  await widget.getByRole("button", { name: "Add to prompt" }).click();
+  const editor = widget.getByRole("textbox", { name: "Revision instructions" });
+  await editor.click();
+  await editor.press("End");
+  await editor.pressSequentially(" Replace the crown");
+  await expect(widget.locator(".intent-chip")).toHaveCount(1);
+  await expect(editor).toContainText("Replace the crown");
+
+  const chooserPromise = page.waitForEvent("filechooser");
+  await widget.getByRole("button", { name: "Replace media" }).click();
+  const chooser = await chooserPromise;
+  await chooser.setFiles({ name: "replacement.png", mimeType: "image/png", buffer: tinyPng });
+
+  await expect(widget.locator(".review-stage-heading-main")).toContainText("replacement.png");
+  await expect(widget.locator(".intent-chip")).toHaveCount(0);
+  await expect(editor).toHaveText("");
+  await expect(widget.getByLabel("Annotation layer").locator("[data-mark-id]")).toHaveCount(0);
+  await expect.poll(() => page.evaluate(() => window.__mockDocument?.page.objects.length)).toBe(1);
+  await expect.poll(() => page.evaluate(() => window.__mockDocument?.page.annotations.length)).toBe(0);
+  await expect.poll(() => page.evaluate(() => window.__mockSelection?.selectedObjectIds.length)).toBe(0);
+  await expect.poll(() => page.evaluate(() => {
+    const pageId = window.__mockDocument?.page.id;
+    return pageId ? window.__mockView?.promptDrafts[pageId] ?? "" : "missing";
+  })).toBe("");
+});
+
 test("adding immediately after drawing flushes the final mark into the persisted intent", async ({ page }) => {
   const { widget } = await fixture(page, { startEmpty: true });
   await widget.getByRole("button", { name: "Approve and open annotation board" }).click();

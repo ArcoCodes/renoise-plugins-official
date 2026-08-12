@@ -42491,7 +42491,7 @@
         "format": "esm"
       },
       "features/canvas/widget/src/App.tsx": {
-        "bytes": 69350,
+        "bytes": 71942,
         "imports": [
           {
             "path": "node_modules/@modelcontextprotocol/ext-apps/dist/src/app.js",
@@ -42587,7 +42587,7 @@
         "format": "esm"
       },
       "features/canvas/widget/src/styles/theme.css": {
-        "bytes": 36957,
+        "bytes": 37127,
         "imports": []
       },
       "features/canvas/widget/src/main.tsx": {
@@ -42648,7 +42648,7 @@
             "bytesInOutput": 253
           },
           "node_modules/react-dom/cjs/react-dom-client.production.js": {
-            "bytesInOutput": 169930
+            "bytesInOutput": 169979
           },
           "node_modules/react-dom/client.js": {
             "bytesInOutput": 253
@@ -42678,7 +42678,7 @@
             "bytesInOutput": 48
           },
           "node_modules/zod/v4/core/schemas.js": {
-            "bytesInOutput": 32112
+            "bytesInOutput": 32154
           },
           "node_modules/zod/v4/locales/ar.js": {
             "bytesInOutput": 5678
@@ -42843,7 +42843,7 @@
             "bytesInOutput": 769
           },
           "node_modules/zod/v4/core/api.js": {
-            "bytesInOutput": 10163
+            "bytesInOutput": 10164
           },
           "node_modules/zod/v4/core/to-json-schema.js": {
             "bytesInOutput": 5840
@@ -42858,7 +42858,7 @@
             "bytesInOutput": 27
           },
           "node_modules/zod/v4/core/index.js": {
-            "bytesInOutput": 5047
+            "bytesInOutput": 5048
           },
           "node_modules/zod/v4/classic/checks.js": {
             "bytesInOutput": 484
@@ -42873,7 +42873,7 @@
             "bytesInOutput": 182
           },
           "node_modules/zod/v4/classic/schemas.js": {
-            "bytesInOutput": 22590
+            "bytesInOutput": 22592
           },
           "node_modules/zod/v4/classic/compat.js": {
             "bytesInOutput": 425
@@ -43005,7 +43005,7 @@
             "bytesInOutput": 0
           },
           "features/canvas/widget/src/App.tsx": {
-            "bytesInOutput": 34533
+            "bytesInOutput": 35533
           },
           "node_modules/zod/index.js": {
             "bytesInOutput": 10
@@ -43047,7 +43047,7 @@
             "bytesInOutput": 2561
           },
           "features/canvas/widget/src/review/FixedMediaAnnotator.tsx": {
-            "bytesInOutput": 10009
+            "bytesInOutput": 9997
           },
           "features/canvas/widget/src/random-id.ts": {
             "bytesInOutput": 371
@@ -43056,16 +43056,16 @@
             "bytesInOutput": 0
           }
         },
-        "bytes": 665661
+        "bytes": 666744
       },
       "features/canvas/build/.tmp/widget.css": {
         "imports": [],
         "inputs": {
           "features/canvas/widget/src/styles/theme.css": {
-            "bytesInOutput": 31220
+            "bytesInOutput": 31370
           }
         },
-        "bytes": 31221
+        "bytes": 31371
       }
     }
   }
