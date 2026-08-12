@@ -62,7 +62,7 @@ function clipMarker(id: string) {
 }
 
 function clipLabel(item: ComposerItem) {
-  return item.timeLabel ? `视频帧 ${item.timeLabel}` : "图片";
+  return item.timeLabel ? `video frame ${item.timeLabel}` : "image";
 }
 
 function visibleClipLabel(item: ComposerItem) {
@@ -84,7 +84,7 @@ export function materializeComposerDraft(draft: string, items: ComposerItem[]): 
       seen.add(id);
       itemIds.push(id);
     }
-    return `【标注${itemIds.indexOf(id) + 1}：${clipLabel(item)}】`;
+    return `[Annotation ${itemIds.indexOf(id) + 1}: ${clipLabel(item)}]`;
   }).replaceAll("\u00a0", " ").trim();
   return { instruction, itemIds };
 }
@@ -174,7 +174,7 @@ function appendClip(editor: HTMLElement, item: ComposerItem, url: string, active
   clip.dataset.clipId = item.id;
   clip.setAttribute("role", "button");
   clip.setAttribute("tabindex", "0");
-  clip.setAttribute("aria-label", `查看${clipLabel(item)}标注`);
+  clip.setAttribute("aria-label", `View ${clipLabel(item)} annotation`);
   clip.setAttribute("aria-pressed", String(active));
 
   const main = document.createElement("span");
@@ -202,7 +202,7 @@ function appendClip(editor: HTMLElement, item: ComposerItem, url: string, active
   remove.type = "button";
   remove.className = "intent-chip-remove";
   remove.dataset.action = "remove";
-  remove.setAttribute("aria-label", `移除${clipLabel(item)}标注`);
+  remove.setAttribute("aria-label", `Remove ${clipLabel(item)} annotation`);
   remove.textContent = "×";
   clip.append(main, remove);
   editor.append(clip);
@@ -372,16 +372,16 @@ export function Composer({
         event.target.value = "";
       }} />
       <div className="composer-input-shell">
-        <button type="button" disabled={disabled} className="intent-add-image" onClick={() => input.current?.click()} aria-label="从本地添加图片"><ImagePlus /><span>图片</span></button>
+        <button type="button" disabled={disabled} className="intent-add-image" onClick={() => input.current?.click()} aria-label="Add an image from this device"><ImagePlus /><span>Image</span></button>
         <div
           ref={editor}
           className="composer-inline-editor"
           contentEditable={!disabled}
           suppressContentEditableWarning
           role="textbox"
-          aria-label="生成说明"
+          aria-label="Revision instructions"
           aria-multiline="false"
-          data-placeholder={items.length ? "在标注 clip 前后说明对应的变更内容…" : "先使用上方工具标注画面，再说明你想要变更的内容"}
+          data-placeholder={items.length ? "Describe each requested change before or after its annotation clip…" : "Annotate the image with the tools above, then describe the change you want"}
           onClick={(event) => {
             const target = event.target as HTMLElement;
             const clip = target.closest<HTMLElement>("[data-clip-id]");
@@ -448,7 +448,7 @@ export function Composer({
             document.execCommand("insertText", false, text.replace(/[\r\n]+/g, " "));
           }}
         />
-        <button disabled={disabled || !hasInstructionText || !submission.itemIds.length} aria-label="提交标注请求"><Send /></button>
+        <button disabled={disabled || !hasInstructionText || !submission.itemIds.length} aria-label="Submit annotation request"><Send /></button>
       </div>
       {hoverPreview && previewUrls[hoverPreview.id] ? createPortal(
         <div
@@ -457,7 +457,7 @@ export function Composer({
           role="tooltip"
           style={{ left: hoverPreview.left, top: hoverPreview.top, width: hoverPreview.width, height: hoverPreview.height }}
         >
-          <img src={previewUrls[hoverPreview.id]} alt={`${hoverPreview.label} 标注预览`} />
+          <img src={previewUrls[hoverPreview.id]} alt={`${hoverPreview.label} annotation preview`} />
         </div>,
         document.body,
       ) : null}

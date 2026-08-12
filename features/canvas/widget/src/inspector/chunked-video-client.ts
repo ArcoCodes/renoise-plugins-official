@@ -7,7 +7,7 @@ type CallTool = (name: string, args: Record<string, unknown>) => Promise<Record<
 type Progress = (progress: { loaded: number; total: number; phase: "upload" | "process" | "read" }) => void;
 
 function throwIfAborted(signal?: AbortSignal) {
-  if (signal?.aborted) throw signal.reason ?? new DOMException("操作已取消", "AbortError");
+  if (signal?.aborted) throw signal.reason ?? new DOMException("Operation canceled", "AbortError");
 }
 
 export function bytesToBase64(bytes: Uint8Array) {
@@ -89,7 +89,7 @@ async function wait(milliseconds: number, signal?: AbortSignal) {
   await new Promise<void>((resolve, reject) => {
     const onAbort = () => {
       clearTimeout(timeout);
-      reject(signal?.reason ?? new DOMException("操作已取消", "AbortError"));
+      reject(signal?.reason ?? new DOMException("Operation canceled", "AbortError"));
     };
     const timeout = setTimeout(() => {
       signal?.removeEventListener("abort", onAbort);
@@ -131,7 +131,7 @@ export async function uploadVideoInChunks({
   const uploadId = String(begun.uploadId);
   let offset = Number(begun.received ?? begun.offset ?? begun.nextOffset ?? 0);
   let index = Number(begun.index ?? begun.nextIndex ?? Math.floor(offset / VIDEO_CHUNK_BYTES));
-  if (!uploadId || !Number.isSafeInteger(offset) || offset < 0 || offset > file.size) throw new Error("视频上传会话响应无效");
+  if (!uploadId || !Number.isSafeInteger(offset) || offset < 0 || offset > file.size) throw new Error("Invalid video upload session response");
   try {
     onProgress?.({ loaded: offset, total: file.size, phase: "upload" });
     while (offset < file.size) {
@@ -145,7 +145,7 @@ export async function uploadVideoInChunks({
         dataBase64: bytesToBase64(bytes),
       }), signal);
       const nextOffset = Number(response.received ?? response.nextOffset ?? offset + bytes.byteLength);
-      if (!Number.isSafeInteger(nextOffset) || nextOffset <= offset || nextOffset > file.size) throw new Error("视频上传偏移响应无效");
+      if (!Number.isSafeInteger(nextOffset) || nextOffset <= offset || nextOffset > file.size) throw new Error("Invalid video upload offset response");
       offset = nextOffset;
       index = Number(response.nextIndex ?? index + 1);
       onProgress?.({ loaded: offset, total: file.size, phase: "upload" });
@@ -174,7 +174,7 @@ export async function uploadVideoInChunks({
         onProgress?.({ loaded: 1, total: 1, phase: "process" });
         return status;
       }
-      if (status.status !== "processing") throw new Error("视频兼容处理状态响应无效");
+      if (status.status !== "processing") throw new Error("Invalid video compatibility-processing status response");
     }
   } catch (error) {
     await call("abort_renoise_whiteboard_video_upload", { canvasSessionId, uploadId }).catch(() => undefined);
@@ -200,7 +200,7 @@ export async function readVideoInChunks({
   const readLeaseId = String(begun.readLeaseId);
   const total = Number(begun.byteLength);
   const mimeType = typeof begun.mimeType === "string" ? begun.mimeType : "video/mp4";
-  if (!readLeaseId || !Number.isSafeInteger(total) || total < 0) throw new Error("视频读取会话响应无效");
+  if (!readLeaseId || !Number.isSafeInteger(total) || total < 0) throw new Error("Invalid video read session response");
   const chunks: Uint8Array[] = [];
   let offset = Number(begun.offset ?? 0);
   let index = Number(begun.index ?? 0);
@@ -216,7 +216,7 @@ export async function readVideoInChunks({
       });
       const bytes = base64ToBytes(String(response.dataBase64 ?? ""));
       if (!bytes.byteLength || bytes.byteLength > VIDEO_CHUNK_BYTES || offset + bytes.byteLength > total) {
-        throw new Error("视频读取分片响应无效");
+        throw new Error("Invalid video read chunk response");
       }
       chunks.push(bytes);
       offset += bytes.byteLength;

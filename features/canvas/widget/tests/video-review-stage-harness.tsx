@@ -67,7 +67,7 @@ function Harness() {
           document.body.dataset.frozenTime = String(frame.timeMs);
           document.body.dataset.freezeLatency = String(performance.now() - startedAt);
         });
-      }}>使用标注工具</button>
+      }}>Use annotation tool</button>
     </main>
   );
 }

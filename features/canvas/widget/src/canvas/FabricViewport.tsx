@@ -308,8 +308,8 @@ export function FabricViewport({
     canvasRef.current = canvas;
     canvas.setViewportTransform(cameraToViewportTransform(camera));
     onDiagnosticRef.current({
-      stage: "画布初始化",
-      message: "Fabric 画布实例已创建，等待场景恢复。",
+      stage: "Canvas initialization",
+      message: "Fabric canvas created. Waiting for scene recovery.",
       status: "info",
     });
     const scheduler = new MutationScheduler(() => {
@@ -394,7 +394,7 @@ export function FabricViewport({
     };
     const retryHydration = (reason: string) => {
       onDiagnosticRef.current({
-        stage: "恢复触发",
+        stage: "Recovery trigger",
         message: reason,
         status: "info",
         detail: `viewport=${wrapper.current?.clientWidth ?? 0}×${wrapper.current?.clientHeight ?? 0}`,
@@ -405,8 +405,8 @@ export function FabricViewport({
     const resume = (reason: string, force = false) => {
       if (!viewportIsUsable(wrapper.current)) {
         onDiagnosticRef.current({
-          stage: "恢复等待",
-          message: `${reason} 已收到，但画布容器当前不可用。`,
+          stage: "Recovery wait",
+          message: `${reason} was received, but the canvas container is currently unavailable.`,
           status: "warning",
         });
         hydrationDeferredForViewport.current = true;
@@ -429,7 +429,7 @@ export function FabricViewport({
         if (hasHydratedScene.current) sceneNeedsResume.current = true;
         return;
       }
-      resume("document visibility 恢复");
+      resume("Document visibility restored");
     };
     const resize = () => {
       if (!wrapper.current) return;
@@ -444,7 +444,7 @@ export function FabricViewport({
         recoverTargetView();
         if (hydrationDeferredForViewport.current) {
           hydrationDeferredForViewport.current = false;
-          retryHydration("画布容器重新获得有效尺寸");
+          retryHydration("Canvas container regained valid dimensions");
         } else if (sceneNeedsResume.current) {
           sceneNeedsResume.current = false;
           canvas.requestRenderAll();
@@ -465,15 +465,15 @@ export function FabricViewport({
       recoverTargetView();
       if (hydrationDeferredForViewport.current) {
         hydrationDeferredForViewport.current = false;
-        retryHydration("画布重新进入可视区域");
+        retryHydration("Canvas returned to the visible area");
       } else if (sceneNeedsResume.current) {
         sceneNeedsResume.current = false;
         canvas.requestRenderAll();
       }
     }, { threshold: 0.01 });
     visibilityObserver.observe(wrapper.current);
-    const focus = () => resume("窗口重新聚焦");
-    const pageShow = () => resume("页面 pageshow 恢复");
+    const focus = () => resume("Window refocused");
+    const pageShow = () => resume("Page restored through pageshow");
     let lastPointerActivity = performance.now();
     let lastInteractionRecovery = 0;
     const pointerActivity = () => {
@@ -535,8 +535,8 @@ export function FabricViewport({
         if (!integrityPauseReported) {
           integrityPauseReported = true;
           onDiagnosticRef.current({
-            stage: "场景完整性",
-            message: "同一文档版本自动恢复两次仍未成功，已暂停自动重建以保护当前画布。",
+            stage: "Scene integrity",
+            message: "Automatic recovery failed twice for the same document revision. Automatic rebuilds were paused to protect the current canvas.",
             status: "error",
             detail: `scene=${plan.key}, roots=${desired.length}, media=${desiredMedia}`,
           });
@@ -546,14 +546,14 @@ export function FabricViewport({
       lastIntegrityRecovery = now;
       integrityRecoveryCount += 1;
       onDiagnosticRef.current({
-        stage: "场景完整性",
+        stage: "Scene integrity",
         message: objectsIntact
-          ? `对象仍在，但媒体源不可渲染：${mediaHealth.ready}/${desiredMedia} 个图片元素可用。`
-          : `画板记录 ${desired.length} 个根对象，但 Fabric 中只有 ${current.length} 个。`,
+          ? `Objects remain, but their media sources cannot render: ${mediaHealth.ready}/${desiredMedia} image elements are available.`
+          : `The annotation board records ${desired.length} root objects, but Fabric contains ${current.length}.`,
         status: "warning",
         detail: `scene=${plan.key}, mediaTotal=${mediaHealth.total}, invalid=${mediaHealth.invalid}, volatileCanvas=${mediaHealth.volatileCanvas}`,
       });
-      resume(objectsIntact ? "媒体像素源失效，自动从项目文件恢复" : "场景对象数量不一致，自动恢复", true);
+      resume(objectsIntact ? "Media pixel source invalid; recovering from project files" : "Scene object count mismatch; recovering automatically", true);
     }, 1_000);
     globalThis.addEventListener("focus", focus);
     globalThis.addEventListener("pageshow", pageShow);
@@ -704,8 +704,8 @@ export function FabricViewport({
       };
       if (activeTool === "text") {
         const fill = FABRIC_THEME[themeRef.current].text;
-        const text = new IText("输入文字", { ...base, fill, strokeWidth: 0, fontSize: 20, fontFamily: "Roboto Flex, Noto Sans SC, sans-serif" });
-        attach(text, "text", { text: "输入文字", fontSize: 20, align: "left" }, {}, themeRef.current);
+        const text = new IText("Enter text", { ...base, fill, strokeWidth: 0, fontSize: 20, fontFamily: "Roboto Flex, Noto Sans SC, sans-serif" });
+        attach(text, "text", { text: "Enter text", fontSize: 20, align: "left" }, {}, themeRef.current);
         text.set({ selectable: true, evented: true });
         scheduler.transaction(() => {
           canvas.add(text);
@@ -738,7 +738,7 @@ export function FabricViewport({
         return;
       }
       if (activeTool === "sticky") {
-        const sticky = new Textbox("添加批注意见", {
+        const sticky = new Textbox("Add annotation note", {
           ...base,
           width: 220,
           height: 140,
@@ -749,7 +749,7 @@ export function FabricViewport({
           fontSize: 16,
           fontFamily: "Roboto Flex, Noto Sans SC, sans-serif",
         });
-        attach(sticky, "sticky", { text: "添加批注意见", color: "#F8F2D8" }, {}, themeRef.current);
+        attach(sticky, "sticky", { text: "Add annotation note", color: "#F8F2D8" }, {}, themeRef.current);
         sticky.set({ selectable: true, evented: true });
         scheduler.transaction(() => {
           canvas.add(sticky);
@@ -944,8 +944,8 @@ export function FabricViewport({
     if (!viewportIsUsable(wrapper.current)) {
       hydrationDeferredForViewport.current = true;
       onDiagnosticRef.current({
-        stage: "场景恢复",
-        message: "画布尺寸尚不可用，素材恢复已排队。",
+        stage: "Scene recovery",
+        message: "Canvas dimensions are not available yet. Media recovery has been queued.",
         status: "warning",
       });
       setHydrationState(document.page.objects.some(({ type }) => type === "image" || type === "video-card" || type === "ai-image")
@@ -965,8 +965,8 @@ export function FabricViewport({
       && desiredRootIds.every((id, index) => id === currentRootIds[index])) {
       hasHydratedScene.current = true;
       onDiagnosticRef.current({
-        stage: "场景检查",
-        message: `Fabric 中的 ${currentRootIds.length} 个根对象与白板记录一致，无需重建。`,
+        stage: "Scene check",
+        message: `${currentRootIds.length} Fabric root objects match the annotation-board record. No rebuild is required.`,
         status: "success",
         detail: `scene=${scenePlan.key}, media=${scenePlan.mediaSourceCount}`,
       });
@@ -999,8 +999,8 @@ export function FabricViewport({
       const failures: HydrationFailure[] = [];
 
       onDiagnosticRef.current({
-        stage: "场景恢复",
-        message: `开始重建 ${roots.length} 个根对象，其中 ${deferred.length} 个需要媒体素材。`,
+        stage: "Scene recovery",
+        message: `Rebuilding ${roots.length} root objects; ${deferred.length} require media assets.`,
         status: "info",
         detail: `attempt=${hydrationAttempt}, forced=${forcedRetry}, scene=${scenePlan.key}, media=${scenePlan.mediaSourceCount}`,
       });
@@ -1030,16 +1030,16 @@ export function FabricViewport({
       await Promise.all(deferred.map(async ({ record, index }) => {
         try {
           onDiagnosticRef.current({
-            stage: "素材挂载",
-            message: `开始恢复 ${record.type === "image" ? record.data.alt || "图片" : "媒体素材"}。`,
+            stage: "Asset mount",
+            message: `Restoring ${record.type === "image" ? record.data.alt || "image" : "media asset"}.`,
             status: "info",
             detail: `object=${record.id}`,
           });
           const object = await fabricObjectFromRecord(record, readAsset, records, themeRef.current);
           if (!cancelled) scheduler?.suppress(() => canvas.insertAt(index, object));
           if (!cancelled) onDiagnosticRef.current({
-            stage: "素材挂载",
-            message: `${record.type === "image" ? record.data.alt || "图片" : "媒体素材"} 已挂载到 Fabric。`,
+            stage: "Asset mount",
+            message: `${record.type === "image" ? record.data.alt || "Image" : "Media asset"} mounted in Fabric.`,
             status: "success",
             detail: `object=${record.id}`,
           });
@@ -1047,7 +1047,7 @@ export function FabricViewport({
           const message = caught instanceof Error ? caught.message : String(caught);
           failures.push({
             objectId: record.id,
-            label: record.type === "image" ? record.data.alt || "图片" : "媒体素材",
+            label: record.type === "image" ? record.data.alt || "Image" : "Media asset",
             message,
           });
           console.error("[Renoise whiteboard] asset hydration failed", {
@@ -1057,8 +1057,8 @@ export function FabricViewport({
             error: caught,
           });
           onDiagnosticRef.current({
-            stage: "素材挂载",
-            message: `${record.type === "image" ? record.data.alt || "图片" : "媒体素材"} 挂载失败。`,
+            stage: "Asset mount",
+            message: `${record.type === "image" ? record.data.alt || "Image" : "Media asset"} failed to mount.`,
             status: "error",
             detail: message,
           });
@@ -1099,18 +1099,18 @@ export function FabricViewport({
         if (mediaHealth.ready < expectedMedia || mediaHealth.invalid > 0 || mediaHealth.volatileCanvas > 0) {
           failures.push({
             objectId: document.page.id,
-            label: "媒体场景",
-            message: `仅 ${mediaHealth.ready}/${expectedMedia} 个图片元素可渲染`,
+            label: "Media scene",
+            message: `Only ${mediaHealth.ready}/${expectedMedia} image elements can render`,
           });
         }
         setHydrationState(failures.length
           ? { phase: "failed", pending: 0, failures }
           : { phase: "idle", pending: 0, failures: [] });
         onDiagnosticRef.current({
-          stage: "场景恢复",
+          stage: "Scene recovery",
           message: failures.length
-            ? `场景恢复完成，但有 ${failures.length} 个媒体素材失败。`
-            : `场景恢复完成：${canvas.getObjects().filter((object) => Boolean(getMeta(object))).length} 个根对象，${mediaHealth.ready}/${expectedMedia} 个图片元素可渲染。`,
+            ? `Scene recovery completed with ${failures.length} failed media assets.`
+            : `Scene recovery completed: ${canvas.getObjects().filter((object) => Boolean(getMeta(object))).length} root objects, ${mediaHealth.ready}/${expectedMedia} image elements can render.`,
           status: failures.length ? "error" : "success",
           detail: `scene=${scenePlan.key}, mediaTotal=${mediaHealth.total}, invalid=${mediaHealth.invalid}, volatileCanvas=${mediaHealth.volatileCanvas}`,
         });
@@ -1121,13 +1121,13 @@ export function FabricViewport({
       hydrating.current = false;
       const failure = {
         objectId: document.page.id,
-        label: "画布",
+        label: "Canvas",
         message: caught instanceof Error ? caught.message : String(caught),
       };
       console.error("[Renoise whiteboard] scene hydration failed", caught);
       onDiagnosticRef.current({
-        stage: "场景恢复",
-        message: "场景恢复流程异常终止。",
+        stage: "Scene recovery",
+        message: "The scene recovery process ended unexpectedly.",
         status: "error",
         detail: failure.message,
       });
@@ -1145,14 +1145,14 @@ export function FabricViewport({
       <canvas ref={element} />
       {hydrationState.phase === "loading" ? (
         <div className="canvas-hydration-status" role="status">
-          正在恢复 {hydrationState.pending} 个媒体素材…
+          Restoring {hydrationState.pending} media assets…
         </div>
       ) : hydrationState.phase === "failed" ? (
         <div className="canvas-hydration-status failed" role="alert">
           <span title={hydrationState.failures[0]?.message}>
-            {hydrationState.failures[0]?.label ?? "素材"}加载失败：{hydrationState.failures[0]?.message}
+            Failed to load {hydrationState.failures[0]?.label ?? "asset"}: {hydrationState.failures[0]?.message}
           </span>
-          <button type="button" onClick={() => setHydrationAttempt((value) => value + 1)}>重试</button>
+          <button type="button" onClick={() => setHydrationAttempt((value) => value + 1)}>Retry</button>
         </div>
       ) : null}
     </div>

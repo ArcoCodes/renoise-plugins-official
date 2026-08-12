@@ -75,7 +75,7 @@ test("MCP server exposes the widget resource and exact model/app visibility boun
   assert.match(whiteboard.icons?.[0]?.src ?? "", /^data:image\/svg\+xml;base64,/);
   const resource = await client.readResource({ uri: whiteboard.uri });
   const html = resource.contents[0].text;
-  assert.match(html, /Renoise 标注板/);
+  assert.match(html, /Renoise Annotation Board/);
   assert.match(html, /fabric-viewport/);
   assert.doesNotMatch(html, /https?:\/\/[^"']+\.(?:js|css)/);
   const gatewayOrigins = resource.contents[0]._meta?.ui?.csp?.resourceDomains ?? [];

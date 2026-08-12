@@ -42355,7 +42355,7 @@
         "format": "cjs"
       },
       "features/canvas/widget/src/composer/Composer.tsx": {
-        "bytes": 19637,
+        "bytes": 19700,
         "imports": [
           {
             "path": "node_modules/react/index.js",
@@ -42386,12 +42386,12 @@
         "format": "esm"
       },
       "features/canvas/widget/src/inspector/chunked-video-client.ts": {
-        "bytes": 8512,
+        "bytes": 8557,
         "imports": [],
         "format": "esm"
       },
       "features/canvas/widget/src/inspector/chunked-image-client.ts": {
-        "bytes": 9594,
+        "bytes": 9686,
         "imports": [
           {
             "path": "features/canvas/widget/src/inspector/chunked-video-client.ts",
@@ -42402,12 +42402,12 @@
         "format": "esm"
       },
       "features/canvas/widget/src/inspector/video-utils.ts": {
-        "bytes": 3345,
+        "bytes": 3386,
         "imports": [],
         "format": "esm"
       },
       "features/canvas/widget/src/launcher/ReviewLauncher.tsx": {
-        "bytes": 1762,
+        "bytes": 1845,
         "imports": [
           {
             "path": "node_modules/lucide-react/dist/esm/lucide-react.js",
@@ -42423,7 +42423,7 @@
         "format": "esm"
       },
       "features/canvas/widget/src/toolbar/AnnotationToolbar.tsx": {
-        "bytes": 2132,
+        "bytes": 2134,
         "imports": [
           {
             "path": "node_modules/lucide-react/dist/esm/lucide-react.js",
@@ -42439,7 +42439,7 @@
         "format": "esm"
       },
       "features/canvas/widget/src/review/VideoReviewStage.tsx": {
-        "bytes": 4862,
+        "bytes": 4897,
         "imports": [
           {
             "path": "node_modules/react/index.js",
@@ -42470,7 +42470,7 @@
         "format": "esm"
       },
       "features/canvas/widget/src/review/FixedMediaAnnotator.tsx": {
-        "bytes": 19788,
+        "bytes": 19878,
         "imports": [
           {
             "path": "node_modules/react/index.js",
@@ -42491,7 +42491,7 @@
         "format": "esm"
       },
       "features/canvas/widget/src/App.tsx": {
-        "bytes": 68616,
+        "bytes": 69350,
         "imports": [
           {
             "path": "node_modules/@modelcontextprotocol/ext-apps/dist/src/app.js",
@@ -43005,7 +43005,7 @@
             "bytesInOutput": 0
           },
           "features/canvas/widget/src/App.tsx": {
-            "bytesInOutput": 37651
+            "bytesInOutput": 34533
           },
           "node_modules/zod/index.js": {
             "bytesInOutput": 10
@@ -43023,31 +43023,31 @@
             "bytesInOutput": 1152
           },
           "features/canvas/widget/src/composer/Composer.tsx": {
-            "bytesInOutput": 9752
+            "bytesInOutput": 9581
           },
           "features/canvas/widget/src/mcp-arguments.ts": {
             "bytesInOutput": 482
           },
           "features/canvas/widget/src/inspector/chunked-video-client.ts": {
-            "bytesInOutput": 4291
+            "bytesInOutput": 4150
           },
           "features/canvas/widget/src/inspector/chunked-image-client.ts": {
-            "bytesInOutput": 4618
+            "bytesInOutput": 4223
           },
           "features/canvas/widget/src/inspector/video-utils.ts": {
-            "bytesInOutput": 1844
+            "bytesInOutput": 1762
           },
           "features/canvas/widget/src/launcher/ReviewLauncher.tsx": {
-            "bytesInOutput": 1693
+            "bytesInOutput": 1545
           },
           "features/canvas/widget/src/toolbar/AnnotationToolbar.tsx": {
-            "bytesInOutput": 1376
+            "bytesInOutput": 1279
           },
           "features/canvas/widget/src/review/VideoReviewStage.tsx": {
-            "bytesInOutput": 2781
+            "bytesInOutput": 2561
           },
           "features/canvas/widget/src/review/FixedMediaAnnotator.tsx": {
-            "bytesInOutput": 10249
+            "bytesInOutput": 10009
           },
           "features/canvas/widget/src/random-id.ts": {
             "bytesInOutput": 371
@@ -43056,7 +43056,7 @@
             "bytesInOutput": 0
           }
         },
-        "bytes": 670273
+        "bytes": 665661
       },
       "features/canvas/build/.tmp/widget.css": {
         "imports": [],

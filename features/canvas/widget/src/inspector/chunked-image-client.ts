@@ -12,44 +12,44 @@ export function imageBlobToDataUrl(blob: Blob): Promise<string> {
     const reader = new FileReader();
     reader.onload = () => {
       const value = typeof reader.result === "string" ? reader.result : "";
-      if (!value.startsWith("data:image/")) reject(new Error("图片素材解码失败"));
+      if (!value.startsWith("data:image/")) reject(new Error("Image asset decoding failed"));
       else resolve(value);
     };
-    reader.onerror = () => reject(reader.error ?? new Error("图片素材解码失败"));
+    reader.onerror = () => reject(reader.error ?? new Error("Image asset decoding failed"));
     reader.readAsDataURL(blob);
   });
 }
 
 export function imageDataUrlToBlob(dataUrl: string) {
   const match = /^data:(image\/(?:png|jpeg|webp|gif));base64,([a-zA-Z0-9+/=]+)$/.exec(dataUrl);
-  if (!match) throw new Error("图片素材数据无效");
+  if (!match) throw new Error("Invalid image asset data");
   return new Blob([base64ToBytes(match[2])], { type: match[1] });
 }
 
 export function imageBase64ToBlob(base64: string, mimeType: string) {
   if (!["image/png", "image/jpeg", "image/webp", "image/gif"].includes(mimeType)) {
-    throw new Error("图片素材类型无效");
+    throw new Error("Invalid image asset type");
   }
   const bytes = base64ToBytes(base64);
-  if (!bytes.byteLength) throw new Error("图片素材数据无效");
+  if (!bytes.byteLength) throw new Error("Invalid image asset data");
   return new Blob([bytes], { type: mimeType });
 }
 
 export async function imageBlobToCanvas(blob: Blob): Promise<HTMLCanvasElement> {
-  if (!blob.type.startsWith("image/")) throw new Error("图片素材类型无效");
+  if (!blob.type.startsWith("image/")) throw new Error("Invalid image asset type");
   let bitmap: ImageBitmap;
   try {
     bitmap = await createImageBitmap(blob);
   } catch {
-    throw new Error("图片素材解码失败");
+    throw new Error("Image asset decoding failed");
   }
   try {
-    if (!bitmap.width || !bitmap.height) throw new Error("图片素材尺寸无效");
+    if (!bitmap.width || !bitmap.height) throw new Error("Invalid image asset dimensions");
     const canvas = document.createElement("canvas");
     canvas.width = bitmap.width;
     canvas.height = bitmap.height;
     const context = canvas.getContext("2d");
-    if (!context) throw new Error("当前宿主无法创建图片画布");
+    if (!context) throw new Error("The current host cannot create an image canvas");
     context.drawImage(bitmap, 0, 0);
     return canvas;
   } finally {
@@ -63,7 +63,7 @@ export async function imageUrlToCanvas(source: string, timeoutMs = 3_000): Promi
   canvas.width = image.naturalWidth;
   canvas.height = image.naturalHeight;
   const context = canvas.getContext("2d");
-  if (!context) throw new Error("当前宿主无法创建图片画布");
+  if (!context) throw new Error("The current host cannot create an image canvas");
   context.drawImage(image, 0, 0);
   return canvas;
 }
@@ -78,22 +78,22 @@ export async function imageUrlToElement(source: string, timeoutMs = 3_000): Prom
     await Promise.race([
       image.decode(),
       new Promise<never>((_, reject) => {
-        timer = setTimeout(() => reject(new Error("本地媒体通道响应超时")), timeoutMs);
+        timer = setTimeout(() => reject(new Error("Local media channel response timed out")), timeoutMs);
       }),
     ]);
   } catch (caught) {
     image.src = "";
-    if (caught instanceof Error && caught.message === "本地媒体通道响应超时") throw caught;
-    throw new Error("图片素材流式加载失败");
+    if (caught instanceof Error && caught.message === "Local media channel response timed out") throw caught;
+    throw new Error("Image asset streaming failed");
   } finally {
     clearTimeout(timer);
   }
-  if (!image.naturalWidth || !image.naturalHeight) throw new Error("图片素材尺寸无效");
+  if (!image.naturalWidth || !image.naturalHeight) throw new Error("Invalid image asset dimensions");
   return image;
 }
 
 function throwIfAborted(signal?: AbortSignal) {
-  if (signal?.aborted) throw signal.reason ?? new DOMException("操作已取消", "AbortError");
+  if (signal?.aborted) throw signal.reason ?? new DOMException("Operation canceled", "AbortError");
 }
 
 async function withTimeout<T>(action: Promise<T>, timeoutMs: number, signal?: AbortSignal): Promise<T> {
@@ -101,9 +101,9 @@ async function withTimeout<T>(action: Promise<T>, timeoutMs: number, signal?: Ab
   let timer: ReturnType<typeof setTimeout> | undefined;
   let abort: (() => void) | undefined;
   const timeout = new Promise<never>((_, reject) => {
-    timer = setTimeout(() => reject(new Error("图片素材读取超时")), timeoutMs);
+    timer = setTimeout(() => reject(new Error("Image asset read timed out")), timeoutMs);
     if (signal) {
-      abort = () => reject(signal.reason ?? new DOMException("操作已取消", "AbortError"));
+      abort = () => reject(signal.reason ?? new DOMException("Operation canceled", "AbortError"));
       signal.addEventListener("abort", abort, { once: true });
     }
   });
@@ -155,7 +155,7 @@ export async function uploadImageInChunks({
 }) {
   throwIfAborted(signal);
   if (!file.size || !["image/png", "image/jpeg", "image/webp", "image/gif"].includes(file.type)) {
-    throw new Error("仅支持 PNG、JPEG、WebP 或 GIF 图片");
+    throw new Error("Only PNG, JPEG, WebP, and GIF images are supported");
   }
   const begun = await withTimeout(call("begin_renoise_whiteboard_image_upload", {
     canvasSessionId,
@@ -170,7 +170,7 @@ export async function uploadImageInChunks({
   let offset = Number(begun.received ?? 0);
   let index = Number(begun.nextIndex ?? Math.floor(offset / IMAGE_CHUNK_BYTES));
   if (!uploadId || !Number.isSafeInteger(offset) || offset < 0 || offset > file.size || !Number.isSafeInteger(index) || index < 0) {
-    throw new Error("图片上传会话响应无效");
+    throw new Error("Invalid image upload session response");
   }
 
   try {
@@ -189,7 +189,7 @@ export async function uploadImageInChunks({
       const nextIndex = Number(response.nextIndex ?? index + 1);
       if (!Number.isSafeInteger(nextOffset) || nextOffset <= offset || nextOffset > file.size
         || !Number.isSafeInteger(nextIndex) || nextIndex <= index) {
-        throw new Error("图片上传偏移响应无效");
+        throw new Error("Invalid image upload offset response");
       }
       offset = nextOffset;
       index = nextIndex;
@@ -239,7 +239,7 @@ export async function readImageInChunks({
     || total <= 0
     || !["image/png", "image/jpeg", "image/webp", "image/gif"].includes(mimeType)
   ) {
-    throw new Error("图片读取会话响应无效");
+    throw new Error("Invalid image read session response");
   }
 
   const chunks: Uint8Array[] = [];
@@ -260,13 +260,13 @@ export async function readImageInChunks({
       );
       const bytes = base64ToBytes(String(response.dataBase64 ?? ""));
       if (!bytes.byteLength || bytes.byteLength > IMAGE_CHUNK_BYTES || offset + bytes.byteLength > total) {
-        throw new Error("图片读取分片响应无效");
+        throw new Error("Invalid image read chunk response");
       }
       chunks.push(bytes);
       offset += bytes.byteLength;
       onProgress?.(offset, total);
     }
-    if (offset !== total) throw new Error("图片素材读取不完整");
+    if (offset !== total) throw new Error("Incomplete image asset read");
     return new Blob(chunks, { type: mimeType });
   } finally {
     await withTimeout(

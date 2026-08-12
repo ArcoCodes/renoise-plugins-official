@@ -74,7 +74,7 @@ const sameDocumentContent = (left: WhiteboardDocument, right: WhiteboardDocument
   return JSON.stringify(stableJsonValue(leftContent)) === JSON.stringify(stableJsonValue(rightContent));
 };
 const app = new McpApp(
-  { name: "Renoise 标注板", version: "1.0.0" },
+  { name: "Renoise Annotation Board", version: "1.0.0" },
   { availableDisplayModes: ["inline", "fullscreen"] },
 );
 
@@ -89,7 +89,7 @@ function objectId(prefix = "obj") {
 
 function annotationForTarget(document: WhiteboardDocument, targetId: string, markObjectIds: string[]): AnnotationRecord {
   const target = document.page.objects.find(({ id }) => id === targetId);
-  if (!target || (target.type !== "image" && target.type !== "video-card")) throw new Error("批注目标必须是图片、视频或视频帧");
+  if (!target || (target.type !== "image" && target.type !== "video-card")) throw new Error("The annotation target must be an image, video, or video frame");
   const assetId = target.data.assetId;
   const assetSha256 = document.page.assets[assetId]?.sha256;
   const imageSource = target.type === "image" ? target.data.source : undefined;
@@ -290,8 +290,8 @@ export function App() {
       setSessionId(payload.canvasSessionId);
       sessionRef.current = payload.canvasSessionId;
       recordRecoveryDiagnostic({
-        stage: "会话状态",
-        message: "已接收白板会话标识。",
+        stage: "Session status",
+        message: "Annotation-board session ID received.",
         status: "success",
         detail: `session=…${String(payload.canvasSessionId).slice(-8)}`,
       });
@@ -318,13 +318,13 @@ export function App() {
           localBlobUrls.current.clear();
         }
         recordRecoveryDiagnostic({
-          stage: "本地媒体通道",
-          message: changed ? "已接收新的本地媒体通道能力。" : "本地媒体通道能力保持不变。",
+          stage: "Local media channel",
+          message: changed ? "New local media capability received." : "Local media capability is unchanged.",
           status: "success",
           detail: `expires=${parsed.data.expiresAt}`,
         });
       } else {
-        recordRecoveryDiagnostic({ stage: "本地媒体通道", message: "宿主返回的本地媒体通道描述无效。", status: "warning" });
+        recordRecoveryDiagnostic({ stage: "Local media channel", message: "The host returned an invalid local media descriptor.", status: "warning" });
       }
     }
     if (payload.document) {
@@ -334,8 +334,8 @@ export function App() {
       history.current.reset(normalizedDocument);
       const mediaCount = normalizedDocument.page.objects.filter(({ type }: WhiteboardObject) => type === "image" || type === "video-card" || type === "ai-image").length;
       recordRecoveryDiagnostic({
-        stage: "状态读取",
-        message: `白板状态已载入：${normalizedDocument.page.objects.length} 个对象，${mediaCount} 个媒体对象。`,
+        stage: "State read",
+        message: `Annotation-board state loaded: ${normalizedDocument.page.objects.length} objects, ${mediaCount} media objects.`,
         status: "success",
         detail: `page=${normalizedDocument.page.id}, revision=${normalizedDocument.page.revision}`,
       });
@@ -363,28 +363,28 @@ export function App() {
       }
       if (typeof input.projectDir === "string") setPendingProject(input.projectDir);
       recordRecoveryDiagnostic({
-        stage: "宿主输入",
-        message: "已收到画板启动参数。",
+        stage: "Host input",
+        message: "Annotation-board launch parameters received.",
         status: "info",
         detail: typeof input.projectDir === "string" ? input.projectDir : undefined,
       });
     };
     app.ontoolresult = (params) => {
-      recordRecoveryDiagnostic({ stage: "宿主结果", message: "已收到白板启动结果。", status: "info" });
+      recordRecoveryDiagnostic({ stage: "Host result", message: "Annotation-board launch result received.", status: "info" });
       applyPayload(params.structuredContent ?? {});
     };
     app.onhostcontextchanged = (context) => {
       if (context.displayMode) setDisplayMode(context.displayMode);
       recordRecoveryDiagnostic({
-        stage: "宿主上下文",
-        message: "宿主上下文发生变化。",
+        stage: "Host context",
+        message: "Host context changed.",
         status: "info",
         detail: `mode=${context.displayMode ?? "unchanged"}, size=${context.containerDimensions ? JSON.stringify(context.containerDimensions) : "unchanged"}`,
       });
     };
     recordRecoveryDiagnostic({
-      stage: "MCP 连接",
-      message: "正在连接 Codex 宿主。",
+      stage: "MCP connection",
+      message: "Connecting to the Codex host.",
       status: "info",
       detail: `widgetBuild=${__RENOISE_WIDGET_BUILD_ID__}`,
     });
@@ -392,12 +392,12 @@ export function App() {
       .then(() => {
         setConnected(true);
         setDisplayMode(app.getHostContext()?.displayMode ?? "inline");
-        recordRecoveryDiagnostic({ stage: "MCP 连接", message: "已连接 Codex 宿主。", status: "success" });
+        recordRecoveryDiagnostic({ stage: "MCP connection", message: "Connected to the Codex host.", status: "success" });
       })
       .catch((caught) => {
         const message = caught instanceof Error ? caught.message : String(caught);
-        recordRecoveryDiagnostic({ stage: "MCP 连接", message: "连接 Codex 宿主失败。", status: "error", detail: message });
-        setError("当前宿主未完成 MCP App 连接");
+        recordRecoveryDiagnostic({ stage: "MCP connection", message: "Failed to connect to the Codex host.", status: "error", detail: message });
+        setError("The current host did not complete the MCP App connection");
       });
     return () => { app.onhostcontextchanged = undefined; };
   }, [applyPayload, recordRecoveryDiagnostic]);
@@ -410,8 +410,8 @@ export function App() {
     if (!connected || !sessionId || authorized || resumeAttempt.current === sessionId) return;
     resumeAttempt.current = sessionId;
     recordRecoveryDiagnostic({
-      stage: "会话恢复",
-      message: "当前组件没有活动授权，开始从服务端恢复会话。",
+      stage: "Session recovery",
+      message: "No active authorization is available. Restoring the session from the server.",
       status: "info",
       detail: `session=…${sessionId.slice(-8)}`,
     });
@@ -425,12 +425,12 @@ export function App() {
         setDraftResetKey((value) => value + 1);
         setSaveStatus("saved");
         setError("");
-        recordRecoveryDiagnostic({ stage: "会话恢复", message: "服务端会话状态恢复完成。", status: "success" });
+        recordRecoveryDiagnostic({ stage: "Session recovery", message: "Server session state restored.", status: "success" });
       })
       .catch((caught) => {
         const message = caught instanceof Error ? caught.message : String(caught);
-        recordRecoveryDiagnostic({ stage: "会话恢复", message: "服务端会话状态恢复失败。", status: "error", detail: message });
-        if (message.includes("SESSION_EXPIRED")) setError("标注板会话已过期，请在对话中重新打开标注板");
+        recordRecoveryDiagnostic({ stage: "Session recovery", message: "Failed to restore server session state.", status: "error", detail: message });
+        if (message.includes("SESSION_EXPIRED")) setError("The annotation-board session has expired. Reopen it from the conversation");
         else if (!message.includes("AUTHORIZATION_REQUIRED")) setError(message);
       });
   }, [applyPayload, authorized, call, connected, pendingProject, recordRecoveryDiagnostic, sessionId]);
@@ -439,14 +439,14 @@ export function App() {
     setError("");
     const available = app.getHostContext()?.availableDisplayModes ?? [];
     if (!available.includes("fullscreen")) {
-      setError("当前 Codex 宿主只支持对话内嵌展示，暂不支持右侧面板或全屏模式");
+      setError("This Codex host only supports inline rendering and cannot open the side panel or full-screen mode");
       return false;
     }
     try {
       const result = await app.requestDisplayMode({ mode: "fullscreen" });
       setDisplayMode(result.mode);
       if (result.mode !== "fullscreen") {
-        setError("当前 Codex 宿主未切换到全屏模式");
+        setError("The Codex host did not switch to full-screen mode");
         return false;
       }
       return true;
@@ -592,7 +592,7 @@ export function App() {
 
   const approve = async () => {
     setError("");
-    recordRecoveryDiagnostic({ stage: "目录授权", message: "正在批准项目目录。", status: "info", detail: pendingProject });
+    recordRecoveryDiagnostic({ stage: "Directory authorization", message: "Approving the project directory.", status: "info", detail: pendingProject });
     try {
       const payload = await call("authorize_renoise_whiteboard_workspace", {
         approvedProjectDir: pendingProject,
@@ -600,11 +600,11 @@ export function App() {
       applyPayload(payload);
       setAuthorized(true);
       setDraftResetKey((value) => value + 1);
-      recordRecoveryDiagnostic({ stage: "目录授权", message: "项目目录授权完成。", status: "success" });
+      recordRecoveryDiagnostic({ stage: "Directory authorization", message: "Project directory approved.", status: "success" });
       return true;
     } catch (caught) {
       const message = caught instanceof Error ? caught.message : String(caught);
-      recordRecoveryDiagnostic({ stage: "目录授权", message: "项目目录授权失败。", status: "error", detail: message });
+      recordRecoveryDiagnostic({ stage: "Directory authorization", message: "Failed to approve the project directory.", status: "error", detail: message });
       setError(message);
       return false;
     }
@@ -616,10 +616,10 @@ export function App() {
     await requestFullscreen();
   };
 
-  const refresh = useCallback(async ({ forceAssetRead = false, reason = "用户刷新" } = {}) => {
+  const refresh = useCallback(async ({ forceAssetRead = false, reason = "User refresh" } = {}) => {
     recordRecoveryDiagnostic({
-      stage: "强制恢复",
-      message: forceAssetRead ? `${reason}：清空媒体缓存并重新读取项目文件。` : `${reason}：重新读取白板状态。`,
+      stage: "Forced recovery",
+      message: forceAssetRead ? `${reason}: clear the media cache and reread project files.` : `${reason}: reread annotation-board state.`,
       status: "info",
     });
     if (forceAssetRead) {
@@ -637,10 +637,10 @@ export function App() {
       applyPayload(payload);
       setDraftResetKey((value) => value + 1);
       setSaveStatus("saved");
-      recordRecoveryDiagnostic({ stage: "强制恢复", message: "白板状态已重新载入，正在重建媒体场景。", status: "success" });
+      recordRecoveryDiagnostic({ stage: "Forced recovery", message: "Annotation-board state reloaded. Rebuilding the media scene.", status: "success" });
     } catch (caught) {
       const message = caught instanceof Error ? caught.message : String(caught);
-      recordRecoveryDiagnostic({ stage: "强制恢复", message: "重新读取白板状态失败。", status: "error", detail: message });
+      recordRecoveryDiagnostic({ stage: "Forced recovery", message: "Failed to reread annotation-board state.", status: "error", detail: message });
       setError(message);
     }
   }, [applyPayload, call, recordRecoveryDiagnostic]);
@@ -648,16 +648,16 @@ export function App() {
   const ensureAssetGateway = useCallback(async () => {
     const descriptor = assetGatewayRef.current;
     if (!descriptor || Date.parse(descriptor.expiresAt) <= Date.now()) {
-      recordRecoveryDiagnostic({ stage: "本地媒体通道", message: "本地媒体通道不存在或已过期，将使用 MCP 分块读取。", status: "warning" });
+      recordRecoveryDiagnostic({ stage: "Local media channel", message: "The local media channel is missing or expired. Falling back to MCP chunked reads.", status: "warning" });
       return false;
     }
     if (assetGatewayUnavailableUntil.current > Date.now()) {
-      recordRecoveryDiagnostic({ stage: "本地媒体通道", message: "本地媒体通道处于退避期，将使用 MCP 分块读取。", status: "warning" });
+      recordRecoveryDiagnostic({ stage: "Local media channel", message: "The local media channel is backing off. Falling back to MCP chunked reads.", status: "warning" });
       return false;
     }
     const cached = assetGatewayHealth.current;
     if (cached) return cached;
-    recordRecoveryDiagnostic({ stage: "本地媒体通道", message: "正在探测本地媒体通道。", status: "info" });
+    recordRecoveryDiagnostic({ stage: "Local media channel", message: "Probing the local media channel.", status: "info" });
     const pending = fetch(assetGatewayHealthUrl(descriptor), {
       cache: "no-store",
       signal: AbortSignal.timeout(800),
@@ -668,11 +668,11 @@ export function App() {
     void pending.then((available) => {
       if (available) {
         assetGatewayUnavailableUntil.current = 0;
-        recordRecoveryDiagnostic({ stage: "本地媒体通道", message: "本地媒体通道探测成功。", status: "success" });
+        recordRecoveryDiagnostic({ stage: "Local media channel", message: "Local media channel probe succeeded.", status: "success" });
       } else {
         assetGatewayUnavailableUntil.current = Date.now() + 60_000;
         if (assetGatewayHealth.current === pending) assetGatewayHealth.current = undefined;
-        recordRecoveryDiagnostic({ stage: "本地媒体通道", message: "本地媒体通道不可用，将降级到 MCP 分块读取。", status: "warning" });
+        recordRecoveryDiagnostic({ stage: "Local media channel", message: "The local media channel is unavailable. Falling back to MCP chunked reads.", status: "warning" });
       }
     });
     return pending;
@@ -718,7 +718,7 @@ export function App() {
     }
     const payload = await response.json().catch(() => ({})) as Payload;
     if (!response.ok) {
-      const message = payload.error?.message ?? `本地媒体网关导入失败（HTTP ${response.status}）`;
+      const message = payload.error?.message ?? `Local media gateway import failed (HTTP ${response.status})`;
       throw new Error(message);
     }
     return payload;
@@ -727,10 +727,10 @@ export function App() {
   const readAssetBlob = useCallback(async (assetId: string) => {
     const cached = imageAssetBlobs.current.get(assetId);
     if (cached) {
-      recordRecoveryDiagnostic({ stage: "素材缓存", message: "使用已缓存的原始图片 Blob。", status: "success", detail: `asset=${assetId}` });
+      recordRecoveryDiagnostic({ stage: "Asset cache", message: "Using the cached source image Blob.", status: "success", detail: `asset=${assetId}` });
       return cached;
     }
-    recordRecoveryDiagnostic({ stage: "MCP 分块读取", message: "开始从项目文件读取图片。", status: "info", detail: `asset=${assetId}` });
+    recordRecoveryDiagnostic({ stage: "MCP chunked read", message: "Reading the image from the project file.", status: "info", detail: `asset=${assetId}` });
     let progressBucket = -1;
     let pending: Promise<Blob>;
     pending = readImageInChunks({
@@ -743,21 +743,21 @@ export function App() {
         if (bucket === progressBucket) return;
         progressBucket = bucket;
         recordRecoveryDiagnostic({
-          stage: "MCP 分块读取",
-          message: `图片读取进度 ${percent}%（${loaded}/${total} bytes）。`,
+          stage: "MCP chunked read",
+          message: `Image read progress: ${percent}% (${loaded}/${total} bytes).`,
           status: percent === 100 ? "success" : "info",
           detail: `asset=${assetId}`,
         });
       },
     })
       .then((blob) => {
-        recordRecoveryDiagnostic({ stage: "MCP 分块读取", message: `图片文件读取完成，共 ${blob.size} bytes。`, status: "success", detail: `asset=${assetId}` });
+        recordRecoveryDiagnostic({ stage: "MCP chunked read", message: `Image file read complete: ${blob.size} bytes.`, status: "success", detail: `asset=${assetId}` });
         return blob;
       })
       .catch((chunkedError) => {
         const message = chunkedError instanceof Error ? chunkedError.message : String(chunkedError);
-        recordRecoveryDiagnostic({ stage: "MCP 分块读取", message: "图片文件读取失败。", status: "error", detail: `${assetId}: ${message}` });
-        throw new Error(`图片恢复失败：${message}`);
+        recordRecoveryDiagnostic({ stage: "MCP chunked read", message: "Failed to read the image file.", status: "error", detail: `${assetId}: ${message}` });
+        throw new Error(`Image recovery failed: ${message}`);
       })
       .catch((caught) => {
         if (imageAssetBlobs.current.get(assetId) === pending) imageAssetBlobs.current.delete(assetId);
@@ -776,7 +776,7 @@ export function App() {
   const readDecodedImageAsset = useCallback(async (assetId: string) => {
     const cached = imageAssetElements.current.get(assetId);
     if (cached) {
-      recordRecoveryDiagnostic({ stage: "素材缓存", message: "使用已解码的持久图片元素。", status: "success", detail: `asset=${assetId}` });
+      recordRecoveryDiagnostic({ stage: "Asset cache", message: "Using the decoded persistent image element.", status: "success", detail: `asset=${assetId}` });
       return cached;
     }
     let pending: Promise<HTMLImageElement | HTMLCanvasElement>;
@@ -785,12 +785,12 @@ export function App() {
       if (available) {
         const source = available ? gatewayMediaUrl(assetId, "canvas") : undefined;
         if (source) {
-          recordRecoveryDiagnostic({ stage: "本地媒体读取", message: "正在通过本地媒体通道加载图片。", status: "info", detail: `asset=${assetId}` });
+          recordRecoveryDiagnostic({ stage: "Local media read", message: "Loading the image through the local media channel.", status: "info", detail: `asset=${assetId}` });
           try {
             const decoded = await imageUrlToElement(source);
             recordRecoveryDiagnostic({
-              stage: "本地媒体读取",
-              message: `图片已解码为持久元素 ${decoded.naturalWidth}×${decoded.naturalHeight}。`,
+              stage: "Local media read",
+              message: `Image decoded to a persistent ${decoded.naturalWidth}×${decoded.naturalHeight} element.`,
               status: "success",
               detail: `asset=${assetId}`,
             });
@@ -800,8 +800,8 @@ export function App() {
             assetGatewayHealth.current = undefined;
             assetGatewayUnavailableUntil.current = Date.now() + 60_000;
             recordRecoveryDiagnostic({
-              stage: "本地媒体读取",
-              message: "本地媒体加载失败或超时，切换到 MCP 分块读取。",
+              stage: "Local media read",
+              message: "Local media loading failed or timed out. Switching to MCP chunked reads.",
               status: "warning",
               detail: `${assetId}: ${message}`,
             });
@@ -809,11 +809,11 @@ export function App() {
         }
       }
       const blob = await readAssetBlob(assetId);
-      recordRecoveryDiagnostic({ stage: "图片解码", message: "正在将项目图片解码到隔离画布。", status: "info", detail: `asset=${assetId}` });
+      recordRecoveryDiagnostic({ stage: "Image decode", message: "Decoding the project image into an isolated canvas.", status: "info", detail: `asset=${assetId}` });
       const decoded = await imageBlobToCanvas(blob);
       recordRecoveryDiagnostic({
-        stage: "图片解码",
-        message: `图片已解码为隔离画布 ${decoded.width}×${decoded.height}。`,
+        stage: "Image decode",
+        message: `Image decoded to an isolated ${decoded.width}×${decoded.height} canvas.`,
         status: "success",
         detail: `asset=${assetId}`,
       });
@@ -851,7 +851,7 @@ export function App() {
     const decoded = await readDecodedImageAsset(assetId);
     if (decoded instanceof HTMLCanvasElement) return decoded.toDataURL("image/png");
     if (decoded instanceof HTMLImageElement) return decoded.currentSrc || decoded.src;
-    throw new Error("无法创建固定媒体预览");
+    throw new Error("Could not create the fixed media preview");
   }, [readDecodedImageAsset]);
 
   const primeLocalImageAsset = useCallback((
@@ -940,7 +940,7 @@ export function App() {
       decodedSource,
     );
     const persisted = await saveDocument(next);
-    if (!persisted.saved) throw new Error("图片已上传，但未能保存到白板，请重试");
+    if (!persisted.saved) throw new Error("The image was uploaded but could not be saved to the annotation board. Try again");
     activateTarget(record.id);
     return record.id;
   };
@@ -951,8 +951,8 @@ export function App() {
     const prepared = await prepareVideoFile(file);
     if (!prepared.browserDecodable) {
       recordRecoveryDiagnostic({
-        stage: "视频兼容处理",
-        message: "当前宿主无法直接解码源视频，将保留原文件并生成 WebM 播放代理。",
+        stage: "Video compatibility processing",
+        message: "The current host cannot decode the source video directly. The source will be preserved while a WebM playback proxy is generated.",
         status: "warning",
         detail: prepared.decodeFailure,
       });
@@ -1012,7 +1012,7 @@ export function App() {
           };
         } catch (caught) {
           if (controller.signal.aborted) throw caught;
-          setError(`视频已导入，但封面生成失败：${caught instanceof Error ? caught.message : String(caught)}`);
+          setError(`The video was imported, but its cover image could not be generated: ${caught instanceof Error ? caught.message : String(caught)}`);
         }
       }
     } finally {
@@ -1029,7 +1029,7 @@ export function App() {
     const durationMs = Number(payload.durationMs ?? prepared.durationMs);
     if (!Number.isFinite(videoWidth) || videoWidth <= 0 || !Number.isFinite(videoHeight) || videoHeight <= 0
       || !Number.isFinite(durationMs) || durationMs <= 0) {
-      throw new Error("视频已上传，但服务端未返回有效的画面尺寸或时长");
+      throw new Error("The video was uploaded, but the server did not return valid dimensions or duration");
     }
     const posterSize = fitMediaSize(videoWidth, videoHeight, 560, 360);
     const record: WhiteboardObject = {
@@ -1063,7 +1063,7 @@ export function App() {
       );
     }
     const persisted = await saveDocument(next);
-    if (!persisted.saved) throw new Error("视频已上传，但未能保存到白板，请重试");
+    if (!persisted.saved) throw new Error("The video was uploaded but could not be saved to the annotation board. Try again");
     activateTarget(record.id);
     return record.id;
   };
@@ -1090,7 +1090,7 @@ export function App() {
     const frozen = await videoStageRef.current?.freezeCurrentFrame();
     if (!frozen) return undefined;
     const videoSha256 = documentRef.current.page.assets[video.data.assetId]?.sha256;
-    if (!videoSha256) throw new Error("源视频校验信息缺失，请重新加载白板");
+    if (!videoSha256) throw new Error("Source-video integrity information is missing. Reload the annotation board");
     clearFrozenVideoDraft();
     const frameBlob = imageDataUrlToBlob(frozen.dataUrl);
     const assetId = objectId("draft_asset");
@@ -1113,7 +1113,7 @@ export function App() {
       style: {},
       data: {
         assetId,
-        alt: `视频帧 ${formatTimecode(frozen.timeMs)}`,
+        alt: `Video frame ${formatTimecode(frozen.timeMs)}`,
         source: { kind: "video-frame", videoAssetId: video.data.assetId, videoSha256, timeMs: frozen.timeMs },
       },
       createdAt: now,
@@ -1134,12 +1134,12 @@ export function App() {
   };
 
   const importSelectedMedia = async (file: File) => {
-    if (stageBusy) throw new Error("当前媒体仍在处理中，请稍后再试");
+    if (stageBusy) throw new Error("The current media is still being processed. Try again shortly");
     setStageBusy(true);
     setTool("select");
     try {
       const kind = selectedMediaKind(file);
-      if (!kind) throw new Error("仅支持 PNG、JPEG、WebP、GIF 图片以及 MP4、WebM 视频");
+      if (!kind) throw new Error("Only PNG, JPEG, WebP, and GIF images and MP4 and WebM videos are supported");
       const extension = file.name.toLowerCase().split(".").pop() ?? "";
       const inferredMime = kind === "video"
         ? extension === "webm" ? "video/webm" : "video/mp4"
@@ -1188,7 +1188,7 @@ export function App() {
     videoFreezeInFlight.current = pending;
     try {
       const frameId = await pending;
-      if (!frameId) throw new Error("未能冻结当前视频帧");
+      if (!frameId) throw new Error("Could not freeze the current video frame");
       setTool(nextTool);
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : String(caught));
@@ -1237,7 +1237,7 @@ export function App() {
       style: { role: "annotation-snapshot" },
       data: {
         assetId: payload.asset.id,
-        alt: `${target.data.alt || "图片"} · 已标注`,
+        alt: `${target.data.alt || "Image"} · Annotated`,
         source: videoFrame ? { ...videoFrame } : { relation: "revision-of", objectId: target.id },
       },
       createdAt: now,
@@ -1254,7 +1254,7 @@ export function App() {
     next.page.annotations.push(annotationForTarget(next, snapshot.id, markObjects.map(({ id }) => id)));
     primeLocalImageAsset(payload.asset.id, snapshotBlob, localBlobUrl(snapshotBlob));
     const persisted = await saveDocument(next);
-    if (!persisted.saved) throw new Error("标注截图已生成，但未能保存，请重试");
+    if (!persisted.saved) throw new Error("The annotation snapshot was generated but could not be saved. Try again");
     return snapshot.id;
   };
 
@@ -1266,11 +1266,11 @@ export function App() {
       const target = frozenDraft?.target.id === activeTargetRef.current
         ? frozenDraft.target
         : documentRef.current.page.objects.find(({ id }) => id === activeTargetRef.current);
-      if (!target) throw new Error("请先导入图片或视频");
-      if (target.type === "video-card") throw new Error("请先暂停或点击标注工具，冻结当前视频帧后再标注");
-      if (target.type !== "image") throw new Error("当前媒体不支持标注");
+      if (!target) throw new Error("Import an image or video first");
+      if (target.type === "video-card") throw new Error("Pause the video or select an annotation tool to freeze the current frame first");
+      if (target.type !== "image") throw new Error("The current media does not support annotation");
       const draft = await annotatorRef.current?.snapshot();
-      if (!draft) throw new Error("标注区尚未准备完成");
+      if (!draft) throw new Error("The annotation area is not ready yet");
       const snapshotId = await persistAnnotatedSnapshot(
         target,
         draft.blob,
@@ -1371,7 +1371,7 @@ export function App() {
     return [{
       id: object.id,
       assetId: object.data.assetId,
-      label: object.data.alt || "图片",
+      label: object.data.alt || "Image",
       ...(frame ? { timeLabel: formatTimecode(frame.timeMs) } : {}),
     }];
   }), [document.page.objects, intentSelection.selectedObjectIds]);
@@ -1402,10 +1402,10 @@ export function App() {
       <main className="authorization-screen">
         <div className="authorization-card">
           <span className="authorization-icon">R</span>
-          <h1>Renoise 标注板</h1>
-          <p>标注板会在下列项目中保存素材、批注和标注请求。只有点击批准后，服务端才会访问该目录。</p>
-          <code>{pendingProject || "等待宿主提供项目目录…"}</code>
-          <button className="approve-button" disabled={!connected || !pendingProject} onClick={() => void approve()}>批准目录</button>
+          <h1>Renoise Annotation Board</h1>
+          <p>The annotation board stores media, annotations, and requests in the project below. The server will access it only after you approve.</p>
+          <code>{pendingProject || "Waiting for the host to provide a project directory…"}</code>
+          <button className="approve-button" disabled={!connected || !pendingProject} onClick={() => void approve()}>Approve directory</button>
           {error && <p className="inline-error">{error}</p>}
         </div>
       </main>
@@ -1422,8 +1422,8 @@ export function App() {
       <section className="review-workspace">
         <div className="review-stage-shell">
           <div className="review-stage-heading">
-            <span>{activeTarget?.type === "video-card" ? <Film /> : null}{activeTarget?.type === "video-card" ? activeTarget.data.fileName : activeTarget?.type === "image" ? activeTarget.data.alt || "图片" : "等待媒体"}</span>
-            {activeFrameSource ? <button type="button" onClick={() => void returnToSourceVideo(true)}><ArrowLeft />继续选择视频帧</button> : null}
+            <span>{activeTarget?.type === "video-card" ? <Film /> : null}{activeTarget?.type === "video-card" ? activeTarget.data.fileName : activeTarget?.type === "image" ? activeTarget.data.alt || "Image" : "Waiting for media"}</span>
+            {activeFrameSource ? <button type="button" onClick={() => void returnToSourceVideo(true)}><ArrowLeft />Choose another video frame</button> : null}
           </div>
           <div className={`review-stage ${stageBusy ? "busy" : ""}`}>
             {activeTarget?.type === "video-card" ? (
@@ -1443,19 +1443,19 @@ export function App() {
                 onStateChange={setDraftStatus}
               />
             ) : (
-              <button type="button" className="empty-media-stage" onClick={() => fileInput.current?.click()}><Upload /><strong>添加图片或视频</strong><span>支持 PNG、JPEG、WebP、GIF、MP4 和 WebM</span></button>
+              <button type="button" className="empty-media-stage" onClick={() => fileInput.current?.click()}><Upload /><strong>Add an image or video</strong><span>Supports PNG, JPEG, WebP, GIF, MP4, and WebM</span></button>
             )}
           </div>
           {videoTransfer ? (
             <div className="stage-transfer" role="status">
               <progress max={Math.max(1, videoTransfer.total)} value={videoTransfer.phase === "process" ? undefined : videoTransfer.loaded} />
-              <span>{videoTransfer.phase === "process" ? "正在生成兼容播放文件…" : `${Math.round(videoTransfer.loaded / Math.max(1, videoTransfer.total) * 100)}%`}</span>
-              {videoTransfer.phase !== "process" ? <button type="button" onClick={() => videoTransferController.current?.abort(new DOMException("用户取消了视频上传", "AbortError"))}>取消</button> : null}
+              <span>{videoTransfer.phase === "process" ? "Creating a compatible playback file…" : `${Math.round(videoTransfer.loaded / Math.max(1, videoTransfer.total) * 100)}%`}</span>
+              {videoTransfer.phase !== "process" ? <button type="button" onClick={() => videoTransferController.current?.abort(new DOMException("The user canceled the video upload", "AbortError"))}>Cancel</button> : null}
             </div>
           ) : null}
         </div>
       </section>
-      <section className="review-action-dock" aria-label="标注与生成说明">
+      <section className="review-action-dock" aria-label="Annotations and revision instructions">
         <AnnotationToolbar
           active={tool}
           canUndo={draftStatus.canUndo}
@@ -1490,12 +1490,12 @@ export function App() {
         onSubmit={async ({ instruction, itemIds }) => {
           await saveChain.current;
           const selectedIds = itemIds;
-          if (!selectedIds.length) throw new Error("请先完成标注并将截图添加至对话");
+          if (!selectedIds.length) throw new Error("Complete an annotation and add its snapshot to the prompt first");
           const annotatedTargetIds = new Set(documentRef.current.page.annotations
             .filter(({ markObjectIds }) => markObjectIds.length > 0)
             .flatMap(({ targetObjectIds }) => targetObjectIds));
           if (selectedIds.some((id) => !annotatedTargetIds.has(id))) {
-            throw new Error("每张图片或视频帧都需要至少一个标注后才能提交");
+            throw new Error("Each image or video frame needs at least one annotation before submission");
           }
           const selectedObjects = new Map(documentRef.current.page.objects.map((object) => [object.id, object]));
           const hasVideoFrameAnnotation = selectedIds.some((id) => {
@@ -1514,7 +1514,7 @@ export function App() {
             instruction,
           });
           const revisionIntentId = payload.revisionIntent?.id as string | undefined;
-          if (!revisionIntentId) throw new Error("服务端未返回标注请求 ID");
+          if (!revisionIntentId) throw new Error("The server did not return an annotation request ID");
           applyPayload(payload);
           setActiveTargetId("");
           activeTargetRef.current = "";
@@ -1524,7 +1524,7 @@ export function App() {
             role: "user",
             content: [{
               type: "text",
-              text: `${hasVideoFrameAnnotation ? "这是源视频的时间局部编辑意图：默认重做标注时间戳对应的源视频片段并保留其余原片；除非我的文字明确要求生成新片段，否则不要把标注截图解释为独立视频的首帧或尾帧。" : ""}请根据我刚提交的 Renoise 结构化标注生成最终结果，并直接回复到当前对话。canvasSessionId=${sessionRef.current}，revisionIntentId=${revisionIntentId}。`,
+              text: `${hasVideoFrameAnnotation ? "This is a time-local edit request for the source video. By default, remake the source-video segment at each annotated timestamp and preserve the rest of the original video. Unless my text explicitly asks for a new clip, do not interpret an annotation snapshot as the first or last frame of a separate video. " : ""}Generate the final result from the Renoise structured annotation request I just submitted and reply directly in this conversation. canvasSessionId=${sessionRef.current}, revisionIntentId=${revisionIntentId}.`,
             }],
           });
           await returnToConversation();
@@ -1533,8 +1533,8 @@ export function App() {
       </section>
       {saveStatus === "conflict" ? (
         <div className="conflict-banner" role="alert">
-          <span>服务端版本已更新，请重新加载后继续。</span>
-          <button onClick={() => void refresh({ forceAssetRead: true, reason: "版本冲突" })}>重新加载</button>
+          <span>The server version has changed. Reload before continuing.</span>
+          <button onClick={() => void refresh({ forceAssetRead: true, reason: "Version conflict" })}>Reload</button>
         </div>
       ) : error ? <button className="error-toast" onClick={() => setError("")}>{error}</button> : null}
     </main>

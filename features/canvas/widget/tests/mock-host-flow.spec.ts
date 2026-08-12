@@ -47,8 +47,8 @@ async function fixture(page: Page, options: { startEmpty?: boolean; omitRootPare
 for (const width of [728, 1310]) {
   test(`focused review shell stays inside a ${width}px host viewport`, async ({ page }) => {
     const { widget } = await fixture(page, { width });
-    await widget.getByRole("button", { name: "批准并打开标注板" }).click();
-    await expect(widget.getByLabel("固定媒体标注区")).toBeVisible();
+    await widget.getByRole("button", { name: "Approve and open annotation board" }).click();
+    await expect(widget.getByLabel("Fixed media annotation area")).toBeVisible();
     const layout = await widget.locator("html").evaluate(() => {
       const selectors = ["html", "body", "#root", ".focused-review-app", ".review-workspace", ".review-stage-shell", ".review-action-dock", ".composer-input-shell"];
       return {
@@ -72,11 +72,11 @@ for (const width of [728, 1310]) {
 
 test("focused editor uses an explicit persisted intent basket and one unified media picker", async ({ page }) => {
   const { widgetHtml, widget } = await fixture(page);
-  await widget.getByRole("button", { name: "批准并打开标注板" }).click();
-  await expect(widget.getByLabel("固定媒体标注区")).toBeVisible();
+  await widget.getByRole("button", { name: "Approve and open annotation board" }).click();
+  await expect(widget.getByLabel("Fixed media annotation area")).toBeVisible();
   const approvalCall = await page.evaluate(() => window.__mockCalls?.find(({ name }) => name === "authorize_renoise_whiteboard_workspace"));
   expect(approvalCall?.arguments).toEqual({ approvedProjectDir: "/tmp/renoise-mock" });
-  const actionDock = widget.getByLabel("标注与生成说明");
+  const actionDock = widget.getByLabel("Annotations and revision instructions");
   await expect(actionDock.locator(":scope > .annotation-toolbar")).toHaveCount(1);
   await expect(actionDock.locator(":scope > .intent-composer")).toHaveCount(1);
   await expect(actionDock).toHaveCSS("max-width", "1280px");
@@ -99,39 +99,39 @@ test("focused editor uses an explicit persisted intent basket and one unified me
   await expect(widget.locator(".intent-chip")).toHaveCount(0);
 
   const selectionCallsBeforeCanvasClick = await page.evaluate(() => window.__mockCalls?.filter(({ name }) => name === "save_renoise_whiteboard_selection").length ?? 0);
-  await widget.getByLabel("标注层").click({ position: { x: 180, y: 130 } });
+  await widget.getByLabel("Annotation layer").click({ position: { x: 180, y: 130 } });
   await page.waitForTimeout(250);
   expect(await page.evaluate(() => window.__mockCalls?.filter(({ name }) => name === "save_renoise_whiteboard_selection").length ?? 0)).toBe(selectionCallsBeforeCanvasClick);
 
-  await expect(widget.getByRole("button", { name: "取消" })).toHaveCount(0);
+  await expect(widget.getByRole("button", { name: "Cancel" })).toHaveCount(0);
   await expect(widget.locator(".intent-chip")).toHaveCount(0);
-  await expect(widget.getByRole("button", { name: "添加至对话" })).toHaveCount(0);
-  await expect(widget.getByRole("textbox", { name: "生成说明" })).toHaveAttribute("data-placeholder", "先使用上方工具标注画面，再说明你想要变更的内容");
-  await widget.getByRole("button", { name: "矩形" }).click();
-  await expect(widget.getByRole("button", { name: "取消" })).toBeVisible();
-  await expect(widget.getByRole("button", { name: "添加至对话" })).toBeVisible();
-  await expect(widget.getByRole("button", { name: "添加至对话" })).toBeDisabled();
-  await expect(widget.getByRole("button", { name: "撤销" })).toBeDisabled();
-  await widget.getByRole("button", { name: "取消" }).click();
-  await expect(widget.getByRole("button", { name: "取消" })).toHaveCount(0);
-  await expect(widget.getByRole("button", { name: "添加至对话" })).toHaveCount(0);
-  await widget.getByRole("button", { name: "编号标注" }).click();
-  await expect(widget.getByRole("button", { name: "撤销" })).toBeDisabled();
-  await widget.getByLabel("标注层").click({ position: { x: 180, y: 130 } });
-  await widget.getByLabel("标注层").click({ position: { x: 260, y: 190 } });
-  await expect(widget.getByLabel("标注层").locator('[data-mark-id]')).toHaveCount(2);
-  await expect(widget.getByLabel("标注层").getByText("1")).toBeVisible();
-  await expect(widget.getByLabel("标注层").getByText("2")).toBeVisible();
-  await expect(widget.getByRole("button", { name: "编号标注" })).toHaveAttribute("aria-pressed", "true");
-  await expect(widget.getByRole("button", { name: "撤销" })).toBeEnabled();
-  await widget.getByRole("button", { name: "撤销" }).click();
-  await expect(widget.getByLabel("标注层").locator('[data-mark-id]')).toHaveCount(1);
-  await expect(widget.getByRole("button", { name: "编号标注" })).toHaveAttribute("aria-pressed", "true");
-  await widget.getByRole("button", { name: "重做" }).click();
-  await expect(widget.getByLabel("标注层").locator('[data-mark-id]')).toHaveCount(2);
-  await widget.getByRole("button", { name: "添加至对话" }).click();
-  await expect(widget.getByRole("button", { name: "添加至对话" })).toHaveCount(0);
-  const firstClip = widget.getByRole("button", { name: "查看图片标注" }).first();
+  await expect(widget.getByRole("button", { name: "Add to prompt" })).toHaveCount(0);
+  await expect(widget.getByRole("textbox", { name: "Revision instructions" })).toHaveAttribute("data-placeholder", "Annotate the image with the tools above, then describe the change you want");
+  await widget.getByRole("button", { name: "Rectangle" }).click();
+  await expect(widget.getByRole("button", { name: "Cancel" })).toBeVisible();
+  await expect(widget.getByRole("button", { name: "Add to prompt" })).toBeVisible();
+  await expect(widget.getByRole("button", { name: "Add to prompt" })).toBeDisabled();
+  await expect(widget.getByRole("button", { name: "Undo" })).toBeDisabled();
+  await widget.getByRole("button", { name: "Cancel" }).click();
+  await expect(widget.getByRole("button", { name: "Cancel" })).toHaveCount(0);
+  await expect(widget.getByRole("button", { name: "Add to prompt" })).toHaveCount(0);
+  await widget.getByRole("button", { name: "Numbered marker" }).click();
+  await expect(widget.getByRole("button", { name: "Undo" })).toBeDisabled();
+  await widget.getByLabel("Annotation layer").click({ position: { x: 180, y: 130 } });
+  await widget.getByLabel("Annotation layer").click({ position: { x: 260, y: 190 } });
+  await expect(widget.getByLabel("Annotation layer").locator('[data-mark-id]')).toHaveCount(2);
+  await expect(widget.getByLabel("Annotation layer").getByText("1")).toBeVisible();
+  await expect(widget.getByLabel("Annotation layer").getByText("2")).toBeVisible();
+  await expect(widget.getByRole("button", { name: "Numbered marker" })).toHaveAttribute("aria-pressed", "true");
+  await expect(widget.getByRole("button", { name: "Undo" })).toBeEnabled();
+  await widget.getByRole("button", { name: "Undo" }).click();
+  await expect(widget.getByLabel("Annotation layer").locator('[data-mark-id]')).toHaveCount(1);
+  await expect(widget.getByRole("button", { name: "Numbered marker" })).toHaveAttribute("aria-pressed", "true");
+  await widget.getByRole("button", { name: "Redo" }).click();
+  await expect(widget.getByLabel("Annotation layer").locator('[data-mark-id]')).toHaveCount(2);
+  await widget.getByRole("button", { name: "Add to prompt" }).click();
+  await expect(widget.getByRole("button", { name: "Add to prompt" })).toHaveCount(0);
+  const firstClip = widget.getByRole("button", { name: "View image annotation" }).first();
   await expect(firstClip).toBeVisible();
   await expect(firstClip).toHaveAttribute("aria-pressed", "true");
   await expect(firstClip.locator(".intent-chip-label")).toHaveCount(0);
@@ -174,20 +174,20 @@ test("focused editor uses an explicit persisted intent basket and one unified me
   expect(hoverMetrics.withinVerticalBoundary).toBe(true);
   await expect.poll(() => page.evaluate(() => window.__mockSelection?.selectedObjectIds.length)).toBe(1);
   await expect.poll(() => page.evaluate(() => window.__mockSelection?.selectedAnnotationIds.length)).toBe(1);
-  await expect(widget.getByLabel("标注层").locator('[data-mark-id]')).toHaveCount(0);
-  const inlineEditor = widget.getByRole("textbox", { name: "生成说明" });
+  await expect(widget.getByLabel("Annotation layer").locator('[data-mark-id]')).toHaveCount(0);
+  const inlineEditor = widget.getByRole("textbox", { name: "Revision instructions" });
   await inlineEditor.click();
   await inlineEditor.press("End");
   await inlineEditor.pressSequentially(" 增加王冠，在 ");
 
   const imageOnlyPicker = widget.locator('input[type="file"][accept="image/png,image/jpeg,image/webp,image/gif"]');
   await imageOnlyPicker.setInputFiles({ name: "local-reference.png", mimeType: "image/png", buffer: tinyPng });
-  await expect(widget.getByRole("button", { name: "添加至对话" })).toHaveCount(0);
-  await widget.getByRole("button", { name: "编号标注" }).click();
-  await widget.getByLabel("标注层").click({ position: { x: 200, y: 150 } });
-  await widget.getByRole("button", { name: "添加至对话" }).click();
+  await expect(widget.getByRole("button", { name: "Add to prompt" })).toHaveCount(0);
+  await widget.getByRole("button", { name: "Numbered marker" }).click();
+  await widget.getByLabel("Annotation layer").click({ position: { x: 200, y: 150 } });
+  await widget.getByRole("button", { name: "Add to prompt" }).click();
   await expect.poll(() => page.evaluate(() => window.__mockSelection?.selectedObjectIds.length)).toBe(2);
-  const secondClip = widget.getByRole("button", { name: "查看图片标注" }).nth(1);
+  const secondClip = widget.getByRole("button", { name: "View image annotation" }).nth(1);
   await expect(secondClip).toBeVisible();
   await expect(secondClip).toHaveAttribute("aria-pressed", "true");
   await firstClip.click();
@@ -231,7 +231,7 @@ test("focused editor uses an explicit persisted intent basket and one unified me
     expect(part.right).toBeLessThanOrEqual(layout.viewportWidth + 1);
   }
   await inlineEditor.evaluate((element) => { element.scrollLeft = 0; });
-  await widget.getByRole("button", { name: "提交标注请求" }).hover();
+  await widget.getByRole("button", { name: "Submit annotation request" }).hover();
   await expect(widget.getByRole("tooltip")).toHaveCount(0);
   await expect(actionDock).toHaveScreenshot("inline-annotation-clip.png");
 
@@ -246,55 +246,55 @@ test("focused editor uses an explicit persisted intent basket and one unified me
     void connecting;
   }, widgetHtml);
   const restored = page.frameLocator("#restored-widget");
-  await restored.getByRole("button", { name: "打开标注板" }).click();
+  await restored.getByRole("button", { name: "Open annotation board" }).click();
   await expect(restored.locator(".intent-chip")).toHaveCount(2);
-  await expect(restored.getByRole("button", { name: "查看图片标注" })).toHaveCount(2);
+  await expect(restored.getByRole("button", { name: "View image annotation" })).toHaveCount(2);
   await expect.poll(() => restored.locator(".intent-chip-preview > img").evaluateAll((images: HTMLImageElement[]) =>
     images.length === 2 && images.every(({ naturalWidth }) => naturalWidth > 0))).toBe(true);
 
-  await expect(restored.getByRole("textbox", { name: "生成说明" })).toContainText("增加王冠，在");
-  await restored.getByRole("button", { name: "提交标注请求" }).click();
+  await expect(restored.getByRole("textbox", { name: "Revision instructions" })).toContainText("增加王冠，在");
+  await restored.getByRole("button", { name: "Submit annotation request" }).click();
   await expect.poll(() => page.evaluate(() => window.__mockCalls?.filter(({ name }) => name === "submit_renoise_whiteboard_revision_intent").length)).toBe(1);
   await expect.poll(() => page.evaluate(() => {
     const call = window.__mockCalls?.find(({ name }) => name === "submit_renoise_whiteboard_revision_intent");
     return (call?.arguments as { instruction?: string } | undefined)?.instruction;
-  })).toBe("【标注1：图片】 增加王冠，在 【标注2：图片】 调整环境光线");
+  })).toBe("[Annotation 1: image] 增加王冠，在 [Annotation 2: image] 调整环境光线");
   await expect.poll(() => page.evaluate(() => window.__mockMessages?.length)).toBe(1);
   const sentMessage = await page.evaluate(() => JSON.stringify(window.__mockMessages?.[0]));
-  expect(sentMessage).toContain("直接回复到当前对话");
+  expect(sentMessage).toContain("reply directly in this conversation");
   expect(sentMessage).not.toContain("返修");
   expect(sentMessage).not.toContain("回填");
 });
 
 test("the first direct image upload on an empty focused stage remains stable and is not added before confirmation", async ({ page }) => {
   const { widget } = await fixture(page, { startEmpty: true, omitRootParentId: true });
-  await widget.getByRole("button", { name: "批准并打开标注板" }).click();
-  await expect(widget.getByRole("button", { name: /添加图片或视频/ })).toBeVisible();
+  await widget.getByRole("button", { name: "Approve and open annotation board" }).click();
+  await expect(widget.getByRole("button", { name: /Add an image or video/ })).toBeVisible();
   await widget.locator('input[type="file"][accept*="video/mp4"]').setInputFiles({ name: "first.png", mimeType: "image/png", buffer: tinyPng });
-  await expect(widget.getByLabel("固定媒体标注区")).toBeVisible();
+  await expect(widget.getByLabel("Fixed media annotation area")).toBeVisible();
   await expect(widget.locator(".intent-chip")).toHaveCount(0);
-  await expect(widget.getByRole("button", { name: "添加至对话" })).toHaveCount(0);
-  await widget.getByRole("button", { name: "编号标注" }).click();
-  await widget.getByLabel("标注层").click({ position: { x: 200, y: 180 } });
-  await widget.getByRole("button", { name: "添加至对话" }).click();
-  await expect(widget.getByRole("button", { name: "查看图片标注" })).toBeVisible();
+  await expect(widget.getByRole("button", { name: "Add to prompt" })).toHaveCount(0);
+  await widget.getByRole("button", { name: "Numbered marker" }).click();
+  await widget.getByLabel("Annotation layer").click({ position: { x: 200, y: 180 } });
+  await widget.getByRole("button", { name: "Add to prompt" }).click();
+  await expect(widget.getByRole("button", { name: "View image annotation" })).toBeVisible();
   await page.waitForTimeout(2_200);
   await expect.poll(() => page.evaluate(() => window.__mockDocument?.page.objects.length)).toBe(3);
-  await expect(widget.getByRole("button", { name: "打开恢复诊断控制台" })).toHaveCount(0);
+  await expect(widget.getByRole("button", { name: "Open recovery diagnostics console" })).toHaveCount(0);
   expect(await page.evaluate(() => window.__mockCalls?.filter(({ name }) => name === "save_renoise_whiteboard_state").length)).toBeGreaterThanOrEqual(2);
 });
 
 test("adding immediately after drawing flushes the final mark into the persisted intent", async ({ page }) => {
   const { widget } = await fixture(page, { startEmpty: true });
-  await widget.getByRole("button", { name: "批准并打开标注板" }).click();
+  await widget.getByRole("button", { name: "Approve and open annotation board" }).click();
   await widget.locator('input[type="file"][accept*="video/mp4"]').setInputFiles({
     name: "annotate-now.png",
     mimeType: "image/png",
     buffer: tinyPng,
   });
-  const canvas = widget.getByLabel("标注层");
+  const canvas = widget.getByLabel("Annotation layer");
   await expect(canvas).toBeVisible();
-  await widget.getByRole("button", { name: "矩形" }).click();
+  await widget.getByRole("button", { name: "Rectangle" }).click();
   const canvasBox = await canvas.boundingBox();
   if (!canvasBox) throw new Error("missing annotation stage bounds");
   await page.mouse.move(canvasBox.x + canvasBox.width * .25, canvasBox.y + canvasBox.height * .25);
@@ -302,11 +302,11 @@ test("adding immediately after drawing flushes the final mark into the persisted
   await page.mouse.move(canvasBox.x + canvasBox.width * .65, canvasBox.y + canvasBox.height * .65, { steps: 6 });
   await page.mouse.up();
   await expect(canvas.locator('[data-mark-id]')).toHaveCount(1);
-  await expect(widget.getByRole("button", { name: "矩形" })).toHaveAttribute("aria-pressed", "true");
-  await widget.getByRole("button", { name: "添加至对话" }).click();
+  await expect(widget.getByRole("button", { name: "Rectangle" })).toHaveAttribute("aria-pressed", "true");
+  await widget.getByRole("button", { name: "Add to prompt" }).click();
 
   await expect.poll(() => page.evaluate(() => window.__mockSelection?.selectedAnnotationIds.length)).toBe(1);
   await expect.poll(() => page.evaluate(() => window.__mockDocument?.page.annotations.length)).toBe(1);
   await expect.poll(() => page.evaluate(() => window.__mockDocument?.page.objects.length)).toBe(3);
-  await expect(widget.getByLabel("标注层").locator('[data-mark-id]')).toHaveCount(0);
+  await expect(widget.getByLabel("Annotation layer").locator('[data-mark-id]')).toHaveCount(0);
 });

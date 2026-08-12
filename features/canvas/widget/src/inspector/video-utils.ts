@@ -9,13 +9,13 @@ export function formatTimecode(timeMs: number) {
 
 export function captureVideoFrame(video: HTMLVideoElement) {
   if (!video.videoWidth || !video.videoHeight || video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA) {
-    throw new Error("当前视频帧尚未就绪");
+    throw new Error("The current video frame is not ready yet");
   }
   const canvas = document.createElement("canvas");
   canvas.width = video.videoWidth;
   canvas.height = video.videoHeight;
   const context = canvas.getContext("2d");
-  if (!context) throw new Error("浏览器无法创建视频帧画布");
+  if (!context) throw new Error("The browser cannot create a video-frame canvas");
   context.drawImage(video, 0, 0, canvas.width, canvas.height);
   return canvas.toDataURL("image/png");
 }
@@ -24,7 +24,7 @@ function waitFor(video: HTMLVideoElement, event: "loadedmetadata" | "seeked" | "
   return new Promise<void>((resolve, reject) => {
     const timeout = window.setTimeout(() => {
       cleanup();
-      reject(new Error("视频读取超时"));
+      reject(new Error("Video read timed out"));
     }, timeoutMs);
     const cleanup = () => {
       clearTimeout(timeout);
@@ -38,7 +38,7 @@ function waitFor(video: HTMLVideoElement, event: "loadedmetadata" | "seeked" | "
     const failed = () => {
       cleanup();
       const detail = video.error?.message ? `：${video.error.message}` : "";
-      reject(new Error(`当前宿主无法直接解码所选视频${detail}`));
+      reject(new Error(`The current host cannot decode the selected video directly${detail}`));
     };
     video.addEventListener(event, ready, { once: true });
     video.addEventListener("error", failed, { once: true });

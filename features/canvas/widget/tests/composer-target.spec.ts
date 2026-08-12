@@ -14,12 +14,12 @@ test("composer interleaves clips with copy and submits sources in inline order",
   const javascript = bundle.outputFiles[0].text.replaceAll("</script", "<\\/script");
   await page.setContent(`<div id="root"></div><script type="module">${javascript}</script>`);
 
-  await expect(page.getByRole("button", { name: "查看图片标注" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "View image annotation" })).toBeVisible();
   await expect(page.getByText("00:04.000")).toBeVisible();
-  const editor = page.getByLabel("生成说明");
+  const editor = page.getByLabel("Revision instructions");
   await expect(editor).toContainText("在");
-  const firstClip = page.getByRole("button", { name: "查看图片标注" });
-  const secondClip = page.getByRole("button", { name: "查看视频帧 00:04.000标注" });
+  const firstClip = page.getByRole("button", { name: "View image annotation" });
+  const secondClip = page.getByRole("button", { name: "View video frame 00:04.000 annotation" });
   await expect.poll(() => firstClip.locator(".intent-chip-preview > img").evaluate((image: HTMLImageElement) => image.naturalWidth)).toBe(1);
   const positions = await page.locator(".composer-inline-editor").evaluate((root) => {
     const clips = root.querySelectorAll<HTMLElement>("[data-clip-id]");
@@ -38,13 +38,13 @@ test("composer interleaves clips with copy and submits sources in inline order",
   await editor.evaluate((element) => {
     element.dispatchEvent(new CompositionEvent("compositionend", { bubbles: true, data: "王" }));
   });
-  await page.getByRole("button", { name: "提交标注请求" }).click();
+  await page.getByRole("button", { name: "Submit annotation request" }).click();
   await expect.poll(() => page.evaluate(() => window.__submittedIntent)).toEqual({
     ids: ["object_target_a", "object_target_b"],
-    prompt: "在 【标注1：图片】 增加王冠，在 【标注2：视频帧 00:04.000】 调整光线",
+    prompt: "在 [Annotation 1: image] 增加王冠，在 [Annotation 2: video frame 00:04.000] 调整光线",
   });
 
-  await page.getByRole("button", { name: "移除视频帧 00:04.000标注" }).click();
+  await page.getByRole("button", { name: "Remove video frame 00:04.000 annotation" }).click();
   await expect(page.getByText("00:04.000")).toHaveCount(0);
   await expect(secondClip).toHaveCount(0);
 });

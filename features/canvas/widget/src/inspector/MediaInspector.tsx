@@ -29,19 +29,19 @@ function RevisionCompare({ original, revision, readAsset }: {
   }, [original.data.assetId, revision.data.assetId, readAsset]);
 
   return (
-    <section className="revision-compare" aria-label="版本对比">
-      <div className="inspector-section-title">版本对比</div>
+    <section className="revision-compare" aria-label="Revision comparison">
+      <div className="inspector-section-title">Revision comparison</div>
       {urls.error ? <p className="media-error">{urls.error}</p> : urls.original && urls.revision ? (
         <>
           <div className="compare-stage">
-            <img src={urls.original} alt="原始版本" />
-            <div className="compare-revision" style={{ width: `${position}%` }}><img src={urls.revision} alt="返修版本" /></div>
+            <img src={urls.original} alt="Original version" />
+            <div className="compare-revision" style={{ width: `${position}%` }}><img src={urls.revision} alt="Revised version" /></div>
             <span className="compare-divider" style={{ left: `${position}%` }} />
           </div>
-          <input aria-label="版本对比位置" type="range" min="0" max="100" value={position} onChange={(event) => setPosition(Number(event.target.value))} />
-          <div className="compare-labels"><span>原图</span><span>返修</span></div>
+          <input aria-label="Revision comparison position" type="range" min="0" max="100" value={position} onChange={(event) => setPosition(Number(event.target.value))} />
+          <div className="compare-labels"><span>Original</span><span>Revision</span></div>
         </>
-      ) : <p className="media-muted">正在加载对比素材…</p>}
+      ) : <p className="media-muted">Loading comparison media…</p>}
     </section>
   );
 }
@@ -105,30 +105,30 @@ export function MediaInspector({ selected, document, readAsset, readVideoAsset, 
   const frameSource = source && "kind" in source && source.kind === "video-frame" ? source : undefined;
 
   return (
-    <aside className="media-inspector" aria-label="媒体检查器">
+    <aside className="media-inspector" aria-label="Media inspector">
       <header>
-        <span><Film />媒体</span>
-        <button onClick={onClose} aria-label="关闭媒体检查器"><X /></button>
+        <span><Film />Media</span>
+        <button onClick={onClose} aria-label="Close media inspector"><X /></button>
       </header>
       <input ref={inputRef} hidden type="file" accept="video/mp4,video/webm" onChange={(event) => {
         const file = event.target.files?.[0];
         if (file) void onImportVideo(file);
         event.target.value = "";
       }} />
-      <button className="media-import-button" disabled={transfer?.phase === "upload"} onClick={() => inputRef.current?.click()}><Upload />{transfer?.phase === "upload" ? "上传中…" : "导入视频"}</button>
+      <button className="media-import-button" disabled={transfer?.phase === "upload"} onClick={() => inputRef.current?.click()}><Upload />{transfer?.phase === "upload" ? "Uploading…" : "Import video"}</button>
       {transfer && (
-        <div className="media-transfer" aria-label={transfer.phase === "upload" ? "视频上传进度" : "视频读取进度"}>
+        <div className="media-transfer" aria-label={transfer.phase === "upload" ? "Video upload progress" : "Video read progress"}>
           <progress max={Math.max(1, transfer.total)} value={transfer.loaded} />
           <span>{Math.round(transfer.loaded / Math.max(1, transfer.total) * 100)}%</span>
-          <button onClick={onCancelTransfer}>取消</button>
+          <button onClick={onCancelTransfer}>Cancel</button>
         </div>
       )}
-      {!selected && <p className="media-muted">选择视频卡片可播放、定位时间码并捕获画面。</p>}
+      {!selected && <p className="media-muted">Select a video card to play, seek, and capture a frame.</p>}
 
       {video && (
         <section className="video-section">
           <div className="inspector-section-title">{video.data.fileName}</div>
-          {error ? <div className="video-error"><Film /><span>{error}</span><button onClick={() => inputRef.current?.click()}>重新选择</button></div> : videoUrl ? (
+          {error ? <div className="video-error"><Film /><span>{error}</span><button onClick={() => inputRef.current?.click()}>Choose again</button></div> : videoUrl ? (
             <>
               <video
                 ref={videoRef}
@@ -152,10 +152,10 @@ export function MediaInspector({ selected, document, readAsset, readVideoAsset, 
                     void onTimeCommit(video, actualTimeMs);
                   }
                 }}
-                onError={() => setError("视频无法播放，请重新导入 MP4 或 WebM")}
+                onError={() => setError("The video cannot be played. Re-import an MP4 or WebM file")}
               />
               <div className="timecode-row">
-                <code aria-label="当前时间码">{formatTimecode(timeMs)}</code>
+                <code aria-label="Current timecode">{formatTimecode(timeMs)}</code>
                 <button
                   disabled={capturing || seeking}
                   onClick={() => {
@@ -173,11 +173,11 @@ export function MediaInspector({ selected, document, readAsset, readVideoAsset, 
                     }
                   }}
                 >
-                  <Camera />{capturing ? "捕获中…" : "捕获当前帧"}
+                  <Camera />{capturing ? "Capturing…" : "Capture current frame"}
                 </button>
               </div>
               <input
-                aria-label="视频时间轴"
+                aria-label="Video timeline"
                 type="range"
                 min="0"
                 max={Math.max(1, video.data.durationMs)}
@@ -203,17 +203,17 @@ export function MediaInspector({ selected, document, readAsset, readVideoAsset, 
                 }}
               />
             </>
-          ) : <p className="media-muted">{readProgress ? `正在读取视频… ${Math.round(readProgress.loaded / Math.max(1, readProgress.total) * 100)}%` : "正在加载视频…"}</p>}
+          ) : <p className="media-muted">{readProgress ? `Reading video… ${Math.round(readProgress.loaded / Math.max(1, readProgress.total) * 100)}%` : "Loading video…"}</p>}
         </section>
       )}
 
       {frameSource && (
         <section className="frame-provenance">
-          <div className="inspector-section-title"><ImagePlus />源视频帧</div>
+          <div className="inspector-section-title"><ImagePlus />Source video frame</div>
           <dl>
-            <div><dt>时间码</dt><dd>{formatTimecode(frameSource.timeMs)}</dd></div>
-            <div><dt>视频素材</dt><dd>{frameSource.videoAssetId}</dd></div>
-            <div><dt>来源校验</dt><dd>{frameSource.videoSha256.slice(0, 12)}…</dd></div>
+            <div><dt>Timecode</dt><dd>{formatTimecode(frameSource.timeMs)}</dd></div>
+            <div><dt>Video asset</dt><dd>{frameSource.videoAssetId}</dd></div>
+            <div><dt>Source checksum</dt><dd>{frameSource.videoSha256.slice(0, 12)}…</dd></div>
           </dl>
         </section>
       )}

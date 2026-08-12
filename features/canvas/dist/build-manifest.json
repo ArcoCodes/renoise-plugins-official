@@ -1,12 +1,12 @@
 {
   "schemaVersion": 1,
-  "sourceTreeSha256": "f83f91c692a054751b4c8ea50653e775a97d01370a67800446b7efe071de71cf",
-  "widgetBuildId": "f83f91c692a0",
+  "sourceTreeSha256": "14a9615d7295f569474d1c4daff00e819105c0953f97eb8fc9c92a06834163d9",
+  "widgetBuildId": "14a9615d7295",
   "entrypoints": [
     "server.mjs",
     "widget.html"
   ],
-  "widgetBytes": 701848,
+  "widgetBytes": 697240,
   "serverInputs": [
     "features/canvas/server/main.ts",
     "features/canvas/server/media/media-gateway.ts",

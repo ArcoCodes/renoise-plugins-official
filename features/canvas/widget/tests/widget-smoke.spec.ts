@@ -12,9 +12,9 @@ test("self-contained widget boots into a compact, inert review launcher without 
   const html = await readFile(resolve("features/canvas/dist/widget.html"), "utf8");
   await page.setContent(html, { waitUntil: "domcontentloaded" });
 
-  await expect(page.getByRole("heading", { name: "Renoise 标注板" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "批准并打开标注板" })).toBeDisabled();
-  await expect(page.locator(".review-project code")).toContainText("等待项目目录");
+  await expect(page.getByRole("heading", { name: "Renoise Annotation Board" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Approve and open annotation board" })).toBeDisabled();
+  await expect(page.locator(".review-project code")).toContainText("Waiting for project directory");
   await expect(page.locator(".review-launcher-card")).toHaveScreenshot("review-launcher-card.png");
   expect(externalRequests).toEqual([]);
   expect(errors).toEqual([]);

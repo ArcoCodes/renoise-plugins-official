@@ -2,10 +2,10 @@ import { ChevronDown, Copy, Download, RefreshCw, Trash2 } from "lucide-react";
 import type { RecoveryDiagnosticEntry } from "./recovery-diagnostics.js";
 
 const statusLabel = {
-  info: "进行中",
-  success: "完成",
-  warning: "降级",
-  error: "失败",
+  info: "In progress",
+  success: "Complete",
+  warning: "Fallback",
+  error: "Failed",
 } as const;
 
 function formatTimestamp(timestamp: number) {
@@ -61,28 +61,28 @@ export function RecoveryConsole({
       <button
         type="button"
         className={`recovery-console-trigger ${latest?.status ?? "info"}`}
-        aria-label="打开恢复诊断控制台"
+        aria-label="Open recovery diagnostics console"
         onClick={() => onOpenChange(true)}
       >
         <span className="recovery-status-dot" aria-hidden />
-        <span>恢复控制台</span>
+        <span>Recovery console</span>
         {latest ? <small>{latest.stage}</small> : null}
       </button>
     );
   }
 
   return (
-    <section className="recovery-console" aria-label="恢复诊断控制台">
+    <section className="recovery-console" aria-label="Recovery diagnostics console">
       <header>
         <div>
-          <strong>恢复诊断</strong>
-          <span>{entries.length ? `${entries.length} 条事件` : "等待恢复事件"}</span>
+          <strong>Recovery diagnostics</strong>
+          <span>{entries.length ? `${entries.length} events` : "Waiting for recovery events"}</span>
         </div>
         <div className="recovery-console-actions">
-          <button className="recovery-console-labeled-action" type="button" onClick={copy} aria-label="复制恢复日志" title="复制日志"><Copy /><span>复制</span></button>
-          <button className="recovery-console-labeled-action" type="button" onClick={download} aria-label="下载恢复日志 JSON" title="下载 JSON"><Download /><span>下载</span></button>
-          <button type="button" onClick={onClear} aria-label="清空恢复日志" title="清空日志"><Trash2 /></button>
-          <button type="button" onClick={() => onOpenChange(false)} aria-label="折叠恢复控制台" title="折叠"><ChevronDown /></button>
+          <button className="recovery-console-labeled-action" type="button" onClick={copy} aria-label="Copy recovery log" title="Copy log"><Copy /><span>Copy</span></button>
+          <button className="recovery-console-labeled-action" type="button" onClick={download} aria-label="Download recovery log JSON" title="Download JSON"><Download /><span>Download</span></button>
+          <button type="button" onClick={onClear} aria-label="Clear recovery log" title="Clear log"><Trash2 /></button>
+          <button type="button" onClick={() => onOpenChange(false)} aria-label="Collapse recovery console" title="Collapse"><ChevronDown /></button>
         </div>
       </header>
       <div className="recovery-console-list" role="log" aria-live="polite">
@@ -96,11 +96,11 @@ export function RecoveryConsole({
               {entry.detail ? <code>{entry.detail}</code> : null}
             </div>
           </article>
-        )) : <p className="recovery-console-empty">尚无诊断事件</p>}
+        )) : <p className="recovery-console-empty">No diagnostic events yet</p>}
       </div>
       <footer>
-        <button type="button" onClick={onForceRecovery}><RefreshCw />重新读取状态和素材</button>
-        <span>会跳过本地媒体通道，直接验证项目文件读取。</span>
+        <button type="button" onClick={onForceRecovery}><RefreshCw />Reread state and media</button>
+        <span>Skips the local media channel and validates project-file reads directly.</span>
       </footer>
     </section>
   );

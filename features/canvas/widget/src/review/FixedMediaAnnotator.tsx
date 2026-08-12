@@ -97,7 +97,7 @@ function visibleDrawMark(mark: AnnotationDraftMark, width: number, height: numbe
 
 function canvasToPngBlob(canvas: HTMLCanvasElement) {
   return new Promise<Blob>((resolve, reject) => canvas.toBlob(
-    (blob) => blob ? resolve(blob) : reject(new Error("无法生成标注 PNG")),
+    (blob) => blob ? resolve(blob) : reject(new Error("Could not generate the annotated PNG")),
     "image/png",
   ));
 }
@@ -264,9 +264,9 @@ export const FixedMediaAnnotator = forwardRef<FixedMediaAnnotatorHandle, {
     snapshot: async () => {
       const image = imageRef.current;
       const marks = stateRef.current.present;
-      if (!image?.complete || !image.naturalWidth || !image.naturalHeight) throw new Error("媒体仍在加载，请稍后再试");
+      if (!image?.complete || !image.naturalWidth || !image.naturalHeight) throw new Error("The media is still loading. Try again shortly");
       const visibleMarks = marks.filter((mark) => visibleDrawMark(mark, mediaSize.width, mediaSize.height, visualScale));
-      if (!visibleMarks.length) throw new Error("请至少添加一个清晰可见的标注后再提交");
+      if (!visibleMarks.length) throw new Error("Add at least one clearly visible annotation before submitting");
       const exportScale = Math.min(
         1,
         MAX_EXPORT_EDGE / image.naturalWidth,
@@ -275,7 +275,7 @@ export const FixedMediaAnnotator = forwardRef<FixedMediaAnnotatorHandle, {
       );
       const canvas = document.createElement("canvas");
       const context = canvas.getContext("2d");
-      if (!context) throw new Error("无法创建标注快照");
+      if (!context) throw new Error("Could not create the annotation snapshot");
       let blob: Blob | undefined;
       let boundedScale = exportScale;
       for (let attempt = 0; attempt < 6; attempt += 1) {
@@ -289,7 +289,7 @@ export const FixedMediaAnnotator = forwardRef<FixedMediaAnnotatorHandle, {
         if (blob.size <= MAX_EXPORT_BYTES) break;
         boundedScale *= Math.min(.82, Math.sqrt(MAX_EXPORT_BYTES / blob.size) * .9);
       }
-      if (!blob || blob.size > MAX_EXPORT_BYTES) throw new Error("标注截图仍然过大，请缩小图片后重试");
+      if (!blob || blob.size > MAX_EXPORT_BYTES) throw new Error("The annotated image is still too large. Resize the image and try again");
       return {
         blob,
         width: canvas.width,
@@ -383,21 +383,21 @@ export const FixedMediaAnnotator = forwardRef<FixedMediaAnnotatorHandle, {
     : state.present;
 
   return (
-    <div ref={containerRef} className="fixed-annotator" aria-label="固定媒体标注区">
+    <div ref={containerRef} className="fixed-annotator" aria-label="Fixed media annotation area">
       <div className="fixed-media-frame" style={{ width: frameSize.width, height: frameSize.height }}>
         {loadError ? (
           <button type="button" className="fixed-media-error" onClick={() => setLoadAttempt((value) => value + 1)}>
-            <strong>媒体加载失败</strong><span>{loadError}</span><em>重新加载</em>
+            <strong>Media failed to load</strong><span>{loadError}</span><em>Reload</em>
           </button>
         ) : sourceUrl ? <img
           ref={imageRef}
           src={sourceUrl}
           crossOrigin="anonymous"
           draggable={false}
-          alt={target.data.alt || "待标注图片"}
+          alt={target.data.alt || "Image to annotate"}
           onLoad={(event) => setMediaSize({ width: event.currentTarget.naturalWidth, height: event.currentTarget.naturalHeight })}
-          onError={() => setLoadError("图片解码失败，请重新加载")}
-        /> : <span>正在加载媒体…</span>}
+          onError={() => setLoadError("The image could not be decoded. Reload and try again")}
+        /> : <span>Loading media…</span>}
         {sourceUrl && !loadError ? <svg
           ref={svgRef}
           viewBox={`0 0 ${mediaSize.width} ${mediaSize.height}`}
@@ -405,7 +405,7 @@ export const FixedMediaAnnotator = forwardRef<FixedMediaAnnotatorHandle, {
           onPointerMove={pointerMove}
           onPointerUp={pointerUp}
           onPointerCancel={() => { gestureRef.current = undefined; setPreview(undefined); }}
-          aria-label="标注层"
+          aria-label="Annotation layer"
         >
           <defs>
             <marker id="draft-arrow-head" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#FF4D4F" /></marker>
@@ -434,7 +434,7 @@ export const FixedMediaAnnotator = forwardRef<FixedMediaAnnotatorHandle, {
               if (event.key === "Enter") event.currentTarget.blur();
               if (event.key === "Escape") setTextEditor(undefined);
             }}
-            placeholder="输入标注文字"
+            placeholder="Enter annotation text"
           />
         ) : null}
       </div>

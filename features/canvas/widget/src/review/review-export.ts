@@ -37,12 +37,12 @@ export function renderReviewSnapshot(canvas: Canvas, selectedIds: string[], anno
 export function renderAnnotatedTargetSnapshot(canvas: Canvas, targetId: string, annotations: AnnotationRecord[]) {
   const relevant = reviewObjectIds([targetId], annotations);
   const target = canvas.getObjects().find((object) => getMeta(object)?.id === targetId);
-  if (!target) throw new Error("当前媒体尚未完成渲染");
+  if (!target) throw new Error("The current media has not finished rendering");
   const markCount = canvas.getObjects().filter((object) => {
     const id = getMeta(object)?.id;
     return Boolean(object.visible && id && id !== targetId && relevant.has(id));
   }).length;
-  if (!markCount) throw new Error("请至少添加一个标注后再提交");
+  if (!markCount) throw new Error("Add at least one annotation before submitting");
   const bounds = target.getBoundingRect();
   const visibility = canvas.getObjects().map((object) => [object, object.visible] as const);
   const activeObject = canvas.getActiveObject();

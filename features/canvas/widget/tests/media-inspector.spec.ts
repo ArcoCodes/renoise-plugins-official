@@ -19,10 +19,10 @@ test("native video inspector seeks, reports timecode, captures PNG, and exposes 
   const video = page.locator("video");
   await expect(video).toBeVisible();
   await expect.poll(() => video.evaluate((element: HTMLVideoElement) => element.readyState)).toBeGreaterThanOrEqual(2);
-  await expect(page.getByLabel("当前时间码")).toContainText("00:00:");
+  await expect(page.getByLabel("Current timecode")).toContainText("00:00:");
 
-  const timeline = page.getByLabel("视频时间轴");
-  const capture = page.getByRole("button", { name: "捕获当前帧" });
+  const timeline = page.getByLabel("Video timeline");
+  const capture = page.getByRole("button", { name: "Capture current frame" });
   await video.dispatchEvent("seeking");
   await expect(capture).toBeDisabled();
   await page.waitForTimeout(120);
@@ -30,7 +30,7 @@ test("native video inspector seeks, reports timecode, captures PNG, and exposes 
   await video.dispatchEvent("seeked");
   await expect(capture).toBeEnabled();
   await timeline.fill("240");
-  await expect(page.getByLabel("当前时间码")).toContainText("00:00:06");
+  await expect(page.getByLabel("Current timecode")).toContainText("00:00:06");
   await expect(capture).toBeEnabled();
   await timeline.dispatchEvent("pointerup");
   await expect.poll(async () => Number(await page.locator("body").getAttribute("data-committed-time"))).toBeGreaterThanOrEqual(200);
@@ -49,7 +49,7 @@ test("native video inspector seeks, reports timecode, captures PNG, and exposes 
 
   await page.evaluate(() => window.__mediaSetBroken?.());
   await expect(page.getByText("fixture decode failed")).toBeVisible();
-  await expect(page.getByRole("button", { name: "重新选择" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Choose again" })).toBeVisible();
   await expect.poll(async () => Number(await page.locator("body").getAttribute("data-inspector-urls-created"))).toBeGreaterThanOrEqual(1);
   await expect.poll(async () => Number(await page.locator("body").getAttribute("data-inspector-urls-revoked"))).toBeGreaterThanOrEqual(1);
 });

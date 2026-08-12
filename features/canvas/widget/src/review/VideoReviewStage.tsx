@@ -20,7 +20,7 @@ async function waitForSeek(element: HTMLVideoElement) {
   await new Promise<void>((resolve, reject) => {
     const timeout = window.setTimeout(() => {
       cleanup();
-      reject(new Error("视频定位超时，请重试"));
+      reject(new Error("Video seek timed out. Try again"));
     }, 3_000);
     const cleanup = () => {
       window.clearTimeout(timeout);
@@ -28,7 +28,7 @@ async function waitForSeek(element: HTMLVideoElement) {
       element.removeEventListener("error", failed);
     };
     const done = () => { cleanup(); resolve(); };
-    const failed = () => { cleanup(); reject(new Error("视频定位失败，请重新导入")); };
+    const failed = () => { cleanup(); reject(new Error("Video seek failed. Re-import the video")); };
     element.addEventListener("seeked", done, { once: true });
     element.addEventListener("error", failed, { once: true });
   });
@@ -76,7 +76,7 @@ export const VideoReviewStage = forwardRef<VideoReviewStageHandle, {
     freezeCurrentFrame: async () => {
       const element = videoRef.current;
       if (!element || element.readyState < HTMLMediaElement.HAVE_CURRENT_DATA) {
-        throw new Error("视频当前帧尚未就绪");
+        throw new Error("The current video frame is not ready yet");
       }
       element.pause();
       await waitForSeek(element);
@@ -92,9 +92,9 @@ export const VideoReviewStage = forwardRef<VideoReviewStageHandle, {
   }), []);
 
   return (
-    <div className="native-video-stage" aria-label="视频帧预览">
+    <div className="native-video-stage" aria-label="Video frame preview">
       {error ? (
-        <div className="stage-empty"><Film /><strong>视频无法播放</strong><span>{error}</span></div>
+        <div className="stage-empty"><Film /><strong>Video cannot be played</strong><span>{error}</span></div>
       ) : sourceUrl ? (
         <>
           <video
@@ -109,13 +109,13 @@ export const VideoReviewStage = forwardRef<VideoReviewStageHandle, {
             onTimeUpdate={(event) => setTimeMs(Math.round(event.currentTarget.currentTime * 1_000))}
             onError={(event) => {
               const detail = event.currentTarget.error?.message;
-              setError(detail ? `视频播放失败：${detail}` : "视频播放失败，请重新导入或重试兼容处理");
+              setError(detail ? `Video playback failed: ${detail}` : "Video playback failed. Re-import it or retry compatibility processing");
             }}
           />
-          <span className="stage-timecode" aria-label="当前视频时间码">{formatTimecode(timeMs)}</span>
+          <span className="stage-timecode" aria-label="Current video timecode">{formatTimecode(timeMs)}</span>
         </>
       ) : (
-        <div className="stage-empty"><Film /><strong>正在加载视频</strong><span>{progress ? `${Math.round(progress.loaded / Math.max(1, progress.total) * 100)}%` : "读取媒体…"}</span></div>
+        <div className="stage-empty"><Film /><strong>Loading video</strong><span>{progress ? `${Math.round(progress.loaded / Math.max(1, progress.total) * 100)}%` : "Reading media…"}</span></div>
       )}
     </div>
   );

@@ -2,10 +2,10 @@ import { ArrowRight, GitBranch, Image as ImageIcon } from "lucide-react";
 import type { WhiteboardDocument, WhiteboardObject } from "../../../shared/document-schema.js";
 
 function labelFor(object: WhiteboardObject | undefined) {
-  if (!object) return "已移除素材";
-  if (object.type === "image") return object.data.alt || "图片";
+  if (!object) return "Removed asset";
+  if (object.type === "image") return object.data.alt || "Image";
   if (object.type === "video-card") return object.data.fileName;
-  return "审阅对象";
+  return "Review object";
 }
 
 export function revisionEdges(document: WhiteboardDocument) {
@@ -33,10 +33,10 @@ export function RevisionLineage({ document, selectedId, onClose }: {
   const visible = focused.length ? focused : edges.slice(-8).reverse();
 
   return (
-    <aside className="revision-lineage" aria-label="版本关系">
+    <aside className="revision-lineage" aria-label="Revision lineage">
       <header>
-        <span><GitBranch />版本关系</span>
-        <button onClick={onClose} aria-label="关闭版本关系">×</button>
+        <span><GitBranch />Revision lineage</span>
+        <button onClick={onClose} aria-label="Close revision lineage">×</button>
       </header>
       {visible.length ? (
         <div className="revision-list">
@@ -48,20 +48,20 @@ export function RevisionLineage({ document, selectedId, onClose }: {
               </div>
               <div className="revision-arrow">
                 <ArrowRight />
-                <small>{intentId ? `返修 ${intentId.slice(-6)}` : "派生"}</small>
+                <small>{intentId ? `Revision ${intentId.slice(-6)}` : "Derived"}</small>
               </div>
               <div className="revision-node result">
                 <ImageIcon />
                 <span>{labelFor(result)}</span>
               </div>
-              {taskId && <code>任务 {taskId}</code>}
+              {taskId && <code>Task {taskId}</code>}
             </article>
           ))}
         </div>
       ) : (
         <div className="revision-empty">
           <GitBranch />
-          <p>生成结果回填后，会自动显示“原素材 → 返修结果”的版本关系。</p>
+          <p>After a generated result is returned, the source-to-revision relationship appears here automatically.</p>
         </div>
       )}
     </aside>

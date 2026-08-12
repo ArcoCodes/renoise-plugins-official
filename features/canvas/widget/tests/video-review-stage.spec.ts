@@ -42,7 +42,7 @@ test("focused video stage pauses and freezes the exact seeked frame before annot
     await element.play();
   });
   await page.waitForTimeout(80);
-  await page.getByRole("button", { name: "使用标注工具" }).click();
+  await page.getByRole("button", { name: "Use annotation tool" }).click();
 
   await expect.poll(() => page.locator("body").getAttribute("data-frozen-image")).toMatch(/^data:image\/png;base64,/);
   await expect.poll(() => video.evaluate((element: HTMLVideoElement) => element.paused)).toBe(true);

@@ -220,10 +220,10 @@ export async function fabricObjectFromRecord(
     case "ai-image": {
       const palette = FABRIC_THEME[theme];
       const labels = {
-        empty: "AI image\n等待生成",
-        generating: "AI image\n生成中…",
-        ready: "AI image\n已就绪",
-        error: "AI image\n生成失败 · 可重试",
+        empty: "AI image\nWaiting to generate",
+        generating: "AI image\nGenerating…",
+        ready: "AI image\nReady",
+        error: "AI image\nGeneration failed · Retry available",
       } as const;
       const stateColors = {
         empty: { fill: "rgba(230,75,34,.06)", stroke: "#E64B22" },

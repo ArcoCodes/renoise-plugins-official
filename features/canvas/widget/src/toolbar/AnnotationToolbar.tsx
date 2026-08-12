@@ -13,12 +13,12 @@ import {
 import type { WhiteboardTool } from "../canvas/interaction-controller.js";
 
 const tools: Array<{ id: WhiteboardTool; label: string; icon: typeof PenLine }> = [
-  { id: "pen", label: "画笔", icon: PenLine },
-  { id: "arrow", label: "箭头", icon: MoveRight },
-  { id: "rectangle", label: "矩形", icon: RectangleHorizontal },
-  { id: "text", label: "文字", icon: Type },
-  { id: "eraser", label: "橡皮", icon: Eraser },
-  { id: "pin", label: "编号标注", icon: MapPin },
+  { id: "pen", label: "Pen", icon: PenLine },
+  { id: "arrow", label: "Arrow", icon: MoveRight },
+  { id: "rectangle", label: "Rectangle", icon: RectangleHorizontal },
+  { id: "text", label: "Text", icon: Type },
+  { id: "eraser", label: "Eraser", icon: Eraser },
+  { id: "pin", label: "Numbered marker", icon: MapPin },
 ];
 
 export function AnnotationToolbar({
@@ -49,7 +49,7 @@ export function AnnotationToolbar({
   onAdd: () => void;
 }) {
   return (
-    <div className="annotation-toolbar" aria-label="帧标注工具">
+    <div className="annotation-toolbar" aria-label="Frame annotation tools">
       {tools.map(({ id, label, icon: Icon }) => (
         <button
           key={id}
@@ -61,11 +61,11 @@ export function AnnotationToolbar({
         ><Icon /></button>
       ))}
       <span className="toolbar-divider" />
-      <button type="button" aria-label="撤销" disabled={!canUndo || busy} onClick={onUndo}><Undo2 /></button>
-      <button type="button" aria-label="重做" disabled={!canRedo || busy} onClick={onRedo}><Redo2 /></button>
+      <button type="button" aria-label="Undo" disabled={!canUndo || busy} onClick={onUndo}><Undo2 /></button>
+      <button type="button" aria-label="Redo" disabled={!canRedo || busy} onClick={onRedo}><Redo2 /></button>
       {showCancel || showAdd ? <span className="toolbar-divider" /> : null}
-      {showCancel ? <button type="button" className="toolbar-cancel" disabled={busy} onClick={onCancel}><X />取消</button> : null}
-      {showAdd ? <button type="button" className="toolbar-add" disabled={!canAdd || busy} onClick={onAdd}><Check />{busy ? "处理中…" : "添加至对话"}</button> : null}
+      {showCancel ? <button type="button" className="toolbar-cancel" disabled={busy} onClick={onCancel}><X />Cancel</button> : null}
+      {showAdd ? <button type="button" className="toolbar-add" disabled={!canAdd || busy} onClick={onAdd}><Check />{busy ? "Processing…" : "Add to prompt"}</button> : null}
     </div>
   );
 }
