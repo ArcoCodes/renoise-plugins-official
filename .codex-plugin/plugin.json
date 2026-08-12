@@ -1,7 +1,7 @@
 {
   "name": "renoise",
-  "version": "1.5.0",
-  "description": "AI video production skills — creative direction, generation, editing, and e-commerce content",
+  "version": "1.5.0+codex.20260812081336",
+  "description": "AI video production skills \u2014 creative direction, generation, editing, and e-commerce content",
   "author": {
     "name": "Renoise"
   },
@@ -18,19 +18,25 @@
     "renoise"
   ],
   "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
   "interface": {
     "displayName": "Renoise",
     "shortDescription": "Create, analyze, and produce AI video",
     "longDescription": "Plan stories, analyze media, build storyboards, estimate credits, and generate AI video with the native Renoise CLI.",
     "developerName": "Renoise",
     "category": "Productivity",
+    "capabilities": [
+      "Interactive",
+      "Read",
+      "Write"
+    ],
     "websiteURL": "https://www.renoise.ai",
     "defaultPrompt": [
       "Create an AI video from my brief.",
       "Analyze this image or video.",
-      "Turn my script into a storyboard."
+      "Build a storyboard or open the Renoise annotation board to mark image or video-frame revisions."
     ],
-    "brandColor": "#6558F5",
+    "brandColor": "#E64B22",
     "composerIcon": "./assets/icon.svg",
     "logo": "./assets/icon.svg"
   }

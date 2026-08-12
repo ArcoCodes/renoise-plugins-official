@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "renoise-whiteboard": {
+      "command": "node",
+      "args": [
+        "features/canvas/dist/server.mjs"
+      ],
+      "cwd": "."
+    }
+  }
+}

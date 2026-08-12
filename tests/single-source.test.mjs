@@ -27,6 +27,7 @@ test('skill manifest separates portable creative methods from local execution', 
 
   const byId = new Map(manifest.skills.map((skill) => [skill.id, skill]));
   assert.deepEqual([...byId.keys()].sort(), [
+    'canvas',
     'director',
     'model-routing',
     'renoise-cli',
@@ -40,6 +41,8 @@ test('skill manifest separates portable creative methods from local execution', 
   for (const id of ['renoise-cli', 'renoise-setup', 'video-download']) {
     assert.equal(byId.get(id).runtime, 'local-cli');
   }
+  assert.equal(byId.get('canvas').runtime, 'local-mcp-app');
+  assert.ok(byId.get('canvas').requires.includes('mcp-apps'));
   assert.ok(byId.get('director').requires.includes('tasks.create'));
   assert.ok(byId.get('director').optional.includes('media.analyze'));
   assert.ok(byId.get('storyboard-sheet').optional.includes('tasks.create'));
@@ -132,10 +135,11 @@ test('package metadata is the manifest source of truth', () => {
     readJSON('.codex-plugin/plugin.json'),
     readJSON('openclaw.plugin.json'),
   ];
-  for (const manifest of manifests) {
-    assert.equal(manifest.version, pkg.version);
-    assert.equal(manifest.description, pkg.description);
-  }
+  assert.equal(manifests[0].version, pkg.version);
+  assert.equal(manifests[2].version, pkg.version);
+  const escapedVersion = pkg.version.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  assert.match(manifests[1].version, new RegExp(`^${escapedVersion}(?:\\+codex\\.[a-zA-Z0-9.-]+)?$`));
+  for (const manifest of manifests) assert.equal(manifest.description, pkg.description);
 
   const claudeMarketplacePlugin = readJSON('.claude-plugin/marketplace.json').plugins[0];
   assert.equal(claudeMarketplacePlugin.version, pkg.version);
@@ -143,6 +147,7 @@ test('package metadata is the manifest source of truth', () => {
 
   const codex = manifests[1];
   assert.equal(codex.skills, './skills/');
+  assert.deepEqual(codex.interface.capabilities, ['Interactive', 'Read', 'Write']);
   assert.ok(existsSync(codex.interface.composerIcon));
   assert.ok(existsSync(codex.interface.logo));
   assert.match(readFileSync(codex.interface.logo, 'utf8'), /<rect[^>]+fill="#2B2B2B"/);

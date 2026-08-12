@@ -11,6 +11,7 @@ AI video production skills by Renoise — creative direction, generation, analys
 | **Build Storyboard** (`storyboard-sheet`) | Portable script/novel adaptation into review sheets, shot lists, first frames, and video prompts |
 | `renoise-cli` | Local-only CLI execution for capabilities, media analysis, generation, uploads, tasks, and production helpers |
 | **Setup / Account** (`renoise-setup`) | Local-only CLI installation/update, secure login, and readiness checks |
+| **Renoise Annotation Board** (`canvas`) | Local image/frame annotation board for snapshots and structured revision handoff |
 | `video-download` | Local-only downloader utility (yt-dlp + Douyin/TikTok fallback) |
 
 ## Installation
@@ -67,7 +68,7 @@ Manual downloads are listed in `https://download.renoise.ai/cli/latest.json`; ve
 
 Plugin updates remain owned by each host's plugin manager. CLI recovery happens on use but never replaces a binary without approval, so the two release tracks do not silently modify each other. There is no per-session setup notification. `renoise auth login --web` opens account authorization in the browser and stores the shared credential securely without terminal key entry; `RENOISE_API_KEY` remains the override for CI and containers. The local-only `renoise-cli` Skill queries live capabilities. Creative Skills keep researched routing and prompting profiles, but never duplicate availability, defaults, roles, limits, or other hard capability data; unknown models safely fall back to their live guidance and default status.
 
-`skills/manifest.json` classifies Skills by runtime. Hosted Renoise Agent loads only portable `director`, `model-routing`, and `storyboard-sheet` source files whose required capabilities are available; it never loads `renoise-cli`, `renoise-setup`, `video-download`, executable helpers, or local examples. Hosted execution uses its typed capabilities directly and does not run the native CLI.
+`skills/manifest.json` classifies Skills by runtime. Hosted Renoise Agent loads only portable `director`, `model-routing`, and `storyboard-sheet` source files whose required capabilities are available; it never loads `renoise-cli`, `renoise-setup`, `canvas`, `video-download`, executable helpers, or local examples. Hosted execution uses its typed capabilities directly and does not run the native CLI or local MCP App.
 
 Interactive account and CLI defaults are available through:
 
@@ -75,11 +76,29 @@ Interactive account and CLI defaults are available through:
 renoise settings
 ```
 
+## Renoise annotation board
+
+Codex Desktop can open a focused Renoise annotation board for images and exact video frames. Media stays fixed while the user adds pen, arrow, shape, text, or numbered-pin marks, captures annotated snapshots into the intent input, and submits a structured revision request with source provenance and video timecodes.
+
+The first render creates a pending session. The widget displays the exact project directory and does not read or write it until the user clicks **Approve**. State then stays under `<project>/.renoise/whiteboard/`; board JSON stores only opaque asset IDs and page-relative paths, while the original media bytes live under `pages/<pageId>/assets/`. Every tool call is bound to the opaque session, document writes use revision CAS, and model-facing media insertion accepts only same-session assets or validated Renoise task-result contracts.
+
+The annotation board is an intent-capture surface rather than a replacement for the Renoise app's node graph, player, or timeline. AI HTML and Slides are intentionally not included.
+
+The model-visible launch result contains only the exact project directory awaiting approval; the app-only approval call resolves the server-held pending session atomically, so session IDs and authorization nonces never round-trip through host-rendered tool output. Authorization does not require the optional MCP Apps initialize extension because some compatible desktop hosts render MCP Apps without declaring it; app-only tool visibility plus the server-held pending directory form the boundary. The `.mcp.json` entry intentionally uses plugin-root-relative paths (`features/canvas/dist/server.mjs`, `cwd: "."`); the host is expected to launch the server from the installed plugin root, which `tests/canvas/build-and-package.test.mjs` locks in as a contract.
+
+After approval, the MCP server issues the widget a short-lived, session-scoped capability for an ephemeral loopback media gateway. The gateway additionally rejects any request whose `Host` header is not the gateway's own loopback host:port, as a DNS-rebinding defense. Image/video imports go directly from the widget to the approved project's asset directory as raw bytes; reloads stream verified files by opaque asset ID, and video playback supports HTTP byte ranges. Whiteboard state responses therefore remain metadata-only and do not embed previews or complete media as base64. The gateway never exposes an absolute filesystem path, validates page membership, size, signature, and SHA-256, and expires with the canvas session. When the Codex app sandbox cannot reach loopback, import and reload automatically use replay-safe 24 KiB MCP chunks instead. Those chunks are transport-only: the server assembles them directly into the same project-local asset file, while board JSON continues to store only opaque relative references.
+
+Videos are imported only through the explicit video-import action and remain opaque page-local MP4/WebM assets. Fabric renders a poster card rather than decoding video in the canvas. Selecting media changes only the effective revision target; it never opens the media inspector. Captured frames record the source video asset ID, source SHA-256, and the native player's exact millisecond timecode, then return the user to annotation and revision-intent entry. The default video limit is 250 MB.
+
+Plugin maintainers can run `npm run validate:plugin` to execute the official plugin-creator validator. The helper uses the installed Codex validator and an isolated temporary Python environment, leaving the repository and user Python installation unchanged.
+
 ## Environment Variables
 
 | Variable | Required By | Description |
 |----------|------------|-------------|
 | `RENOISE_API_KEY` | Optional override for all Renoise tools | CI/container or host-secret override. Interactive setup prefers the credential securely saved by `renoise auth login`. |
+| `RENOISE_TASK_RESULTS_DIR` | Whiteboard tests only | Explicit local test adapter for `<taskId>.json` fixtures. The production server bundle compiles this adapter away; it is honored only by the unminified test build. Production insertion calls `renoise task result <id> --json`. |
+| `RENOISE_WHITEBOARD_MAX_VIDEO_BYTES` | Optional whiteboard limit | Maximum imported MP4/WebM byte size. Defaults to 262144000 (250 MB); accepted range is 1 MB–2 GB. |
 
 ## Version & upgrading
 

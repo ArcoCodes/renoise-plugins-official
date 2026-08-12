@@ -73,6 +73,15 @@
       ]
     },
     {
+      "id": "canvas",
+      "runtime": "local-mcp-app",
+      "entry": "skills/canvas/SKILL.md",
+      "requires": [
+        "filesystem",
+        "mcp-apps"
+      ]
+    },
+    {
       "id": "video-download",
       "runtime": "local-cli",
       "entry": "skills/video-download/SKILL.md",
