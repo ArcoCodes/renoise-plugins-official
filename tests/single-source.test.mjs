@@ -125,6 +125,15 @@ test('prompt examples use canonical material ID tokens', () => {
   assert.doesNotMatch(directorFiles, /@[\w-]+\.(?:png|jpe?g|webp|mp4|mov)\b/i);
 });
 
+test('DeepSeek Harness bundle registers the packaged skills', () => {
+  const pkg = readJSON('package.json');
+  assert.equal(pkg.dsh.bundle.patch, './cordis.patch.yml');
+  assert.ok(pkg.files.includes('dsh.mjs'));
+  assert.ok(pkg.files.includes('cordis.patch.yml'));
+  assert.match(readFileSync('cordis.patch.yml', 'utf8'), /@renoise\/plugin\/dsh\.mjs/);
+  assert.match(readFileSync('dsh.mjs', 'utf8'), /customSkillDirs:[\s\S]*'skills'/);
+});
+
 test('package metadata is the manifest source of truth', () => {
   const pkg = readJSON('package.json');
   const manifests = [

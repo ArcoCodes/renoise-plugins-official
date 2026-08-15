@@ -41,6 +41,17 @@ claude plugin install renoise@renoise-plugins-official
 
 In **Cowork**, open **Customize → Plugins → + → Add marketplace → Add from a repository**, enter `https://github.com/ArcoCodes/renoise-plugins-official`, then install **renoise**. Cowork handles local CLI installation and browser sign-in; no separate Terminal is required.
 
+### DeepSeek Harness
+
+Install this checkout into a profile, then run that profile:
+
+```bash
+dsh plugin --profile headless add .
+dsh --profile headless "Create an AI video from my brief."
+```
+
+The bundle registers every skill under `skills/` through DeepSeek Harness's filesystem skill provider. To inspect the composition without making a model request, run `dsh --profile headless --dump-config`.
+
 ### OpenClaw
 
 ```bash
