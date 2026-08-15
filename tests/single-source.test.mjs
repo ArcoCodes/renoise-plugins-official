@@ -130,8 +130,12 @@ test('DeepSeek Harness bundle registers the packaged skills', () => {
   assert.equal(pkg.dsh.bundle.patch, './cordis.patch.yml');
   assert.ok(pkg.files.includes('dsh.mjs'));
   assert.ok(pkg.files.includes('cordis.patch.yml'));
-  assert.match(readFileSync('cordis.patch.yml', 'utf8'), /@renoise\/plugin\/dsh\.mjs/);
+  assert.match(readFileSync('cordis.patch.yml', 'utf8'), /@renoise\/plugin/);
   assert.match(readFileSync('dsh.mjs', 'utf8'), /customSkillDirs:[\s\S]*'skills'/);
+  assert.equal(pkg.dsh.client.platform, 'web');
+  assert.ok(pkg.files.includes('lib/client.js'));
+  assert.ok(pkg.files.includes('scripts/dsh-generate.mjs'));
+  assert.match(readFileSync('dsh.mjs', 'utf8'), /renoise_generate_video/);
 });
 
 test('package metadata is the manifest source of truth', () => {

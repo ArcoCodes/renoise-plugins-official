@@ -50,7 +50,7 @@ dsh plugin --profile headless add .
 dsh --profile headless "Create an AI video from my brief."
 ```
 
-The bundle registers every skill under `skills/` through DeepSeek Harness's filesystem skill provider. To inspect the composition without making a model request, run `dsh --profile headless --dump-config`.
+The bundle registers every skill under `skills/` through DeepSeek Harness's filesystem skill provider. In DSH Web, `renoise_generate_video` shows the live credit estimate in the normal approval flow, tracks the running task, and embeds the completed video from the durable tool result. Retry and continuation controls copy a follow-up prompt without creating another paid task. To inspect the composition without making a model request, run `dsh --profile headless --dump-config`.
 
 ### OpenClaw
 

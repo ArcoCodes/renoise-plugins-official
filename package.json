@@ -26,15 +26,33 @@
     "src/",
     "dsh.mjs",
     "cordis.patch.yml",
+    "lib/client.js",
+    "scripts/dsh-generate.mjs",
     "README.md"
   ],
   "dsh": {
     "bundle": {
       "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "inject": [
+        "@deepseek-ai/dsh-client-runtime",
+        "@deepseek-ai/dsh-client-ui-conversation"
+      ],
+      "platform": "web"
     }
   },
   "peerDependencies": {
     "@deepseek-ai/cordis": "*",
-    "@deepseek-ai/dsh-skill-filesystem": "*"
+    "@deepseek-ai/dsh-skill-filesystem": "*",
+    "react": "^18.2.0",
+    "@deepseek-ai/dsh-client-runtime": "*",
+    "@deepseek-ai/dsh-client-ui-conversation": "*"
+  },
+  "exports": {
+    ".": "./index.mjs",
+    "./dsh.mjs": "./dsh.mjs",
+    "./client": "./lib/client.js",
+    "./package.json": "./package.json"
   }
 }
