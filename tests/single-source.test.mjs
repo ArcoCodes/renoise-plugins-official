@@ -100,6 +100,43 @@ test('local renoise-cli remains the only CLI execution skill', () => {
   }
 });
 
+test('source-video edit guidance preserves the Seedance CLI trigger contract', () => {
+  const cli = readFileSync('skills/renoise-cli/SKILL.md', 'utf8');
+  const canvas = readFileSync('skills/canvas/SKILL.md', 'utf8');
+  for (const instructions of [cli, canvas]) {
+    assert.match(instructions, /--duration -1/);
+    assert.match(instructions, /\[Edit the video as instructed above\]/);
+  }
+  assert.match(cli, /add, modify, remove, or edit the video/i);
+  assert.match(cli, /Do not append the edit trigger or use `--duration -1` for forward\/backward extension/i);
+  assert.match(cli, /extension[\s\S]{0,160}positive duration/i);
+  assert.match(canvas, /source-video edit trigger paired with `--duration -1`/i);
+  assert.match(canvas, /do not append it to forward\/backward extension or ordinary reference generation prompts/i);
+  assert.match(canvas, /Seedance 2\.5-only time adapter/i);
+  assert.match(canvas, /floor\(sourceTimeMs \/ 1000\)/);
+  assert.match(canvas, /Do not apply this normalization to any other image or video model/i);
+});
+
+test('every paid generation requires post-preview approval bound to the exact prompt and arguments', () => {
+  const cli = readFileSync('skills/renoise-cli/SKILL.md', 'utf8');
+  const canvas = readFileSync('skills/canvas/SKILL.md', 'utf8');
+  const director = readFileSync('skills/director/SKILL.md', 'utf8');
+
+  assert.match(canvas, /Pressing \*\*Send annotation\*\* approves only the structured annotation intent/i);
+  assert.match(canvas, /Do not run `renoise task create` in the same turn that first presents the proposal/i);
+  assert.match(canvas, /Any prompt, model, parameter, material, or price change invalidates the approval/i);
+
+  assert.match(cli, /`renoise task create` is a paid-operation boundary/i);
+  assert.match(cli, /This gate applies to every paid generation path, including annotation-board submissions/i);
+  assert.match(cli, /byte-for-byte the text later written to `--prompt-file`/i);
+  assert.match(cli, /show the revised proposal and obtain approval again/i);
+
+  assert.match(director, /Approval must come after the user sees the exact final prompt and current cost proposal/i);
+  for (const instructions of [canvas, cli, director]) {
+    assert.match(instructions, /直接生成/);
+  }
+});
+
 test('model routing covers every live family without replacing capabilities', () => {
   const routing = readFileSync('skills/model-routing/SKILL.md', 'utf8');
   for (const model of [
@@ -202,12 +239,14 @@ test('installer selects and verifies macOS, Windows, and Linux archives', () => 
   assert.equal(plan.archive.browser_download_url, `https://download.renoise.ai/cli/v0.2.0/${assets[1].name}`);
   assert.equal(expectedChecksum(`${'a'.repeat(64)}  ${assets[0].name}\n`, assets[0].name), 'a'.repeat(64));
   const createHelp = 'Usage: renoise task create\nFlags:\n      --prompt-file string';
+  const costHelp = 'Usage: renoise task cost\nFlags:\n      --edit';
   const waitHelp = 'Usage: renoise task wait';
   const analyzeHelp = 'Usage: renoise analyze <image-or-video>\nFlags:\n      --mode string';
-  assert.equal(hasRequiredCommands(createHelp, waitHelp, 'Usage: renoise auth exec', 'Flags:\n      --web', analyzeHelp), true);
-  assert.equal(hasRequiredCommands('Usage: renoise task create', waitHelp, 'Usage: renoise auth exec', 'Flags:\n      --web', analyzeHelp), false);
-  assert.equal(hasRequiredCommands(createHelp, waitHelp, 'Usage: renoise auth exec', 'Usage: renoise auth login', analyzeHelp), false);
-  assert.equal(hasRequiredCommands(createHelp, waitHelp, 'Usage: renoise auth exec', 'Flags:\n      --web', 'Usage: renoise analyze'), false);
+  assert.equal(hasRequiredCommands(createHelp, costHelp, waitHelp, 'Usage: renoise auth exec', 'Flags:\n      --web', analyzeHelp), true);
+  assert.equal(hasRequiredCommands(createHelp, 'Usage: renoise task cost', waitHelp, 'Usage: renoise auth exec', 'Flags:\n      --web', analyzeHelp), false);
+  assert.equal(hasRequiredCommands('Usage: renoise task create', costHelp, waitHelp, 'Usage: renoise auth exec', 'Flags:\n      --web', analyzeHelp), false);
+  assert.equal(hasRequiredCommands(createHelp, costHelp, waitHelp, 'Usage: renoise auth exec', 'Usage: renoise auth login', analyzeHelp), false);
+  assert.equal(hasRequiredCommands(createHelp, costHelp, waitHelp, 'Usage: renoise auth exec', 'Flags:\n      --web', 'Usage: renoise analyze'), false);
   assert.ok(compareVersions('0.3.0', '0.2.0') > 0);
   assert.equal(compareVersions('0.2.0', '0.2.0'), 0);
 });

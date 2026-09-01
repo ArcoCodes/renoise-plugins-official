@@ -5,18 +5,19 @@ import test from "node:test";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
 
-test("final whiteboard dist is self-contained and free of restricted canvas runtimes", () => {
+test("final whiteboard dist is self-contained and free of unapproved canvas runtimes", () => {
   const server = readFileSync("features/canvas/dist/server.mjs", "utf8");
   const widget = readFileSync("features/canvas/dist/widget.html", "utf8");
   const manifest = JSON.parse(readFileSync("features/canvas/dist/build-manifest.json", "utf8"));
   for (const payload of [server, widget]) {
-    assert.doesNotMatch(payload, /(?:tldraw|@tldraw\/|@excalidraw|reactflow|@xyflow|konva)/i);
+    assert.doesNotMatch(payload, /(?:tldraw|@tldraw\/|@excalidraw|reactflow|@xyflow)/i);
   }
   assert.match(widget, /<script type="module">/);
   assert.match(widget, /<style>/);
   assert.deepEqual(manifest.entrypoints, ["server.mjs", "widget.html"]);
   assert.match(manifest.sourceTreeSha256, /^[a-f0-9]{64}$/);
   assert.ok(manifest.widgetBytes > 100_000);
+  assert.match(widget, /react-konva|Konva/i);
 });
 
 test("npm package contains runtime dist, MCP config, skill, and notices without source-only canvas files", () => {

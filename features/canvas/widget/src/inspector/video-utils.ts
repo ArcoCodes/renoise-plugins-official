@@ -7,6 +7,16 @@ export function formatTimecode(timeMs: number) {
   return `${hours ? `${String(hours).padStart(2, "0")}:` : ""}${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}:${String(frames).padStart(2, "0")}`;
 }
 
+// Composer frame references intentionally match main-site reshoot's compact
+// mm:ss label. The exact millisecond timestamp remains in the structured
+// source object and is not rounded for submission.
+export function formatComposerFrameTime(timeMs: number) {
+  const safeSeconds = Math.max(0, Math.floor(timeMs / 1000));
+  const minutes = Math.floor(safeSeconds / 60);
+  const seconds = safeSeconds % 60;
+  return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+}
+
 export function captureVideoFrame(video: HTMLVideoElement) {
   if (!video.videoWidth || !video.videoHeight || video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA) {
     throw new Error("The current video frame is not ready yet");

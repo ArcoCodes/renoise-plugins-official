@@ -41,6 +41,11 @@ export function assetGatewayMediaUrl(
   return url.toString();
 }
 
+export function assetGatewayMaterialUrl(descriptor: AssetGatewayDescriptor, materialId: number) {
+  if (!Number.isSafeInteger(materialId) || materialId <= 0) throw new Error("Material ID must be a positive integer");
+  return authorizedUrl(descriptor, `/v1/materials/${encodeURIComponent(descriptor.canvasSessionId)}/${materialId}`).toString();
+}
+
 export function assetGatewayImportUrl(
   descriptor: AssetGatewayDescriptor,
   kind: GatewayImportKind,

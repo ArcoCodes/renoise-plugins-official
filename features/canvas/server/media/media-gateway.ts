@@ -12,11 +12,13 @@ import { WhiteboardError } from "../../shared/errors.js";
 import { VIDEO_CHUNK_BYTES } from "../../shared/tool-contracts.js";
 import type { SessionStore, CanvasSession } from "../session/session-store.js";
 import type { ProjectStore } from "../storage/project-store.js";
+import type { RenoiseMaterialLibrary } from "../renoise/material-library.js";
 
 const TOKEN_BYTES = 32;
 const IMPORT_REQUEST_ID = /^upload_[a-f0-9]{32}$/;
 const IMAGE_MIME_TYPES = new Set(["image/png", "image/jpeg", "image/webp", "image/gif"]);
 const VIDEO_MIME_TYPES = new Set(["video/mp4", "video/webm"]);
+const MAX_MATERIAL_PREVIEW_BYTES = 20 * 1024 * 1024;
 
 type AccessGrant = { token: string; expiresAt: number };
 
@@ -109,11 +111,18 @@ export class MediaGateway {
     private readonly store: ProjectStore,
     readonly origin: string,
     port: number,
+    private readonly materialLibrary?: RenoiseMaterialLibrary,
+    private readonly materialHosts: ReadonlySet<string> = new Set(["asset.renoise.ai"]),
   ) {
     this.allowedHosts = new Set([`127.0.0.1:${port}`, `localhost:${port}`]);
   }
 
-  static async start(sessions: SessionStore, store: ProjectStore) {
+  static async start(
+    sessions: SessionStore,
+    store: ProjectStore,
+    materialLibrary?: RenoiseMaterialLibrary,
+    materialHosts: ReadonlySet<string> = new Set(["asset.renoise.ai"]),
+  ) {
     let gateway: MediaGateway | undefined;
     const server = createServer((request, response) => {
       if (!gateway) {
@@ -132,7 +141,7 @@ export class MediaGateway {
     });
     server.unref();
     const address = server.address() as AddressInfo;
-    gateway = new MediaGateway(server, sessions, store, `http://127.0.0.1:${address.port}`, address.port);
+    gateway = new MediaGateway(server, sessions, store, `http://127.0.0.1:${address.port}`, address.port, materialLibrary, materialHosts);
     return gateway;
   }
 
@@ -215,6 +224,17 @@ export class MediaGateway {
         );
         return;
       }
+      const material = /^\/v1\/materials\/([^/]+)\/(\d+)$/.exec(url.pathname);
+      if (material && (request.method === "GET" || request.method === "HEAD")) {
+        await this.serveMaterial(
+          request,
+          response,
+          url,
+          decodeURIComponent(material[1]),
+          Number(material[2]),
+        );
+        return;
+      }
       const upload = /^\/v1\/imports\/([^/]+)\/(image|video)$/.exec(url.pathname);
       if (upload && request.method === "POST") {
         await this.importAsset(request, response, url, decodeURIComponent(upload[1]), upload[2] as "image" | "video");
@@ -233,6 +253,73 @@ export class MediaGateway {
         response.destroy(known);
       }
     }
+  }
+
+  private async serveMaterial(
+    request: IncomingMessage,
+    response: ServerResponse,
+    url: URL,
+    sessionId: string,
+    materialId: number,
+  ) {
+    this.authorize(url, sessionId);
+    if (!this.materialLibrary || !Number.isSafeInteger(materialId) || materialId <= 0) {
+      throw new WhiteboardError("ASSET_NOT_FOUND", "Renoise material preview is unavailable");
+    }
+    const material = await this.materialLibrary.preview(materialId);
+    if (material.type !== "image" || !IMAGE_MIME_TYPES.has(material.mimeType)) {
+      throw new WhiteboardError("INVALID_MEDIA", "Only supported Renoise image materials can be previewed");
+    }
+    const remote = new URL(material.url);
+    if (remote.protocol !== "https:" || !this.materialHosts.has(remote.hostname.toLowerCase())) {
+      throw new WhiteboardError("INVALID_MEDIA", "Renoise material URL is outside the preview allowlist");
+    }
+    const upstream = await fetch(remote, {
+      method: request.method === "HEAD" ? "HEAD" : "GET",
+      redirect: "error",
+      signal: AbortSignal.timeout(15_000),
+      headers: { Accept: material.mimeType },
+    });
+    if (!upstream.ok) throw new WhiteboardError("ASSET_NOT_FOUND", `Renoise material preview returned HTTP ${upstream.status}`);
+    const mimeType = (upstream.headers.get("content-type") ?? "").split(";", 1)[0].trim().toLowerCase();
+    if (!IMAGE_MIME_TYPES.has(mimeType) || mimeType !== material.mimeType.toLowerCase()) {
+      throw new WhiteboardError("INVALID_MEDIA", "Renoise material preview returned an unsupported image MIME");
+    }
+    const declaredLength = upstream.headers.get("content-length");
+    if (declaredLength !== null) {
+      const parsed = Number(declaredLength);
+      if (!Number.isSafeInteger(parsed) || parsed <= 0 || parsed > MAX_MATERIAL_PREVIEW_BYTES) {
+        throw new WhiteboardError("INVALID_MEDIA", "Renoise material preview exceeds the size limit");
+      }
+    }
+    response.statusCode = 200;
+    response.setHeader("Content-Type", mimeType);
+    response.setHeader("Cache-Control", "private, no-store");
+    if (request.method === "HEAD") {
+      if (declaredLength) response.setHeader("Content-Length", declaredLength);
+      response.end();
+      return;
+    }
+    if (!upstream.body) throw new WhiteboardError("ASSET_NOT_FOUND", "Renoise material preview has no body");
+    const reader = upstream.body.getReader();
+    const chunks: Uint8Array[] = [];
+    let received = 0;
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      received += value.byteLength;
+      if (received > MAX_MATERIAL_PREVIEW_BYTES) {
+        await reader.cancel();
+        throw new WhiteboardError("INVALID_MEDIA", "Renoise material preview exceeds the size limit");
+      }
+      chunks.push(value);
+    }
+    if (declaredLength !== null && received !== Number(declaredLength)) {
+      throw new WhiteboardError("INVALID_MEDIA", "Renoise material preview length does not match Content-Length");
+    }
+    const body = Buffer.concat(chunks.map((chunk) => Buffer.from(chunk)), received);
+    response.setHeader("Content-Length", body.byteLength);
+    response.end(body);
   }
 
   private async serveAsset(
@@ -320,6 +407,13 @@ export class MediaGateway {
 
     if (!VIDEO_MIME_TYPES.has(mimeType)) throw new WhiteboardError("INVALID_MEDIA", `Unsupported video MIME ${mimeType || "unknown"}`);
     const durationMs = positiveInteger(url.searchParams.get("durationMs"), "durationMs");
+    const widthValue = url.searchParams.get("width");
+    const heightValue = url.searchParams.get("height");
+    if ((widthValue === null) !== (heightValue === null)) {
+      throw new WhiteboardError("INVALID_MEDIA", "Video width and height must be provided together");
+    }
+    const width = widthValue === null ? undefined : positiveInteger(widthValue, "width", 100_000);
+    const height = heightValue === null ? undefined : positiveInteger(heightValue, "height", 100_000);
     const playbackProxyValue = url.searchParams.get("createPlaybackProxy");
     if (playbackProxyValue !== null && playbackProxyValue !== "1") {
       throw new WhiteboardError("INVALID_MEDIA", "createPlaybackProxy must be 1 when provided");
@@ -330,6 +424,8 @@ export class MediaGateway {
       mimeType: mimeType as "video/mp4" | "video/webm",
       byteLength: declaredBytes,
       durationMs,
+      width,
+      height,
       createPlaybackProxy: playbackProxyValue === "1",
     });
     let offset = 0;

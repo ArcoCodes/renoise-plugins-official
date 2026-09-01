@@ -416,7 +416,7 @@ button { color: inherit; }
   gap: 6px;
   max-width: 100%;
   padding: 1px 2px 2px;
-  overflow-x: auto;
+  overflow: auto;
   scrollbar-width: none;
 }
 .target-strip::-webkit-scrollbar { display: none; }
@@ -825,10 +825,243 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--accent, #e6
   .side-panel-open .composer { display: none; }
   .media-inspector { top: 66px; right: 8px; bottom: 8px; width: min(340px, calc(100% - 68px)); }
 }
+
+/* Base Reshoot workspace tokens. A final focused-board override follows the legacy
+   whiteboard route declarations later in this file. */
+#root { container-type: inline-size; min-width: 0; overflow: hidden; }
+.focused-review-app,
+.focused-review-app.light,
+.focused-review-app.dark {
+  display: grid;
+  grid-template-columns: minmax(0, 1.65fr) minmax(360px, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+  gap: 16px;
+  width: 100%;
+  max-width: 1600px;
+  min-width: 0;
+  margin-inline: auto;
+  padding: 20px 24px;
+  overflow: hidden;
+  color: #f5f5f5;
+  background: #151515;
+  background-image: none;
+}
+.focused-review-app .review-workspace,
+.focused-review-app .review-action-dock,
+.focused-review-app .review-stage-shell,
+.focused-review-app .composer-input-shell,
+.focused-review-app .composer-inline-editor { min-width: 0; max-width: 100%; }
+.focused-review-app .review-workspace { width: 100%; height: 100%; margin: 0; }
+.focused-review-app .review-stage-shell {
+  grid-template-rows: 44px minmax(260px, 1fr);
+  padding: 0 12px 12px;
+  border-color: rgba(255,255,255,.1);
+  border-radius: 24px;
+  background: #202020;
+  box-shadow: 0 18px 54px rgba(0,0,0,.28);
+}
+.focused-review-app .review-stage-heading { color: rgba(255,255,255,.58); }
+.focused-review-app .review-stage-heading button { border-color: rgba(255,255,255,.14); color: rgba(255,255,255,.82); background: rgba(255,255,255,.06); }
+.focused-review-app .review-stage { border-color: rgba(255,255,255,.08); background: #0f0f0f; }
+.reshoot-media-stage { display: grid; width: 100%; height: 100%; min-width: 0; min-height: 0; overflow: hidden; place-items: center; background: #0f0f0f; }
+.reshoot-media-fit { position: relative; flex: none; overflow: hidden; background: #050505; user-select: none; }
+.reshoot-media-fit > img,
+.reshoot-media-fit > video { display: block; width: 100%; height: 100%; max-width: 100%; object-fit: fill; background: #050505; }
+.reshoot-media-fit > img { pointer-events: none; -webkit-user-drag: none; }
+.konva-annotation-stage { position: absolute; z-index: 3; inset: 0; overflow: hidden; touch-action: none; }
+.reshoot-video-controls {
+  position: absolute;
+  z-index: 4;
+  right: 12px;
+  bottom: 12px;
+  left: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 14px;
+  color: #fff;
+  background: linear-gradient(90deg, rgba(12,12,12,.88), rgba(12,12,12,.7));
+  opacity: 0;
+  transition: opacity 160ms ease;
+}
+.reshoot-media-fit:hover .reshoot-video-controls,
+.reshoot-video-controls:focus-within { opacity: 1; }
+.reshoot-video-controls button { display: grid; flex: 0 0 auto; width: 30px; height: 30px; padding: 0; border: 0; border-radius: 50%; color: #fff; background: rgba(255,255,255,.12); place-items: center; cursor: pointer; }
+.reshoot-video-controls button svg { width: 15px; height: 15px; }
+.reshoot-video-controls input { flex: 1 1 auto; min-width: 0; accent-color: #ff4d2e; }
+.reshoot-video-controls span { flex: 0 0 auto; font-size: 11px; font-variant-numeric: tabular-nums; }
+.focused-review-app .review-action-dock {
+  align-self: stretch;
+  align-content: start;
+  grid-template-rows: auto auto minmax(0, 1fr);
+  gap: 14px;
+  width: 100%;
+  margin: 0;
+  padding: 16px;
+  overflow: hidden;
+  border-color: rgba(255,255,255,.1);
+  border-radius: 24px;
+  background: #202020;
+  box-shadow: 0 18px 54px rgba(0,0,0,.28);
+}
+.reshoot-guide { display: grid; gap: 8px; padding: 2px 2px 0; color: rgba(255,255,255,.58); font-size: 12px; }
+.reshoot-guide p { display: flex; align-items: center; gap: 8px; margin: 0; }
+.reshoot-guide span { display: inline-grid; flex: 0 0 auto; width: 20px; height: 20px; border: 1px solid rgba(255,255,255,.14); border-radius: 50%; color: rgba(255,255,255,.82); background: rgba(255,255,255,.05); place-items: center; font-size: 10px; }
+.focused-review-app .annotation-toolbar { position: relative; gap: 8px; min-height: 52px; padding: 8px; overflow: hidden; border: 0; border-radius: 26px; background: #2a2a2a; }
+.focused-review-app .toolbar-tools,
+.focused-review-app .toolbar-actions { flex: 0 0 auto; gap: 2px; }
+.focused-review-app .toolbar-actions { transform: none; }
+.focused-review-app .annotation-toolbar button { width: 36px; min-width: 36px; height: 36px; padding: 0; border-radius: 50%; color: rgba(255,255,255,.7); }
+.focused-review-app .annotation-toolbar button.active { color: #fff; background: #f04b2c; }
+.focused-review-app .annotation-toolbar .toolbar-add { flex: 1 1 58px; width: auto; min-width: 48px; border-radius: 18px; color: #fff; background: #f04b2c; }
+.focused-review-app .composer-input-shell { align-items: flex-start; min-height: 300px; padding: 12px; border-color: rgba(255,255,255,.08); border-radius: 20px; background: #292929; }
+.focused-review-app .composer-inline-editor { min-height: 250px; overflow: auto; color: rgba(255,255,255,.9); line-height: 30px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.focused-review-app .intent-chip { background: rgba(255,255,255,.08); }
+.focused-review-app .intent-add-image { border-color: rgba(255,255,255,.2); }
+
+@container (max-width: 880px) {
+  .focused-review-app,
+  .focused-review-app.light,
+  .focused-review-app.dark { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(420px, 1fr) auto; padding: 12px; }
+  .focused-review-app .review-action-dock { min-height: 184px; }
+  .focused-review-app .composer-input-shell { min-height: 80px; }
+  .focused-review-app .composer-inline-editor { min-height: 56px; }
+}
+
+/* Reshoot-aligned focused workspace. The host owns the fullscreen shell; this grid only
+   lays out the stage and composer inside the measured MCP Apps container. */
+.focused-review-app {
+  container-type: inline-size;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, min(420px, 35%));
+  grid-template-rows: minmax(0, 1fr);
+  gap: 16px;
+  padding: 20px 24px;
+  color: #f5f5f5;
+  background: #151515;
+}
+.focused-review-app .review-workspace,
+.focused-review-app .review-action-dock,
+.focused-review-app .review-stage-shell,
+.focused-review-app .composer-input-shell,
+.focused-review-app .composer-inline-editor { min-width: 0; max-width: 100%; }
+.focused-review-app .review-workspace { width: 100%; height: 100%; }
+.focused-review-app .review-stage-shell {
+  grid-template-rows: 44px minmax(260px, 1fr);
+  padding: 0 12px 12px;
+  border-color: rgba(255,255,255,.1);
+  border-radius: 24px;
+  background: #202020;
+  box-shadow: 0 18px 54px rgba(0,0,0,.28);
+}
+.focused-review-app .review-stage-heading { color: rgba(255,255,255,.58); }
+.focused-review-app .review-stage-heading button {
+  border-color: rgba(255,255,255,.14);
+  color: rgba(255,255,255,.82);
+  background: rgba(255,255,255,.06);
+}
+.focused-review-app .review-stage {
+  border-color: rgba(255,255,255,.08);
+  background: #0f0f0f;
+}
+.reshoot-media-stage { display: grid; width: 100%; height: 100%; min-width: 0; min-height: 0; overflow: hidden; place-items: center; background: #0f0f0f; }
+.reshoot-media-fit { position: relative; flex: none; overflow: hidden; background: #050505; user-select: none; }
+.reshoot-media-fit > img,
+.reshoot-media-fit > video { display: block; width: 100%; height: 100%; max-width: 100%; object-fit: fill; background: #050505; }
+.reshoot-media-fit > img { pointer-events: none; -webkit-user-drag: none; }
+.konva-annotation-stage { position: absolute; z-index: 3; inset: 0; overflow: hidden; touch-action: none; }
+.annotation-text-overlay {
+  position: absolute;
+  z-index: 4;
+  min-width: 60px;
+  min-height: 1.3em;
+  padding: 0;
+  overflow: hidden;
+  resize: none;
+  border: 1px dashed;
+  outline: 0;
+  font-family: Arial, sans-serif;
+  font-weight: 700;
+  line-height: 1.2;
+  background: transparent;
+}
+.focused-review-app .stage-empty { color: rgba(255,255,255,.58); cursor: default; }
+.focused-review-app .stage-empty strong { color: rgba(255,255,255,.9); }
+
+.focused-review-app .review-action-dock {
+  align-self: stretch;
+  align-content: start;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 14px;
+  width: 100%;
+  margin: 0;
+  padding: 16px;
+  overflow: hidden;
+  border-color: rgba(255,255,255,.1);
+  border-radius: 24px;
+  background: #202020;
+  box-shadow: 0 18px 54px rgba(0,0,0,.28);
+}
+.annotation-toolbar {
+  position: relative;
+  gap: 8px;
+  min-height: 52px;
+  padding: 8px;
+  overflow: hidden;
+  border: 0;
+  border-radius: 26px;
+  background: #2a2a2a;
+}
+.annotation-toolbar .toolbar-label {
+  flex: 1 1 auto;
+  max-width: 100%;
+  overflow: hidden;
+  padding-left: 12px;
+  color: rgba(255,255,255,.58);
+  font-size: 13px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  transition: max-width 500ms ease, opacity 350ms ease, padding 500ms ease;
+}
+.annotation-toolbar.annotating .toolbar-label { max-width: 0; padding-left: 0; opacity: 0; }
+.toolbar-tools,
+.toolbar-actions { display: flex; min-width: 0; align-items: center; gap: 3px; }
+.toolbar-actions { max-width: 0; overflow: hidden; opacity: 0; transform: translateX(5px); transition: max-width 600ms ease, opacity 400ms ease, transform 600ms ease; }
+.annotation-toolbar.annotating .toolbar-actions { max-width: 132px; opacity: 1; transform: translateX(0); }
+.annotation-toolbar button { width: 36px; min-width: 36px; height: 36px; padding: 0; border-radius: 50%; color: rgba(255,255,255,.7); }
+.annotation-toolbar button:hover:not(:disabled) { color: #fff; background: rgba(255,255,255,.09); }
+.annotation-toolbar button.active { color: #fff; background: #f04b2c; }
+.annotation-toolbar .toolbar-color { max-width: 0; min-width: 0; padding: 0; overflow: hidden; opacity: 0; transition: max-width 300ms ease, opacity 250ms ease; }
+.annotation-toolbar .toolbar-color:not(:disabled) { max-width: 36px; min-width: 36px; opacity: 1; }
+.toolbar-color > span { width: 18px; height: 18px; border: 1px solid rgba(255,255,255,.42); border-radius: 50%; }
+.annotation-toolbar .toolbar-divider { height: 20px; background: rgba(255,255,255,.13); }
+.annotation-toolbar .toolbar-add { flex: 1 1 58px; width: auto; min-width: 48px; border-radius: 18px; color: #fff; background: #f04b2c; }
+.annotation-color-menu { position: fixed; z-index: 9999; display: flex; gap: 3px; padding: 8px; border: 1px solid rgba(255,255,255,.1); border-radius: 16px; background: #1c1c1c; box-shadow: 0 20px 25px rgba(0,0,0,.45); }
+.annotation-color-menu button { display: grid; width: 32px; height: 32px; padding: 0; border: 0; border-radius: 8px; background: transparent; place-items: center; cursor: pointer; }
+.annotation-color-menu button:hover { background: rgba(255,255,255,.1); }
+.annotation-color-menu span { width: 20px; height: 20px; border: 1px solid rgba(255,255,255,.25); border-radius: 50%; }
+.annotation-color-menu span.selected { border-color: #fff; box-shadow: 0 0 0 2px #1c1c1c, 0 0 0 4px #fff; }
+.focused-review-app .composer-input-shell { align-items: flex-start; min-height: 300px; padding: 12px; border-color: rgba(255,255,255,.08); border-radius: 20px; background: #292929; }
+.focused-review-app .composer-inline-editor { min-height: 250px; overflow: auto; color: rgba(255,255,255,.9); line-height: 30px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.focused-review-app .intent-chip { background: rgba(255,255,255,.08); }
+.focused-review-app .intent-add-image { border-color: rgba(255,255,255,.2); }
+
+@container (max-width: 880px) {
+  .focused-review-app { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(420px, 1fr) auto; padding: 12px; }
+  .focused-review-app .review-action-dock { min-height: 166px; }
+  .focused-review-app .composer-input-shell { min-height: 80px; }
+  .focused-review-app .composer-inline-editor { min-height: 56px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .annotation-toolbar .toolbar-label,
+  .annotation-toolbar .toolbar-actions,
+  .annotation-toolbar .toolbar-color { transition: none; }
+}
 @media (prefers-reduced-motion: no-preference) {
   button, input, .save-status { transition: background-color 140ms ease-out, color 140ms ease-out, opacity 140ms ease-out, border-color 140ms ease-out; }
   .target-chip.active { animation: target-activate 220ms ease-out; }
 }
+
 
 @keyframes target-activate {
   from { box-shadow: 0 0 0 7px color-mix(in srgb, var(--accent) 18%, transparent); }
@@ -1081,7 +1314,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--accent, #e6
   box-shadow: 0 12px 34px rgba(0,0,0,.08);
 }
 .focused-review-app .intent-composer {
-  position: static;
+  position: relative;
   left: auto;
   bottom: auto;
   width: 100%;
@@ -1124,7 +1357,6 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--accent, #e6
   vertical-align: middle;
 }
 .intent-chip.active { background: color-mix(in srgb, var(--accent) 7%, var(--surface-raised)); }
-.intent-chip:focus-within { outline: 1px solid color-mix(in srgb, var(--accent) 52%, transparent); outline-offset: 1px; }
 .intent-chip-main { display: inline-flex; align-items: center; gap: 5px; height: 100%; min-width: 0; padding: 2px 7px 2px 3px; border: 0; color: var(--accent); background: transparent; cursor: pointer; }
 .intent-chip-main.thumbnail-only { padding-right: 3px; }
 .intent-chip-preview { display: grid; flex: 0 0 auto; place-items: center; width: 22px; height: 22px; overflow: hidden; color: var(--accent); border-radius: 6px; }
@@ -1133,9 +1365,10 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--accent, #e6
 .intent-clip-popover {
   position: fixed;
   z-index: 1000;
-  display: grid;
-  place-items: center;
-  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px;
   box-sizing: border-box;
   border: 1px solid var(--border-default);
   border-radius: 14px;
@@ -1143,12 +1376,12 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--accent, #e6
   box-shadow: 0 16px 40px rgba(0,0,0,.22);
   pointer-events: none;
 }
-.intent-clip-popover > img { display: block; width: 100%; height: 100%; border-radius: 10px; object-fit: contain; background: #151515; }
+.intent-clip-popover-media { display: grid; flex: 1 1 auto; min-height: 0; overflow: hidden; place-items: center; border-radius: 10px; background: #151515; }
+.intent-clip-popover-media > img { display: block; width: 100%; height: 100%; max-width: 240px; max-height: 240px; border-radius: 10px; object-fit: contain; }
+.intent-clip-popover-meta { display: flex; flex: 0 0 38px; min-width: 0; align-items: center; gap: 7px; padding: 0 4px; }
+.intent-clip-popover-meta > span { min-width: 0; overflow: hidden; color: var(--content-primary); font-size: 12px; font-weight: 500; line-height: 16px; text-overflow: ellipsis; white-space: nowrap; }
+.intent-clip-popover-meta > small { flex: 0 0 auto; padding: 2px 6px; border-radius: 5px; color: var(--content-secondary); background: var(--surface-subtle); font-size: 11px; line-height: 16px; }
 .intent-chip-label { min-width: 0; max-width: 64px; overflow: hidden; font-size: 11px; font-weight: 500; line-height: 1; text-overflow: ellipsis; white-space: nowrap; }
-.intent-chip-remove { position: absolute; z-index: 2; top: -6px; right: -6px; display: grid; place-items: center; width: 17px; height: 17px; padding: 0; opacity: 0; border: 1px solid var(--border-default); border-radius: 50%; color: var(--content-secondary); background: var(--surface-raised); box-shadow: 0 2px 6px rgba(0,0,0,.12); cursor: pointer; transition: opacity 100ms ease-out; }
-.intent-chip:hover .intent-chip-remove, .intent-chip:focus-within .intent-chip-remove { opacity: 1; }
-.intent-chip-remove svg { width: 10px; height: 10px; }
-.intent-chip-remove { font-size: 15px; line-height: 1; }
 .intent-add-image { display: inline-grid; flex: 0 0 auto; place-items: center; width: 28px; height: 28px; padding: 0; border: 1px dashed var(--border-strong); border-radius: 8px; color: var(--accent); background: transparent; cursor: pointer; }
 .intent-add-image span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .intent-add-image svg { width: 16px; height: 16px; color: currentColor; }
@@ -1178,4 +1411,515 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--accent, #e6
   .annotation-toolbar .toolbar-cancel, .annotation-toolbar .toolbar-add { padding-inline: 8px; font-size: 11px; }
   .review-action-dock { padding-inline: 8px; border-radius: 18px; }
   .intent-chip-label { max-width: 76px; }
+}
+
+/* Reshoot surface parity.
+   The MCP host supplies the outer window; everything inside this boundary mirrors
+   the main-site Video Reshoot content hierarchy without importing its web shell. */
+.focused-review-app,
+.focused-review-app.light,
+.focused-review-app.dark {
+  container-type: inline-size;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, min(420px, 35%));
+  grid-template-rows: 72px minmax(0, 1fr);
+  gap: 0 24px;
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  min-width: 0;
+  margin: 0;
+  padding: 0 24px 24px;
+  overflow: hidden;
+  color: #f5f5f5;
+  background: #050505;
+  background-image: none;
+}
+
+.focused-review-app .reshoot-header {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.focused-review-app .reshoot-header h1 {
+  margin: 0;
+  color: #f5f5f5;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 22px;
+  letter-spacing: .08px;
+}
+
+.focused-review-app .reshoot-close,
+.focused-review-app .reshoot-replace-media {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  color: rgba(255,255,255,.62);
+  background: transparent;
+  cursor: pointer;
+}
+
+.focused-review-app .reshoot-close {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border-radius: 50%;
+}
+
+.focused-review-app .reshoot-close:hover,
+.focused-review-app .reshoot-replace-media:hover:not(:disabled) {
+  color: #fff;
+  background: rgba(255,255,255,.08);
+}
+
+.focused-review-app .reshoot-close svg { width: 24px; height: 24px; }
+.focused-review-app .reshoot-header-actions { display: flex; align-items: center; justify-content: flex-end; min-width: 0; }
+.focused-review-app .reshoot-replace-media {
+  gap: 7px;
+  height: 34px;
+  padding: 0 12px;
+  border-radius: 17px;
+  font-size: 12px;
+}
+.focused-review-app .reshoot-replace-media svg { width: 16px; height: 16px; }
+.focused-review-app .reshoot-replace-media:disabled { opacity: .35; cursor: default; }
+
+.focused-review-app .review-workspace,
+.focused-review-app .review-action-dock,
+.focused-review-app .review-stage-shell,
+.focused-review-app .review-stage,
+.focused-review-app .intent-composer,
+.focused-review-app .composer-input-shell,
+.focused-review-app .composer-inline-editor {
+  min-width: 0;
+  max-width: 100%;
+}
+.focused-review-app .composer-editor-wrap { position: relative; display: flex; flex: 1 1 auto; min-width: 0; }
+.focused-review-app .composer-editor-wrap .composer-inline-editor { width: 100%; outline: 0; }
+.focused-review-app .composer-placeholder { position: absolute; top: 0; left: 8px; color: rgba(255,255,255,.32); font-size: 14px; line-height: 28px; pointer-events: none; }
+.composer-inline-editor > p { margin: 0; }
+.focused-review-app .lexical-reference-node { display: inline; }
+
+.focused-review-app .review-workspace {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  margin: 0;
+  overflow: hidden;
+  background-image: radial-gradient(circle, rgba(255,255,255,.12) 1px, transparent 1px);
+  background-position: 0 0;
+  background-size: 16px 16px;
+}
+
+.focused-review-app .review-stage-shell {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  padding: 24px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.focused-review-app .review-stage {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  place-items: center;
+}
+
+.focused-review-app .reshoot-media-stage {
+  width: 100%;
+  height: 100%;
+  max-width: 1200px;
+  min-height: 0;
+  background: transparent;
+}
+
+.focused-review-app .reshoot-media-fit {
+  max-width: 1200px;
+  background: #050505;
+}
+
+.focused-review-app .stage-transfer {
+  align-self: end;
+  margin-top: 10px;
+  border-color: rgba(255,255,255,.12);
+  color: rgba(255,255,255,.68);
+  background: rgba(28,28,28,.94);
+}
+
+.focused-review-app .empty-media-stage {
+  width: min(100%, 720px);
+  height: min(100%, 560px);
+  border: 1px dashed rgba(255,255,255,.16);
+  border-radius: 20px;
+  color: rgba(255,255,255,.55);
+  background: rgba(255,255,255,.025);
+}
+
+.focused-review-app .review-action-dock {
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 16px;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.focused-review-app .reshoot-guide {
+  display: block;
+  margin: 0;
+  padding: 0 16px 0 36px;
+  color: rgba(255,255,255,.38);
+  font-size: 13px;
+  line-height: 20px;
+}
+.focused-review-app .reshoot-guide li + li { margin-top: 4px; }
+
+.focused-review-app .annotation-toolbar {
+  position: relative;
+  display: flex;
+  width: 100%;
+  height: 52px;
+  flex: 0 0 52px;
+  flex-wrap: nowrap;
+  align-items: center;
+  min-height: 52px;
+  gap: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: 26px;
+  background: #202020;
+}
+.focused-review-app .annotation-toolbar .toolbar-scroll {
+  display: flex;
+  width: 100%;
+  height: 52px;
+  min-width: 0;
+  flex: 1 1 auto;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  padding: 8px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-inline: contain;
+  scroll-behavior: smooth;
+  scrollbar-color: rgba(255,255,255,.24) transparent;
+  scrollbar-width: thin;
+}
+.focused-review-app .annotation-toolbar .toolbar-scroll::-webkit-scrollbar { height: 4px; }
+.focused-review-app .annotation-toolbar .toolbar-scroll::-webkit-scrollbar-track { background: transparent; }
+.focused-review-app .annotation-toolbar .toolbar-scroll::-webkit-scrollbar-thumb { border-radius: 2px; background: rgba(255,255,255,.24); }
+.focused-review-app .annotation-toolbar .toolbar-label { min-width: 0; padding-left: 16px; color: rgba(255,255,255,.55); font-size: 14px; font-weight: 500; line-height: 36px; white-space: nowrap; }
+.focused-review-app .annotation-toolbar .toolbar-tools,
+.focused-review-app .annotation-toolbar .toolbar-actions { min-width: 0; flex: 0 0 auto; flex-wrap: nowrap; align-self: center; }
+.focused-review-app .annotation-toolbar .toolbar-tools { flex: 0 0 auto; }
+.focused-review-app .annotation-toolbar .toolbar-actions { display: none; max-width: none; overflow: visible; opacity: 1; transform: none; }
+.focused-review-app .annotation-toolbar.annotating .toolbar-actions { display: flex; max-width: none; overflow: visible; opacity: 1; transform: none; }
+.focused-review-app .annotation-toolbar.annotating .toolbar-label { display: none; max-width: 0; padding: 0; margin: 0; }
+.focused-review-app .annotation-toolbar button { width: 36px; min-width: 36px; height: 36px; flex: 0 0 36px; padding: 0; border: 0; border-radius: 50%; color: rgba(255,255,255,.62); background: transparent; }
+.focused-review-app .annotation-toolbar .toolbar-tools > button { flex: 0 0 36px; }
+.focused-review-app .annotation-toolbar .toolbar-color:not(:disabled) { min-width: 36px; }
+.focused-review-app .annotation-toolbar button:hover:not(:disabled) { color: #fff; background: rgba(255,255,255,.08); }
+.focused-review-app .annotation-toolbar button.active { color: #181818; background: #f4f4f4; }
+.focused-review-app .annotation-toolbar .toolbar-add { flex: 0 0 48px; width: 48px; min-width: 48px; color: #181818; background: #f4f4f4; }
+
+.focused-review-app .intent-composer {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  padding: 0;
+  transform: none;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+
+.focused-review-app .composer-input-shell {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  width: 100%;
+  min-height: 300px;
+  padding: 18px 16px 52px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.045);
+  border-radius: 24px;
+  background: #1c1c1c;
+  box-shadow: none;
+}
+.focused-review-app .composer-input-shell:focus-within { border-color: rgba(255,255,255,.12); box-shadow: none; }
+.focused-review-app .composer-inline-editor {
+  flex: 1 1 auto;
+  min-height: 224px;
+  padding: 0 8px;
+  overflow: auto;
+  color: rgba(255,255,255,.9);
+  font-size: 14px;
+  line-height: 28px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.focused-review-app .composer-inline-editor:empty::before { color: rgba(255,255,255,.32); content: none; }
+.focused-review-app .intent-add-image {
+  position: absolute;
+  bottom: 14px;
+  left: 16px;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 50%;
+  color: rgba(255,255,255,.78);
+  background: transparent;
+}
+.focused-review-app .intent-add-image:hover:not(:disabled) { background: rgba(255,255,255,.08); }
+.focused-review-app .composer-resolution {
+  position: absolute;
+  right: 16px;
+  bottom: 14px;
+  height: 32px;
+}
+.focused-review-app .composer-resolution select {
+  height: 32px;
+  min-width: 82px;
+  padding: 0 16px;
+  appearance: none;
+  border: 1px solid rgba(255,255,255,.22);
+  border-radius: 16px;
+  outline: 0;
+  color: rgba(255,255,255,.86);
+  background: #1c1c1c;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.focused-review-app .composer-resolution select:hover:not(:disabled),
+.focused-review-app .composer-resolution select:focus-visible { border-color: rgba(255,255,255,.5); background: #292929; }
+.focused-review-app .composer-resolution select:disabled { opacity: .35; cursor: default; }
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+.focused-review-app .intent-chip { background: rgba(255,255,255,.08); }
+.focused-review-app .intent-inline-clip { user-select: none; }
+.focused-review-app .composer-mention-menu {
+  position: fixed;
+  z-index: 10020;
+  display: flex;
+  width: 260px;
+  max-width: calc(100vw - 24px);
+  max-height: min(360px, calc(100vh - 24px));
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 24px;
+  color: #252525;
+  background: #f7f7f7;
+  box-shadow: 0 20px 50px rgba(0,0,0,.45);
+}
+.focused-review-app .composer-mention-action {
+  display: flex;
+  width: 100%;
+  height: 36px;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 0;
+  border-radius: 8px;
+  color: #252525;
+  background: transparent;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.focused-review-app .composer-mention-action:hover,
+.focused-review-app .composer-mention-action[aria-selected="true"] { background: #ececec; }
+.focused-review-app .composer-mention-action svg { width: 16px; height: 16px; flex: 0 0 16px; }
+.focused-review-app .composer-mention-divider { height: 1px; margin: 4px 0; flex: 0 0 1px; background: rgba(0,0,0,.08); }
+.focused-review-app .composer-mention-scroll {
+  display: flex;
+  min-height: 0;
+  flex-direction: column;
+  gap: 4px;
+  margin: -4px;
+  padding: 4px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.focused-review-app .composer-mention-section { display: grid; min-width: 0; gap: 6px; }
+.focused-review-app .composer-mention-section-heading {
+  padding: 4px 4px 0;
+  color: rgba(0,0,0,.48);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 18px;
+}
+.focused-review-app .composer-mention-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.focused-review-app .composer-mention-grid > button {
+  position: relative;
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  aspect-ratio: 1;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: 8px;
+  color: rgba(0,0,0,.48);
+  background: rgba(0,0,0,.06);
+  cursor: pointer;
+}
+.focused-review-app .composer-mention-grid > button:hover,
+.focused-review-app .composer-mention-grid > button[aria-selected="true"] { box-shadow: 0 0 0 2px #f04b2c; }
+.focused-review-app .composer-mention-grid img,
+.focused-review-app .composer-mention-grid video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+}
+.focused-review-app .composer-mention-grid svg { width: 28px; height: 28px; }
+.focused-review-app .composer-mention-grid > button > span { position: absolute; right: 5px; bottom: 5px; padding: 2px 5px; border-radius: 8px; color: #fff; background: rgba(0,0,0,.68); font-size: 9px; }
+
+.material-browser-backdrop { position: fixed; z-index: 10010; inset: 0; display: grid; padding: 12px; background: rgba(0,0,0,.72); place-items: center; }
+.material-browser {
+  display: flex;
+  width: min(640px, 100%);
+  max-height: calc(100svh - 24px);
+  flex-direction: column;
+  gap: 20px;
+  padding: 24px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 32px;
+  color: #f5f5f5;
+  background: #1c1c1c;
+  box-shadow: 0 10px 30px rgba(0,0,0,.42);
+}
+.material-browser > header { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: 12px; }
+.material-browser h2 { margin: 0; font-size: 20px; line-height: 32px; }
+.material-browser-search { position: relative; display: flex; align-items: center; width: 200px; }
+.material-browser-search > svg { position: absolute; left: 12px; width: 16px; height: 16px; color: rgba(255,255,255,.48); pointer-events: none; }
+.material-browser-search input { width: 100%; height: 36px; padding: 0 12px 0 36px; border: 1px solid rgba(255,255,255,.14); border-radius: 18px; outline: 0; color: #f5f5f5; background: transparent; font: inherit; font-size: 13px; }
+.material-browser-search input:focus { border-color: rgba(255,255,255,.42); }
+.material-browser-close { display: flex; width: 36px; height: 36px; align-items: center; justify-content: center; padding: 0; border: 0; border-radius: 50%; color: rgba(255,255,255,.68); background: transparent; cursor: pointer; }
+.material-browser-close:hover { background: rgba(255,255,255,.08); }
+.material-browser-close svg { width: 18px; height: 18px; }
+.material-browser-filters { display: flex; flex-wrap: wrap; gap: 8px; margin-top: -4px; }
+.material-browser-filters button { height: 32px; padding: 0 16px; border: 1px solid rgba(255,255,255,.14); border-radius: 16px; color: rgba(255,255,255,.62); background: transparent; cursor: pointer; }
+.material-browser-filters button[aria-pressed="true"] { border-color: #f04b2c; color: #fff; background: rgba(255,255,255,.07); }
+.material-browser-error { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 12px; border-radius: 12px; color: #ff9e86; background: rgba(240,75,44,.12); font-size: 12px; }
+.material-browser-error button { flex: 0 0 auto; border: 0; color: #fff; background: transparent; text-decoration: underline; cursor: pointer; }
+.material-browser-limit { margin: -8px 0 0; color: #ff9e86; font-size: 12px; }
+.material-browser-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; min-height: 180px; max-height: 50vh; margin: -4px -8px; padding: 4px 8px; overflow-y: auto; overscroll-behavior: contain; }
+.material-browser-grid > button { display: flex; min-width: 0; flex-direction: column; gap: 6px; padding: 0; overflow: visible; border: 0; color: #eee; background: transparent; text-align: left; cursor: pointer; }
+.material-browser-preview { position: relative; display: flex; width: 100%; aspect-ratio: 1; align-items: center; justify-content: center; overflow: hidden; border-radius: 12px; color: rgba(255,255,255,.48); background: rgba(255,255,255,.07); box-shadow: inset 0 0 0 1px rgba(255,255,255,.05); }
+.material-browser-grid > button[aria-pressed="true"] .material-browser-preview { box-shadow: 0 0 0 2px #f04b2c; }
+.material-browser-preview > img,
+.material-browser-preview > video { width: 100%; height: 100%; object-fit: cover; }
+.material-browser-preview > svg { width: 30px; height: 30px; }
+.material-browser-check { position: absolute; top: 8px; right: 8px; display: flex; width: 18px; height: 18px; align-items: center; justify-content: center; border: 2px solid #1c1c1c; border-radius: 50%; color: #fff; background: #f04b2c; }
+.material-browser-check > svg { width: 10px; height: 10px; stroke-width: 3; }
+.material-browser-grid strong { padding: 0 2px; overflow: hidden; color: rgba(255,255,255,.62); font-size: 12px; font-weight: 500; text-overflow: ellipsis; white-space: nowrap; }
+.material-browser-grid > p { grid-column: 1 / -1; align-self: center; margin: 0; color: rgba(255,255,255,.48); text-align: center; }
+.material-browser-sentinel,
+.material-browser-end { grid-column: 1 / -1; min-height: 28px; padding: 7px 0; color: rgba(255,255,255,.46); font-size: 12px; text-align: center; }
+.material-browser > footer { display: flex; align-items: center; justify-content: flex-end; gap: 12px; padding-top: 2px; }
+.material-browser-actions { display: flex; gap: 8px; }
+.material-browser-actions button { min-height: 40px; padding: 0 20px; border-radius: 20px; font: inherit; font-weight: 600; cursor: pointer; }
+.material-browser-actions .secondary { border: 1px solid rgba(255,255,255,.16); color: #f5f5f5; background: transparent; }
+.material-browser-actions .primary { border: 0; color: #181818; background: #f4f4f4; }
+.material-browser-actions button:disabled { opacity: .45; cursor: default; }
+@media (max-width: 560px) {
+  .material-browser { gap: 16px; padding: 16px; border-radius: 28px; }
+  .material-browser > header { grid-template-columns: minmax(0, 1fr) auto; }
+  .material-browser-search { grid-column: 1 / -1; grid-row: 2; width: 100%; }
+  .material-browser-close { grid-column: 2; grid-row: 1; }
+  .material-browser-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .material-browser > footer { align-items: stretch; flex-direction: column; }
+  .material-browser-actions { justify-content: flex-end; }
+}
+.focused-review-app .composer-submit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  height: 56px;
+  padding: 0 22px;
+  border: 0;
+  border-radius: 28px;
+  color: #151515;
+  background: #f2f2f2;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.focused-review-app .composer-submit svg { width: 18px; height: 18px; }
+.focused-review-app .composer-submit:disabled { color: rgba(255,255,255,.35); background: #242424; cursor: default; }
+
+@container (max-width: 880px) {
+  .focused-review-app,
+  .focused-review-app.light,
+  .focused-review-app.dark {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: 60px minmax(420px, 1fr) auto;
+    gap: 0;
+    padding: 0;
+    overflow: auto;
+  }
+  .focused-review-app .reshoot-header { padding: 0 12px; }
+  .focused-review-app .review-stage-shell { padding: 12px; }
+  .focused-review-app .review-action-dock { gap: 12px; padding: 12px 12px 16px; }
+  .focused-review-app .reshoot-guide { padding-left: 30px; }
+  .focused-review-app .composer-input-shell { min-height: 180px; }
+  .focused-review-app .composer-inline-editor { min-height: 108px; }
 }

@@ -143,6 +143,15 @@ export const CameraSchema = z.object({
   zoom: z.number().min(0.05).max(8),
 });
 
+export const OutputResolutionSchema = z.enum(["480p", "720p", "1080p"]);
+
+export const RenoiseMaterialReferenceSchema = z.object({
+  materialId: z.number().int().positive(),
+  name: z.string().trim().min(1).max(255),
+  type: z.enum(["image", "video"]),
+  mimeType: z.string().trim().min(1).max(127),
+}).strict();
+
 export const ViewStateSchema = z.object({
   schemaVersion: z.literal(1),
   pageId: IdSchema,
@@ -150,6 +159,8 @@ export const ViewStateSchema = z.object({
   theme: z.enum(["light", "dark"]).default("light"),
   activeTargetId: IdSchema.optional(),
   promptDrafts: z.record(IdSchema, z.string().max(10_000)).default({}),
+  materialReferencePools: z.record(IdSchema, z.array(RenoiseMaterialReferenceSchema).max(100)).default({}),
+  outputResolution: OutputResolutionSchema.optional(),
 });
 
 export const SelectionStateSchema = z.object({
@@ -165,12 +176,26 @@ export const RevisionIntentSourceSchema = z.object({
   objectType: z.enum(["image", "video-card"]),
   assetId: IdSchema,
   assetSha256: z.string().regex(/^[a-f0-9]{64}$/),
+  // New intents distinguish the clean/authoritative source from the rendered
+  // annotation guide. Optional pairs keep persisted pre-upgrade intents valid.
+  authoritativeSourceAssetId: IdSchema.optional(),
+  authoritativeSourceSha256: z.string().regex(/^[a-f0-9]{64}$/).optional(),
+  annotationGuideAssetId: IdSchema.optional(),
+  annotationGuideSha256: z.string().regex(/^[a-f0-9]{64}$/).optional(),
   sourceTimeMs: z.number().int().nonnegative().nullable(),
   sourceVideoAssetId: IdSchema.optional(),
   sourceVideoSha256: z.string().regex(/^[a-f0-9]{64}$/).optional(),
 }).refine(
   ({ sourceVideoAssetId, sourceVideoSha256 }) => (sourceVideoAssetId === undefined) === (sourceVideoSha256 === undefined),
   "Video asset ID and SHA-256 must be provided together",
+).refine(
+  ({ authoritativeSourceAssetId, authoritativeSourceSha256 }) =>
+    (authoritativeSourceAssetId === undefined) === (authoritativeSourceSha256 === undefined),
+  "Authoritative source asset ID and SHA-256 must be provided together",
+).refine(
+  ({ annotationGuideAssetId, annotationGuideSha256 }) =>
+    (annotationGuideAssetId === undefined) === (annotationGuideSha256 === undefined),
+  "Annotation guide asset ID and SHA-256 must be provided together",
 );
 
 export const RevisionIntentSchema = z.object({
@@ -179,11 +204,13 @@ export const RevisionIntentSchema = z.object({
   pageId: IdSchema,
   documentRevision: z.number().int().nonnegative(),
   instruction: z.string().trim().min(1).max(10_000),
+  outputResolution: OutputResolutionSchema.optional(),
   selectedObjectIds: z.array(IdSchema).min(1),
   selectedAnnotationIds: z.array(IdSchema),
   targetObjectIds: z.array(IdSchema).min(1),
   markObjectIds: z.array(IdSchema),
   sources: z.array(RevisionIntentSourceSchema).min(1),
+  materialReferences: z.array(RenoiseMaterialReferenceSchema).max(20).default([]),
   status: z.enum(["submitted", "completed"]),
   resultObjectIds: z.array(IdSchema),
   createdAt: IsoDateSchema,
@@ -201,6 +228,7 @@ export type PreviewRecord = z.infer<typeof PreviewRecordSchema>;
 export type ViewState = z.infer<typeof ViewStateSchema>;
 export type SelectionState = z.infer<typeof SelectionStateSchema>;
 export type RevisionIntent = z.infer<typeof RevisionIntentSchema>;
+export type RenoiseMaterialReference = z.infer<typeof RenoiseMaterialReferenceSchema>;
 
 export function createEmptyDocument(pageId: string, name = "Review Board"): WhiteboardDocument {
   return WhiteboardDocumentSchema.parse({

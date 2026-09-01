@@ -43,6 +43,8 @@ export PATH="${HOME}/.local/bin:${PATH}"
 command -v renoise >/dev/null 2>&1 || exit 127
 renoise version
 renoise help task create | grep -q -- '--prompt-file'
+renoise help task create | grep -q -- '--source-width'
+renoise help task cost | grep -q -- '--edit'
 renoise help task wait | grep -q 'renoise task wait'
 renoise help analyze | grep -q -- '--mode'
 renoise help auth exec | grep -q 'renoise auth exec'
@@ -50,7 +52,7 @@ renoise auth status --json
 renoise model --json
 ```
 
-On Windows PowerShell, run the same `node ... check-plugin.mjs` and `node ... install-cli.mjs --ensure`, then prepend `$env:LOCALAPPDATA\Renoise\bin` to `$env:Path`. Use `Get-Command renoise` instead of `command -v`, and confirm task help contains `renoise task create` plus `--prompt-file` and `renoise task wait`, analyze help contains `--mode`, and auth help contains `renoise auth exec`, instead of using `grep`. If `check-plugin.mjs` exits 2, surface its upgrade commands to the user before continuing with generation features that need the new plugin. If `--ensure` fails, the binary is still missing, required commands are absent, or authentication is missing, immediately read `${CLAUDE_SKILL_DIR}/../renoise-setup/SKILL.md` completely and follow it through readiness, asking only for approvals required before host PATH edits or browser authorization. Then rerun preflight and continue the original request; do not merely direct the user to **Setup / Account**. Never ask the user to paste an API key into chat.
+On Windows PowerShell, run the same `node ... check-plugin.mjs` and `node ... install-cli.mjs --ensure`, then prepend `$env:LOCALAPPDATA\Renoise\bin` to `$env:Path`. Use `Get-Command renoise` instead of `command -v`, and confirm task help contains `renoise task create` plus `--prompt-file`, `renoise task cost` plus `--edit`, and `renoise task wait`; analyze help must contain `--mode`, and auth help must contain `renoise auth exec`, instead of using `grep`. If `check-plugin.mjs` exits 2, surface its upgrade commands to the user before continuing with generation features that need the new plugin. If `--ensure` fails, the binary is still missing, required commands are absent, or authentication is missing, immediately read `${CLAUDE_SKILL_DIR}/../renoise-setup/SKILL.md` completely and follow it through readiness, asking only for approvals required before host PATH edits or browser authorization. Then rerun preflight and continue the original request; do not merely direct the user to **Setup / Account**. Never ask the user to paste an API key into chat.
 
 ## Select a Model Dynamically
 
@@ -87,6 +89,8 @@ Analysis never proves that generation will pass moderation, never creates a paid
 
 For caller attribution, prefix every `renoise task create` invocation with `RENOISE_CLIENT_NAME=codex` in Codex or `RENOISE_CLIENT_NAME=claude-code` in Claude Code. Do not set it for other hosts or persist it globally. In PowerShell, set `$env:RENOISE_CLIENT_NAME` immediately before task creation and remove it afterward.
 
+`renoise task create` is a paid-operation boundary. Do not invoke it until the current conversation contains an explicit post-preview approval for the exact final prompt and generation arguments described in the Cost Gate below. A general instruction to generate immediately, given before the preview, is intent to use the workflow—not approval of an unseen prompt or price.
+
 Agents must create the task first, record `task.id` from stdout, then wait separately. This makes terminal timeouts resumable and prevents a blind retry from creating and charging for another task:
 
 ```bash
@@ -94,12 +98,17 @@ renoise task create [model] \
   --prompt-file /path/to/prompt.txt \
   [--type video|image|audio] \
   [--duration N|-1] [--ratio X:Y] [--resolution VALUE] \
+  [--source-width PX --source-height PX [--source-duration SECONDS]] \
   [--materials "ID:role[:index],..."] \
   [--watermark] [--audio-generation=false] --json
 renoise task wait <task-id> --timeout 15m --json
 ```
 
-Use `--prompt-file -` to read a prompt from stdin, or `--prompt` only for short shell-safe text. The two flags are mutually exclusive. Omit the model to use the server default, or pass the selected model explicitly. Use `--duration -1` only when the selected model's live guidance advertises automatic edit duration; otherwise pass a positive advertised duration.
+Use `--prompt-file -` to read a prompt from stdin, or `--prompt` only for short shell-safe text. The two flags are mutually exclusive. Omit the model to use the server default, or pass the selected model explicitly. Use `--duration -1` only when the selected model's live guidance advertises automatic edit duration; otherwise pass a positive advertised duration. For automatic-duration video editing, cost estimation and creation intentionally use different duration values: estimate with `--edit --duration <positive-source-duration-seconds>`, then create with `--duration -1 --ratio adaptive`.
+
+`--source-width` and `--source-height` carry generic, measured source-media facts; `--source-duration` is optional. Use them only when output metadata cannot be specified up front (for example an adaptive ratio) and a trusted local source provides those values. They do not mark the task as an edit, do not replace `--ratio`/`--duration`, and explicit output parameters remain authoritative.
+
+For a Seedance source-video edit created with `--duration -1`, the final prompt written to `--prompt-file` must explicitly tell the model to add, modify, remove, or edit the video. For deterministic routing, append `[Edit the video as instructed above]` as the final line unless that exact trigger is already present. Apply this only to source-video editing. Do not append the edit trigger or use `--duration -1` for forward/backward extension or ordinary reference-based generation; those flows use their live positive duration and their own extension/generation wording.
 
 If `wait` times out or the terminal call is interrupted, rerun `wait` with the same task ID; do not rerun `create`.
 
@@ -120,7 +129,7 @@ renoise task chain <task-id> --json
 renoise task tags --json
 renoise task tag <task-id> --tags project,shot --json
 renoise material --json
-renoise upload /path/to/file [--type image|video|audio] --json
+renoise upload /path/to/file [--type image|video|audio] [--scope user|mask] --json
 ```
 
 Use `renoise <command> --help` rather than documenting every flag here.
@@ -129,11 +138,13 @@ Use `renoise <command> --help` rather than documenting every flag here.
 
 Before spending credits:
 
-1. Run `renoise task cost <model> ... --json` with the actual generation parameters. For an automatic-duration edit, estimate with the source video's known positive duration, then create with `--duration -1`; stop if the source duration is unavailable.
-2. Multiply `estimatedCredit` by the planned number of generations.
-3. Add character-sheet, upscale, audio, and retry costs when applicable.
+1. Finish the exact final prompt first, including model-specific adapters, material tokens, preservation constraints, and required system/edit trigger text. The displayed prompt must be byte-for-byte the text later written to `--prompt-file`.
+2. Run `renoise task cost <model> ... --json` with the actual generation parameters. For an automatic-duration edit, run `renoise task cost <model> --edit --duration <positive-source-duration-seconds> --resolution <resolution> ... --json`, then create with `--duration -1 --ratio adaptive`; stop if the source duration is unavailable. `--edit` belongs to `task cost`, not `task create`.
+3. Multiply `estimatedCredit` by the planned number of generations and add character-sheet, upscale, audio, and retry costs when applicable.
 4. Compare with `renoise account status --json`.
-5. Tell the user the estimate and wait for approval when the director workflow requires it.
+5. Present the complete final prompt in a fenced block plus the selected model, media type, resolution, duration/ratio, ordered material IDs and roles, generation count, estimated credits, and current balance.
+6. End the turn and wait for the user's explicit approval of that displayed proposal. This gate applies to every paid generation path, including annotation-board submissions; it is never waived by an earlier “直接生成” instruction or by approval of a source directory, upload, storyboard, or annotation intent.
+7. After approval, create with the exact approved prompt and arguments. If any prompt text, model, parameter, material mapping, generation count, or estimate changes, show the revised proposal and obtain approval again.
 
 Never quote static prices.
 
@@ -145,6 +156,8 @@ Upload once and reuse the returned material ID:
 renoise upload /path/to/reference.png --json
 renoise material --search reference --json
 ```
+
+Uploads default to `--scope user`, which appears in the user's reusable material library. Use `--scope mask` only for tool-generated intermediate images such as annotated video frames or image-annotation composites. Mask-scoped materials remain addressable by their returned positive material ID for prompts and generation tasks but are excluded from normal material-library listings.
 
 Material syntax is `ID:role[:index]`. The role is required; use only roles listed by `renoise model <model> --json`. `index` controls provider reference ordering.
 

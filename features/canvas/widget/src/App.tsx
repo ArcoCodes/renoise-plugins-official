@@ -1,21 +1,24 @@
 import { App as McpApp, PostMessageTransport } from "@modelcontextprotocol/ext-apps";
-import { ArrowLeft, Film, Upload } from "lucide-react";
+import { Upload, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   WhiteboardDocumentSchema,
   SelectionStateSchema,
+  ViewStateSchema,
   createEmptyDocument,
   type AnnotationRecord,
   type SelectionState,
   type ViewState,
   type WhiteboardDocument,
   type WhiteboardObject,
+  type RenoiseMaterialReference,
 } from "../../shared/document-schema.js";
 import {
   AssetGatewayDescriptorSchema,
   assetGatewayHealthUrl,
   assetGatewayImportUrl,
   assetGatewayMediaUrl,
+  assetGatewayMaterialUrl,
   type AssetGatewayDescriptor,
   type GatewayImportKind,
 } from "../../shared/asset-gateway.js";
@@ -25,8 +28,7 @@ import {
   selectedMediaKind,
 } from "../../shared/ui-helpers.js";
 import { History } from "./canvas/history.js";
-import type { WhiteboardTool } from "./canvas/interaction-controller.js";
-import { Composer, type ComposerItem } from "./composer/Composer.js";
+import { Composer, type ComposerItem, type OutputResolution } from "./composer/Composer.js";
 import { jsonSafeMcpArguments } from "./mcp-arguments.js";
 import type { RecoveryDiagnosticEvent } from "./diagnostics/recovery-diagnostics.js";
 import {
@@ -37,24 +39,18 @@ import {
   uploadImageInChunks,
 } from "./inspector/chunked-image-client.js";
 import { readVideoInChunks, uploadVideoInChunks } from "./inspector/chunked-video-client.js";
-import { formatTimecode, prepareVideoFile } from "./inspector/video-utils.js";
+import { formatComposerFrameTime, formatTimecode, prepareVideoFile } from "./inspector/video-utils.js";
 import { ReviewLauncher } from "./launcher/ReviewLauncher.js";
 import { AnnotationToolbar } from "./toolbar/AnnotationToolbar.js";
-import { VideoReviewStage, type VideoReviewStageHandle } from "./review/VideoReviewStage.js";
-import {
-  FixedMediaAnnotator,
-  type AnnotationDraftMark,
-  type FixedMediaAnnotatorHandle,
-} from "./review/FixedMediaAnnotator.js";
+import type { AnnotationShape, AnnotationTool } from "./frame-annotator/annotation-types.js";
+import { ReshootMediaStage, type ReshootMediaStageHandle } from "./review/ReshootMediaStage.js";
+import { annotationShapesToObjects } from "./review/annotation-shape-to-object.js";
 import { randomIdToken } from "./random-id.js";
 
 declare const __RENOISE_WIDGET_BUILD_ID__: string;
 
 type Payload = Record<string, any>;
 type DisplayMode = "inline" | "fullscreen" | "pip";
-type ImageObject = Extract<WhiteboardObject, { type: "image" }>;
-type FrozenVideoDraft = { target: ImageObject; sourceVideoId: string };
-const ANNOTATION_TOOLS = new Set<WhiteboardTool>(["pen", "arrow", "rectangle", "text", "pin"]);
 function stableJsonValue(value: unknown): unknown {
   if (Array.isArray(value)) return value.map(stableJsonValue);
   if (value && typeof value === "object") {
@@ -74,7 +70,7 @@ const sameDocumentContent = (left: WhiteboardDocument, right: WhiteboardDocument
   return JSON.stringify(stableJsonValue(leftContent)) === JSON.stringify(stableJsonValue(rightContent));
 };
 const app = new McpApp(
-  { name: "Renoise Annotation Board", version: "1.0.0" },
+  { name: "Renoise Visual Edit", version: "1.0.0" },
   { availableDisplayModes: ["inline", "fullscreen"] },
 );
 
@@ -115,92 +111,12 @@ function annotationForTarget(document: WhiteboardDocument, targetId: string, mar
   };
 }
 
-export function annotationDraftObjects(
-  marks: AnnotationDraftMark[],
-  target: Extract<WhiteboardObject, { type: "image" }>,
-  coordinateSize = { width: target.transform.width, height: target.transform.height },
-  createdAt = new Date().toISOString(),
-): WhiteboardObject[] {
-  const scaleX = target.transform.width / coordinateSize.width;
-  const scaleY = target.transform.height / coordinateSize.height;
-  const point = ({ x, y }: { x: number; y: number }) => ({ x: x * scaleX, y: y * scaleY });
-  const base = (mark: AnnotationDraftMark, transform: WhiteboardObject["transform"]) => ({
-    id: mark.id,
-    parentId: null,
-    transform,
-    zIndex: target.zIndex + 1,
-    locked: true,
-    hidden: true,
-    createdAt,
-    updatedAt: createdAt,
-  });
-  return marks.map((mark) => {
-    if (mark.kind === "pen") return {
-      ...base(mark, { ...target.transform, rotation: 0 }),
-      type: "freehand",
-      data: { points: mark.points.map(point), width: 3 },
-      style: { stroke: "#FF4D4F" },
-    };
-    if (mark.kind === "arrow") return {
-      ...base(mark, { ...target.transform, rotation: 0 }),
-      type: "arrow",
-      data: { points: [point(mark.start), point(mark.end)] },
-      style: { stroke: "#FF4D4F", strokeWidth: 3 },
-    };
-    if (mark.kind === "rect") {
-      const start = point(mark.start);
-      const end = point(mark.end);
-      const x = Math.min(start.x, end.x);
-      const y = Math.min(start.y, end.y);
-      return {
-        ...base(mark, {
-          x: target.transform.x + x,
-          y: target.transform.y + y,
-          width: Math.max(1, Math.abs(end.x - start.x)),
-          height: Math.max(1, Math.abs(end.y - start.y)),
-          rotation: 0,
-        }),
-        type: "rect",
-        data: {},
-        style: { stroke: "#FF4D4F", strokeWidth: 3, fill: "transparent" },
-      };
-    }
-    if (mark.kind === "text") {
-      const anchor = point(mark.point);
-      return {
-      ...base(mark, {
-        x: target.transform.x + anchor.x,
-        y: target.transform.y + anchor.y,
-        width: Math.max(1, mark.text.length * 20),
-        height: 28,
-        rotation: 0,
-      }),
-      type: "text",
-      data: { text: mark.text, fontSize: 20, align: "left" },
-      style: { fill: "#FF4D4F" },
-      };
-    }
-    const anchor = point(mark.point);
-    return {
-      ...base(mark, {
-        x: target.transform.x + anchor.x - 17,
-        y: target.transform.y + anchor.y - 42,
-        width: 34,
-        height: 50,
-        rotation: 0,
-      }),
-      type: "ellipse",
-      data: {},
-      style: { variant: "numbered-pin", number: mark.number, fill: "#0AA7C2" },
-    };
-  }) as WhiteboardObject[];
-}
-
 export function App() {
   const [connected, setConnected] = useState(false);
   const [sessionId, setSessionId] = useState("");
   const [pendingProject, setPendingProject] = useState("");
   const [authorized, setAuthorized] = useState(false);
+  const [autoOpenRequested, setAutoOpenRequested] = useState(false);
   const [displayMode, setDisplayMode] = useState<DisplayMode>("inline");
   const [document, setDocument] = useState<WhiteboardDocument>(() => createEmptyDocument("page_local"));
   const [view, setView] = useState<ViewState>({
@@ -209,6 +125,7 @@ export function App() {
     camera: { x: 0, y: 0, zoom: 1 },
     theme: "light",
     promptDrafts: {},
+    materialReferencePools: {},
   });
   const [intentSelection, setIntentSelection] = useState<SelectionState>({
     schemaVersion: 1,
@@ -217,27 +134,27 @@ export function App() {
     selectedObjectIds: [],
     selectedAnnotationIds: [],
   });
-  const [tool, setTool] = useState<WhiteboardTool>("select");
+  const [tool, setTool] = useState<AnnotationTool | null>(null);
+  const [activeColor, setActiveColor] = useState("#FF3B30");
   const [saveStatus, setSaveStatus] = useState<"saved" | "saving" | "failed" | "conflict">("saved");
   const [error, setError] = useState("");
-  const [draftStatus, setDraftStatus] = useState({ markCount: 0, canUndo: false, canRedo: false });
+  const [draftStatus, setDraftStatus] = useState({ markCount: 0, canUndo: false, canRedo: false, selectedId: null as string | null, textEditing: false });
   const [draftResetKey, setDraftResetKey] = useState(0);
+  const [composerResetKey, setComposerResetKey] = useState(0);
   const [activeTargetId, setActiveTargetId] = useState("");
-  const [frozenVideoDraft, setFrozenVideoDraft] = useState<FrozenVideoDraft>();
-  const [videoResumeTime, setVideoResumeTime] = useState<{ videoId: string; timeMs: number }>();
+  const [focusedComposerItemId, setFocusedComposerItemId] = useState("");
   const [videoTransfer, setVideoTransfer] = useState<{ phase: "upload" | "process" | "read"; loaded: number; total: number }>();
   const [stageBusy, setStageBusy] = useState(false);
   const fileInput = useRef<HTMLInputElement>(null);
   const replaceOnNextMediaSelection = useRef(false);
-  const videoStageRef = useRef<VideoReviewStageHandle>(null);
-  const annotatorRef = useRef<FixedMediaAnnotatorHandle>(null);
+  const annotatorRef = useRef<ReshootMediaStageHandle>(null);
   const intentSelectionRef = useRef(intentSelection);
   const documentRef = useRef(document);
   const viewRef = useRef(view);
   const sessionRef = useRef(sessionId);
+  const authorizedRef = useRef(authorized);
+  const pendingProjectRef = useRef(pendingProject);
   const activeTargetRef = useRef(activeTargetId);
-  const frozenVideoDraftRef = useRef<FrozenVideoDraft | undefined>(undefined);
-  const videoFreezeInFlight = useRef<Promise<string | undefined> | undefined>(undefined);
   const resumeAttempt = useRef("");
   const saveChain = useRef<Promise<unknown>>(Promise.resolve());
   const selectionSaveChain = useRef<Promise<unknown>>(Promise.resolve());
@@ -262,6 +179,8 @@ export function App() {
   useEffect(() => { viewRef.current = view; }, [view]);
   useEffect(() => { intentSelectionRef.current = intentSelection; }, [intentSelection]);
   useEffect(() => { sessionRef.current = sessionId; }, [sessionId]);
+  useEffect(() => { authorizedRef.current = authorized; }, [authorized]);
+  useEffect(() => { pendingProjectRef.current = pendingProject; }, [pendingProject]);
   useEffect(() => { activeTargetRef.current = activeTargetId; }, [activeTargetId]);
   useEffect(() => {
     globalThis.document.documentElement.dataset.displayMode = displayMode;
@@ -285,7 +204,40 @@ export function App() {
     assetGatewayUnavailableUntil.current = 0;
   }, []);
 
+  const clearSessionScopedState = useCallback(() => {
+    clearTimeout(viewSaveTimer.current);
+    assetGatewayRef.current = undefined;
+    assetGatewayHealth.current = undefined;
+    assetGatewayUnavailableUntil.current = 0;
+    imageAssetBlobs.current.clear();
+    imageAssetElements.current.clear();
+    imageAssetUrls.current.clear();
+    localAssetBlobUrls.current.clear();
+    for (const url of localBlobUrls.current) URL.revokeObjectURL(url);
+    localBlobUrls.current.clear();
+    const emptyDocument = createEmptyDocument("page_local");
+    const emptyView = ViewStateSchema.parse({ schemaVersion: 1, pageId: "page_local", camera: { x: 0, y: 0, zoom: 1 }, theme: "light" });
+    const emptySelection = SelectionStateSchema.parse({ schemaVersion: 1, pageId: "page_local", documentRevision: 0, selectedObjectIds: [], selectedAnnotationIds: [] });
+    documentRef.current = emptyDocument;
+    viewRef.current = emptyView;
+    intentSelectionRef.current = emptySelection;
+    activeTargetRef.current = "";
+    setDocument(emptyDocument);
+    setView(emptyView);
+    setIntentSelection(emptySelection);
+    setActiveTargetId("");
+    setFocusedComposerItemId("");
+    setTool(null);
+    setDraftResetKey((value) => value + 1);
+    history.current.reset(emptyDocument);
+  }, []);
+
   const applyPayload = useCallback((payload: Payload) => {
+    if (payload.authorization?.state === "pending_authorization") {
+      authorizedRef.current = false;
+      setAuthorized(false);
+      clearSessionScopedState();
+    }
     if (payload.canvasSessionId) {
       if (sessionRef.current && payload.canvasSessionId !== sessionRef.current) {
         assetGatewayRef.current = undefined;
@@ -307,8 +259,15 @@ export function App() {
         detail: `session=…${String(payload.canvasSessionId).slice(-8)}`,
       });
     }
-    if (payload.authorization?.projectDir) setPendingProject(payload.authorization.projectDir);
-    if (payload.authorization?.state === "active") setAuthorized(true);
+    if (payload.authorization?.projectDir) {
+      setPendingProject(payload.authorization.projectDir);
+      pendingProjectRef.current = payload.authorization.projectDir;
+    }
+    if (payload.authorization?.state === "active") {
+      authorizedRef.current = true;
+      setAuthorized(true);
+    }
+    if (payload.requestedDisplayMode === "fullscreen") setAutoOpenRequested(true);
     if (payload.assetGateway) {
       const parsed = AssetGatewayDescriptorSchema.safeParse(payload.assetGateway);
       if (parsed.success) {
@@ -352,9 +311,10 @@ export function App() {
       });
     }
     if (payload.view) {
-      setView(payload.view);
-      viewRef.current = payload.view;
-      const restoredTargetId = payload.view.activeTargetId ?? "";
+      const normalizedView = ViewStateSchema.parse(payload.view);
+      setView(normalizedView);
+      viewRef.current = normalizedView;
+      const restoredTargetId = normalizedView.activeTargetId ?? "";
       setActiveTargetId(restoredTargetId);
       activeTargetRef.current = restoredTargetId;
     }
@@ -363,16 +323,31 @@ export function App() {
       setIntentSelection(restoredSelection);
       intentSelectionRef.current = restoredSelection;
     }
-  }, [recordRecoveryDiagnostic]);
+  }, [clearSessionScopedState, recordRecoveryDiagnostic]);
 
   useEffect(() => {
     app.ontoolinput = (params) => {
       const input = params.arguments ?? {};
       if (typeof input.canvasSessionId === "string") {
+        if (sessionRef.current && input.canvasSessionId !== sessionRef.current) {
+          authorizedRef.current = false;
+          setAuthorized(false);
+          clearSessionScopedState();
+        }
         setSessionId(input.canvasSessionId);
         sessionRef.current = input.canvasSessionId;
       }
-      if (typeof input.projectDir === "string") setPendingProject(input.projectDir);
+      if (typeof input.projectDir === "string") {
+        if (authorizedRef.current || input.projectDir !== pendingProjectRef.current) {
+          authorizedRef.current = false;
+          setAuthorized(false);
+          clearSessionScopedState();
+          setSessionId("");
+          sessionRef.current = "";
+        }
+        setPendingProject(input.projectDir);
+        pendingProjectRef.current = input.projectDir;
+      }
       recordRecoveryDiagnostic({
         stage: "Host input",
         message: "Annotation-board launch parameters received.",
@@ -411,7 +386,7 @@ export function App() {
         setError("The current host did not complete the MCP App connection");
       });
     return () => { app.onhostcontextchanged = undefined; };
-  }, [applyPayload, recordRecoveryDiagnostic]);
+  }, [applyPayload, clearSessionScopedState, recordRecoveryDiagnostic]);
 
   const call = useCallback(async (name: string, args: Record<string, unknown>) => {
     return structured(await app.callServerTool({ name, arguments: jsonSafeMcpArguments(args) }));
@@ -466,6 +441,12 @@ export function App() {
       return false;
     }
   }, []);
+
+  useEffect(() => {
+    if (!connected || !authorized || !autoOpenRequested) return;
+    setAutoOpenRequested(false);
+    if (displayMode !== "fullscreen") void requestFullscreen();
+  }, [authorized, autoOpenRequested, connected, displayMode, requestFullscreen]);
 
   const returnToConversation = useCallback(async () => {
     try {
@@ -605,10 +586,22 @@ export function App() {
     setError("");
     recordRecoveryDiagnostic({ stage: "Directory authorization", message: "Approving the project directory.", status: "info", detail: pendingProject });
     try {
-      const payload = await call("authorize_renoise_whiteboard_workspace", {
-        approvedProjectDir: pendingProject,
-      });
+      const authorize = (canvasSessionId: string) => call("authorize_renoise_whiteboard_workspace", { approvedProjectDir: pendingProject, canvasSessionId });
+      let payload: Payload;
+      try {
+        payload = await authorize(sessionRef.current);
+      } catch (caught) {
+        const message = caught instanceof Error ? caught.message : String(caught);
+        if (!message.includes("AUTHORIZATION_REQUIRED")) throw caught;
+        // A task switch can preserve the iframe while the local MCP process (and
+        // its in-memory pending session) has restarted. Recreate only the exact
+        // project shown in the approval UI, then consume the same user click.
+        const recreated = await call("render_renoise_whiteboard_widget", { projectDir: pendingProject });
+        applyPayload(recreated);
+        payload = await authorize(String(recreated.canvasSessionId ?? ""));
+      }
       applyPayload(payload);
+      authorizedRef.current = true;
       setAuthorized(true);
       setDraftResetKey((value) => value + 1);
       recordRecoveryDiagnostic({ stage: "Directory authorization", message: "Project directory approved.", status: "success" });
@@ -692,6 +685,11 @@ export function App() {
   const gatewayMediaUrl = useCallback((assetId: string, variant: "canvas" | "original" = "original") => {
     const descriptor = assetGatewayRef.current;
     return descriptor ? assetGatewayMediaUrl(descriptor, assetId, variant) : undefined;
+  }, []);
+
+  const materialPreviewUrl = useCallback((materialId: number) => {
+    const descriptor = assetGatewayRef.current;
+    return descriptor ? assetGatewayMaterialUrl(descriptor, materialId) : undefined;
   }, []);
 
   const importThroughAssetGateway = useCallback(async (
@@ -884,27 +882,6 @@ export function App() {
     return elementPromise;
   }, []);
 
-  const clearFrozenVideoDraft = useCallback(() => {
-    const draft = frozenVideoDraftRef.current;
-    if (!draft) return;
-    const assetId = draft.target.data.assetId;
-    const sourceUrl = localAssetBlobUrls.current.get(assetId);
-    imageAssetBlobs.current.delete(assetId);
-    imageAssetElements.current.delete(assetId);
-    imageAssetUrls.current.delete(assetId);
-    localAssetBlobUrls.current.delete(assetId);
-    frozenVideoDraftRef.current = undefined;
-    setFrozenVideoDraft(undefined);
-    if (sourceUrl) requestAnimationFrame(() => {
-      URL.revokeObjectURL(sourceUrl);
-      localBlobUrls.current.delete(sourceUrl);
-    });
-  }, []);
-
-  useEffect(() => {
-    if (frozenVideoDraft && frozenVideoDraft.target.id !== activeTargetId) clearFrozenVideoDraft();
-  }, [activeTargetId, clearFrozenVideoDraft, frozenVideoDraft]);
-
   const finalizeImportedTarget = async (targetId: string, replaceExisting: boolean) => {
     if (!replaceExisting) {
       activateTarget(targetId);
@@ -912,10 +889,8 @@ export function App() {
     }
     clearTimeout(viewSaveTimer.current);
     annotatorRef.current?.clear();
-    clearFrozenVideoDraft();
-    setVideoResumeTime(undefined);
-    setTool("select");
-    setDraftStatus({ markCount: 0, canUndo: false, canRedo: false });
+    setTool(null);
+    setDraftStatus({ markCount: 0, canUndo: false, canRedo: false, selectedId: null, textEditing: false });
     setDraftResetKey((value) => value + 1);
     activeTargetRef.current = targetId;
     setActiveTargetId(targetId);
@@ -929,6 +904,7 @@ export function App() {
     };
     viewRef.current = nextView;
     setView(nextView);
+    setComposerResetKey((value) => value + 1);
     await Promise.all([
       saveSelection([]),
       call("save_renoise_whiteboard_view", { canvasSessionId: sessionRef.current, view: nextView }),
@@ -1010,6 +986,9 @@ export function App() {
         expectedRevision: documentRef.current.page.revision,
         fileName: file.name,
         durationMs: prepared.durationMs,
+        ...(prepared.width > 0 && prepared.height > 0
+          ? { width: prepared.width, height: prepared.height }
+          : {}),
         createPlaybackProxy: !prepared.browserDecodable,
       }, controller.signal);
       if (streamed) {
@@ -1022,6 +1001,9 @@ export function App() {
           file,
           expectedRevision: documentRef.current.page.revision,
           durationMs: prepared.durationMs,
+          ...(prepared.width > 0 && prepared.height > 0
+            ? { width: prepared.width, height: prepared.height }
+            : {}),
           createPlaybackProxy: !prepared.browserDecodable,
           signal: controller.signal,
           onProgress: ({ loaded, total, phase }) => setVideoTransfer({ phase, loaded, total }),
@@ -1133,57 +1115,10 @@ export function App() {
     });
   }, [call, ensureAssetGateway, gatewayMediaUrl]);
 
-  const captureFrameDraft = async (video: Extract<WhiteboardObject, { type: "video-card" }>) => {
-    const frozen = await videoStageRef.current?.freezeCurrentFrame();
-    if (!frozen) return undefined;
-    const videoSha256 = documentRef.current.page.assets[video.data.assetId]?.sha256;
-    if (!videoSha256) throw new Error("Source-video integrity information is missing. Reload the annotation board");
-    clearFrozenVideoDraft();
-    const frameBlob = imageDataUrlToBlob(frozen.dataUrl);
-    const assetId = objectId("draft_asset");
-    const now = new Date().toISOString();
-    const fitted = fitMediaSize(frozen.width, frozen.height, 640, 480);
-    const record: ImageObject = {
-      id: objectId("draft_frame"),
-      type: "image",
-      parentId: null,
-      transform: {
-        x: video.transform.x + video.transform.width + 40,
-        y: video.transform.y,
-        width: fitted.width,
-        height: fitted.height,
-        rotation: 0,
-      },
-      zIndex: Math.max(0, ...documentRef.current.page.objects.map(({ zIndex }) => zIndex)) + 1,
-      locked: false,
-      hidden: false,
-      style: {},
-      data: {
-        assetId,
-        alt: `Video frame ${formatTimecode(frozen.timeMs)}`,
-        source: { kind: "video-frame", videoAssetId: video.data.assetId, videoSha256, timeMs: frozen.timeMs },
-      },
-      createdAt: now,
-      updatedAt: now,
-    };
-    primeLocalImageAsset(
-      assetId,
-      frameBlob,
-      localBlobUrl(frameBlob),
-    );
-    const draft = { target: record, sourceVideoId: video.id };
-    frozenVideoDraftRef.current = draft;
-    setFrozenVideoDraft(draft);
-    setVideoResumeTime({ videoId: video.id, timeMs: frozen.timeMs });
-    activeTargetRef.current = record.id;
-    setActiveTargetId(record.id);
-    return record.id;
-  };
-
   const importSelectedMedia = async (file: File, replaceExisting = false) => {
     if (stageBusy) throw new Error("The current media is still being processed. Try again shortly");
     setStageBusy(true);
-    setTool("select");
+    setTool(null);
     try {
       const kind = selectedMediaKind(file);
       if (!kind) throw new Error("Only PNG, JPEG, WebP, and GIF images and MP4 and WebM videos are supported");
@@ -1210,48 +1145,24 @@ export function App() {
     await saveSelection(ids);
   };
 
-  const removeIntentSource = async (targetId: string) => {
-    await saveSelection(intentSelectionRef.current.selectedObjectIds.filter((id) => id !== targetId));
-  };
-
-  const freezeActiveVideo = async () => {
-    const target = documentRef.current.page.objects.find(({ id }) => id === activeTargetRef.current);
-    if (target?.type !== "video-card") return target?.id;
-    return captureFrameDraft(target);
-  };
-
-  const chooseAnnotationTool = async (nextTool: WhiteboardTool) => {
+  const chooseAnnotationTool = async (nextTool: AnnotationTool | null) => {
     if (stageBusy) return;
-    if (!ANNOTATION_TOOLS.has(nextTool)) {
-      setTool(nextTool);
-      return;
-    }
     const target = documentRef.current.page.objects.find(({ id }) => id === activeTargetRef.current);
-    if (target?.type !== "video-card") {
-      setTool(nextTool);
-      return;
-    }
-    if (videoFreezeInFlight.current) return;
-    videoStageRef.current?.pause();
-    const pending = freezeActiveVideo();
-    videoFreezeInFlight.current = pending;
     try {
-      const frameId = await pending;
-      if (!frameId) throw new Error("Could not freeze the current video frame");
+      if (nextTool && target?.type === "video-card") void annotatorRef.current?.pauseAtReadyFrame();
       setTool(nextTool);
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : String(caught));
-    } finally {
-      if (videoFreezeInFlight.current === pending) videoFreezeInFlight.current = undefined;
     }
   };
 
   const persistAnnotatedSnapshot = async (
-    target: Extract<WhiteboardObject, { type: "image" }>,
+    target: Extract<WhiteboardObject, { type: "image" | "video-card" }>,
     snapshotBlob: Blob,
     sourceSize: { width: number; height: number },
     coordinateSize: { width: number; height: number },
-    marks: AnnotationDraftMark[],
+    shapes: AnnotationShape[],
+    frameTimeMs: number | null,
   ) => {
     await saveChain.current;
     const fileName = `annotation-${Date.now()}.png`;
@@ -1273,26 +1184,33 @@ export function App() {
     const base = WhiteboardDocumentSchema.parse(payload.document);
     documentRef.current = base;
     const now = new Date().toISOString();
-    const source = target.data.source;
-    const videoFrame = "kind" in source && source.kind === "video-frame" ? source : undefined;
+    const existingSource = target.type === "image" ? target.data.source : undefined;
+    const existingFrame = existingSource && "kind" in existingSource && existingSource.kind === "video-frame" ? existingSource : undefined;
+    const videoSha256 = target.type === "video-card" ? base.page.assets[target.data.assetId]?.sha256 : undefined;
+    if (target.type === "video-card" && !videoSha256) throw new Error("Source-video integrity information is missing. Reload the annotation board");
+    const videoFrame = target.type === "video-card"
+      ? { kind: "video-frame" as const, videoAssetId: target.data.assetId, videoSha256: videoSha256!, timeMs: frameTimeMs ?? target.data.timeMs }
+      : existingFrame;
     const snapshot: Extract<WhiteboardObject, { type: "image" }> = {
       id: objectId("snapshot"),
       type: "image",
       parentId: null,
-      transform: { ...target.transform, rotation: 0 },
+      transform: target.type === "video-card"
+        ? { ...target.transform, height: target.transform.width * coordinateSize.height / Math.max(1, coordinateSize.width), rotation: 0 }
+        : { ...target.transform, rotation: 0 },
       zIndex: Math.max(0, ...base.page.objects.map(({ zIndex }) => zIndex)) + 1,
       locked: true,
       hidden: false,
       style: { role: "annotation-snapshot" },
       data: {
         assetId: payload.asset.id,
-        alt: `${target.data.alt || "Image"} · Annotated`,
+        alt: `${target.type === "video-card" ? `Video frame ${formatTimecode(videoFrame?.timeMs ?? 0)}` : target.data.alt || "Image"} · Annotated`,
         source: videoFrame ? { ...videoFrame } : { relation: "revision-of", objectId: target.id },
       },
       createdAt: now,
       updatedAt: now,
     };
-    const markObjects = annotationDraftObjects(marks, snapshot, coordinateSize, now);
+    const markObjects = annotationShapesToObjects(shapes, snapshot, coordinateSize, now);
     const next = structuredClone(base);
     if (videoFrame) {
       const sourceVideo = next.page.objects.find((object) =>
@@ -1311,13 +1229,9 @@ export function App() {
     if (stageBusy) return;
     setStageBusy(true);
     try {
-      const frozenDraft = frozenVideoDraftRef.current;
-      const target = frozenDraft?.target.id === activeTargetRef.current
-        ? frozenDraft.target
-        : documentRef.current.page.objects.find(({ id }) => id === activeTargetRef.current);
+      const target = documentRef.current.page.objects.find(({ id }) => id === activeTargetRef.current);
       if (!target) throw new Error("Import an image or video first");
-      if (target.type === "video-card") throw new Error("Pause the video or select an annotation tool to freeze the current frame first");
-      if (target.type !== "image") throw new Error("The current media does not support annotation");
+      if (target.type !== "image" && target.type !== "video-card") throw new Error("The current media does not support annotation");
       const draft = await annotatorRef.current?.snapshot();
       if (!draft) throw new Error("The annotation area is not ready yet");
       const snapshotId = await persistAnnotatedSnapshot(
@@ -1325,16 +1239,14 @@ export function App() {
         draft.blob,
         { width: draft.width, height: draft.height },
         draft.coordinateSize,
-        draft.marks,
+        draft.shapes,
+        draft.timeMs,
       );
       await addIntentSource(snapshotId);
+      setFocusedComposerItemId(snapshotId);
       annotatorRef.current?.clear();
       setDraftResetKey((value) => value + 1);
-      setTool("select");
-      if (frozenDraft) {
-        clearFrozenVideoDraft();
-        activateTarget(frozenDraft.sourceVideoId);
-      }
+      setTool(null);
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : String(caught));
     } finally {
@@ -1342,70 +1254,26 @@ export function App() {
     }
   };
 
-  const returnToSourceVideo = async (discardDraftFrame = false) => {
-    const frozenDraft = frozenVideoDraftRef.current;
-    if (frozenDraft?.target.id === activeTargetRef.current) {
-      const frameSource = frozenDraft.target.data.source;
-      if ("kind" in frameSource && frameSource.kind === "video-frame") {
-        setVideoResumeTime({ videoId: frozenDraft.sourceVideoId, timeMs: frameSource.timeMs });
-      }
-      clearFrozenVideoDraft();
-      activateTarget(frozenDraft.sourceVideoId);
-      return;
-    }
-    const target = documentRef.current.page.objects.find(({ id }) => id === activeTargetRef.current);
-    if (target?.type !== "image") return;
-    const source = target.data.source;
-    if (!("kind" in source) || source.kind !== "video-frame") return;
-    const video = documentRef.current.page.objects.find((object) =>
-      object.type === "video-card" && object.data.assetId === source.videoAssetId);
-    if (!video || video.type !== "video-card") return;
-    const selected = intentSelectionRef.current.selectedObjectIds.includes(target.id);
-    const linked = documentRef.current.page.annotations.some(({ targetObjectIds }) => targetObjectIds.includes(target.id));
-    const shouldDiscard = discardDraftFrame && !selected && !linked;
-    if (video.data.timeMs !== source.timeMs || shouldDiscard) {
-      const next = structuredClone(documentRef.current);
-      const nextVideo = next.page.objects.find(({ id }) => id === video.id);
-      if (nextVideo?.type === "video-card") nextVideo.data.timeMs = source.timeMs;
-      if (shouldDiscard) {
-        next.page.objects = next.page.objects.filter(({ id }) => id !== target.id);
-        const assetStillReferenced = next.page.objects.some((object) =>
-          object.type === "image" ? object.data.assetId === target.data.assetId
-            : object.type === "video-card" ? object.data.assetId === target.data.assetId || object.data.posterAssetId === target.data.assetId
-              : false);
-        if (!assetStillReferenced) delete next.page.assets[target.data.assetId];
-      }
-      await saveDocument(next);
-    }
-    activateTarget(video.id);
-  };
-
   useEffect(() => {
-    const keyMap: Record<string, WhiteboardTool> = { p: "pen", a: "arrow", r: "rectangle", t: "text", e: "eraser", m: "pin" };
+    const keyMap: Record<string, AnnotationTool> = { p: "stroke", a: "arrow", r: "rect", t: "text" };
     const down = (event: KeyboardEvent) => {
       if ((event.target as HTMLElement)?.matches("input,textarea,[contenteditable=true]")) return;
       const shortcutTool = keyMap[event.key.toLowerCase()];
       if (shortcutTool) void chooseAnnotationTool(shortcutTool);
-      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "z") {
-        event.preventDefault();
-        if (event.shiftKey) annotatorRef.current?.redo();
-        else annotatorRef.current?.undo();
+      if (event.key === "Escape") {
+        if (draftStatus.selectedId) annotatorRef.current?.deselect();
+        else if (draftStatus.markCount === 0) setTool(null);
       }
-      if (event.key === "Escape") setTool("select");
     };
     window.addEventListener("keydown", down);
     return () => { window.removeEventListener("keydown", down); };
-  }, [chooseAnnotationTool]);
+  }, [chooseAnnotationTool, draftStatus.markCount, draftStatus.selectedId]);
 
-  const activeTargetCandidate = frozenVideoDraft?.target.id === activeTargetId
-    ? frozenVideoDraft.target
-    : document.page.objects.find(({ id }) => id === activeTargetId);
+  const activeTargetCandidate = document.page.objects.find(({ id }) => id === activeTargetId);
   const activeTargetBase = activeTargetCandidate?.type === "image" || activeTargetCandidate?.type === "video-card"
     ? activeTargetCandidate
     : undefined;
-  const activeTarget = activeTargetBase?.type === "video-card" && videoResumeTime?.videoId === activeTargetBase.id
-    ? { ...activeTargetBase, data: { ...activeTargetBase.data, timeMs: videoResumeTime.timeMs } }
-    : activeTargetBase;
+  const activeTarget = activeTargetBase;
   const composerItems = useMemo<ComposerItem[]>(() => intentSelection.selectedObjectIds.flatMap((id) => {
     const object = document.page.objects.find((candidate) => candidate.id === id);
     if (!object || (object.type !== "image" && object.type !== "video-card")) return [];
@@ -1413,7 +1281,7 @@ export function App() {
       id: object.id,
       assetId: object.data.posterAssetId ?? object.data.assetId,
       label: object.data.fileName,
-      timeLabel: formatTimecode(object.data.timeMs),
+      timeLabel: formatComposerFrameTime(object.data.timeMs),
     }];
     const source = object.data.source;
     const frame = "kind" in source && source.kind === "video-frame" ? source : undefined;
@@ -1421,15 +1289,43 @@ export function App() {
       id: object.id,
       assetId: object.data.assetId,
       label: object.data.alt || "Image",
-      ...(frame ? { timeLabel: formatTimecode(frame.timeMs) } : {}),
+      ...(frame ? { timeLabel: formatComposerFrameTime(frame.timeMs) } : {}),
     }];
   }), [document.page.objects, intentSelection.selectedObjectIds]);
   const activePrompt = view.promptDrafts[document.page.id] ?? "";
-  const activeImageSource = activeTarget?.type === "image" ? activeTarget.data.source : undefined;
-  const activeFrameSource = activeImageSource && "kind" in activeImageSource && activeImageSource.kind === "video-frame"
-    ? activeImageSource
-    : undefined;
-  const annotationSessionActive = activeTarget?.type === "image" && (tool !== "select" || draftStatus.markCount > 0);
+  const materialPool = view.materialReferencePools[document.page.id] ?? [];
+  const outputResolution: OutputResolution = view.outputResolution ?? "720p";
+  const annotationSessionActive = Boolean(activeTarget) && (tool !== null || draftStatus.markCount > 0);
+  const listComposerMaterials = useCallback(async (input: {
+    search?: string;
+    type?: "image" | "video";
+    limit: number;
+    offset: number;
+  }) => {
+    const payload = await call("list_renoise_whiteboard_materials", {
+      canvasSessionId: sessionRef.current,
+      ...input,
+      type: "image",
+    });
+    return {
+      materials: (payload.materials ?? []) as Array<RenoiseMaterialReference & {
+        previewCapability?: boolean;
+        previewUrl?: string;
+      }>,
+      hasMore: Boolean(payload.hasMore),
+    };
+  }, [call]);
+  const updateComposerMaterialPool = useCallback((materials: RenoiseMaterialReference[]) => {
+    const pageId = documentRef.current.page.id;
+    persistView({
+      ...viewRef.current,
+      materialReferencePools: { ...viewRef.current.materialReferencePools, [pageId]: materials },
+    });
+  }, [persistView]);
+  const updateComposerResolution = useCallback((nextResolution: OutputResolution) => {
+    if (viewRef.current.outputResolution === nextResolution) return;
+    persistView({ ...viewRef.current, outputResolution: nextResolution });
+  }, [persistView]);
 
   const openMediaPicker = (replaceExisting: boolean) => {
     replaceOnNextMediaSelection.current = replaceExisting;
@@ -1457,7 +1353,7 @@ export function App() {
       <main className="authorization-screen">
         <div className="authorization-card">
           <span className="authorization-icon">R</span>
-          <h1>Renoise Annotation Board</h1>
+          <h1>Renoise Visual Edit</h1>
           <p>The annotation board stores media, annotations, and requests in the project below. The server will access it only after you approve.</p>
           <code>{pendingProject || "Waiting for the host to provide a project directory…"}</code>
           <button className="approve-button" disabled={!connected || !pendingProject} onClick={() => void approve()}>Approve directory</button>
@@ -1476,29 +1372,27 @@ export function App() {
         if (file) void importSelectedMedia(file, replaceExisting).catch((caught) => setError(caught instanceof Error ? caught.message : String(caught)));
         event.target.value = "";
       }} />
+      <header className="reshoot-header">
+        <button type="button" className="reshoot-close" aria-label="Return to conversation" title="Return to conversation" onClick={() => void returnToConversation()}>
+          <X />
+        </button>
+        <h1>Renoise Visual Edit</h1>
+        <div className="reshoot-header-actions">
+          {activeTarget ? <button type="button" className="reshoot-replace-media" disabled={stageBusy || Boolean(videoTransfer)} onClick={() => openMediaPicker(true)}><Upload />Replace media</button> : null}
+        </div>
+      </header>
       <section className="review-workspace">
         <div className="review-stage-shell">
-          <div className="review-stage-heading">
-            <div className="review-stage-heading-main">
-              {activeTarget ? <button type="button" disabled={stageBusy || Boolean(videoTransfer)} onClick={() => openMediaPicker(true)}><Upload />Replace media</button> : null}
-              <span>{activeTarget?.type === "video-card" ? <Film /> : null}{activeTarget?.type === "video-card" ? activeTarget.data.fileName : activeTarget?.type === "image" ? activeTarget.data.alt || "Image" : "Waiting for media"}</span>
-            </div>
-            {activeFrameSource ? <button type="button" onClick={() => void returnToSourceVideo(true)}><ArrowLeft />Choose another video frame</button> : null}
-          </div>
           <div className={`review-stage ${stageBusy ? "busy" : ""}`}>
-            {activeTarget?.type === "video-card" ? (
-              <VideoReviewStage
-                ref={videoStageRef}
-                video={activeTarget}
-                readVideoAsset={readVideoAsset}
-              />
-            ) : activeTarget?.type === "image" ? (
-              <FixedMediaAnnotator
+            {activeTarget ? (
+              <ReshootMediaStage
                 key={activeTarget.id}
                 ref={annotatorRef}
                 target={activeTarget}
-                tool={tool}
-                readAsset={readDisplayAssetUrl}
+                activeTool={tool}
+                activeColor={activeColor}
+                readImageAsset={readDisplayAssetUrl}
+                readVideoAsset={readVideoAsset}
                 resetKey={draftResetKey}
                 onStateChange={setDraftStatus}
               />
@@ -1516,38 +1410,54 @@ export function App() {
         </div>
       </section>
       <section className="review-action-dock" aria-label="Annotations and revision instructions">
+        <ol className="reshoot-guide" aria-label="Annotation workflow">
+          <li>{activeTarget?.type === "video-card" ? "Play the video and pause on the frame you want to edit." : "Review the image and locate the area you want to edit."}</li>
+          <li>Use Marker to annotate what you want to change.</li>
+        </ol>
         <AnnotationToolbar
-          active={tool}
+          activeTool={tool}
+          activeColor={activeColor}
           canUndo={draftStatus.canUndo}
           canRedo={draftStatus.canRedo}
-          canAdd={activeTarget?.type === "image" && draftStatus.markCount > 0}
-          showCancel={annotationSessionActive}
-          showAdd={annotationSessionActive}
+          canAdd={Boolean(activeTarget) && draftStatus.markCount > 0}
+          annotating={annotationSessionActive}
           busy={stageBusy || saveStatus === "saving"}
-          onChange={(nextTool) => void chooseAnnotationTool(nextTool)}
+          keyboardEnabled={!draftStatus.textEditing}
+          onToolChange={(nextTool) => void chooseAnnotationTool(nextTool)}
+          onColorChange={(color) => {
+            setActiveColor(color);
+            annotatorRef.current?.recolorSelected(color);
+          }}
           onUndo={() => annotatorRef.current?.undo()}
           onRedo={() => annotatorRef.current?.redo()}
+          onDeleteSelected={() => annotatorRef.current?.deleteSelected()}
           onCancel={() => {
             annotatorRef.current?.clear();
             setDraftResetKey((value) => value + 1);
-            setTool("select");
-            if (activeFrameSource && !intentSelection.selectedObjectIds.includes(activeTargetId)) void returnToSourceVideo(true);
+            setTool(null);
           }}
           onAdd={() => void addActiveToIntent()}
         />
         <Composer
+        key={`${sessionId}:${document.page.id}:${composerResetKey}`}
         items={composerItems}
-        activeItemId={composerItems.some(({ id }) => id === activeTarget?.id) ? activeTarget?.id : composerItems.at(-1)?.id}
+        activeItemId={composerItems.some(({ id }) => id === focusedComposerItemId) ? focusedComposerItemId : composerItems.at(-1)?.id}
         prompt={activePrompt}
+        draftKey={`${sessionId}:${document.page.id}:${composerResetKey}`}
+        materialPool={materialPool}
+        outputResolution={outputResolution}
         disabled={stageBusy || Boolean(videoTransfer) || saveStatus === "saving"}
         readAsset={readAssetUrl}
         readAssetFallback={readDisplayAssetUrl}
-        onItemChange={activateTarget}
-        onItemRemove={(targetId) => void removeIntentSource(targetId).catch((caught) => setError(caught instanceof Error ? caught.message : String(caught)))}
+        materialPreviewUrl={materialPreviewUrl}
+        listMaterials={listComposerMaterials}
+        onMaterialPoolChange={updateComposerMaterialPool}
+        onItemChange={setFocusedComposerItemId}
         onImportImage={(file) => void importSelectedMedia(file)
           .catch((caught) => setError(caught instanceof Error ? caught.message : String(caught)))}
         onPromptChange={updatePromptDraft}
-        onSubmit={async ({ instruction, itemIds }) => {
+        onOutputResolutionChange={updateComposerResolution}
+        onSubmit={async ({ instruction, itemIds, materialIds }) => {
           await saveChain.current;
           const selectedIds = itemIds;
           if (!selectedIds.length) throw new Error("Complete an annotation and add its snapshot to the prompt first");
@@ -1572,13 +1482,15 @@ export function App() {
             canvasSessionId: sessionRef.current,
             expectedRevision: documentRef.current.page.revision,
             instruction,
+            outputResolution,
+            materialIds,
           });
           const revisionIntentId = payload.revisionIntent?.id as string | undefined;
           if (!revisionIntentId) throw new Error("The server did not return an annotation request ID");
           applyPayload(payload);
           setActiveTargetId("");
           activeTargetRef.current = "";
-          setTool("select");
+          setTool(null);
           setDraftResetKey((value) => value + 1);
           await app.sendMessage({
             role: "user",

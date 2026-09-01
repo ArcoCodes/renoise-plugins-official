@@ -12,11 +12,11 @@ export function ReviewLauncher(props: {
 }) {
   return (
     <main className="review-launcher">
-      <section className="review-launcher-card" aria-label="Renoise Annotation Board">
+      <section className="review-launcher-card" aria-label="Renoise Visual Edit">
         <div className="review-launcher-heading">
           <span className="review-launcher-mark" aria-hidden>R</span>
           <div>
-            <h1>Renoise Annotation Board</h1>
+            <h1>Renoise Visual Edit</h1>
             <p>Annotate revision intent on images or video frames</p>
           </div>
           {props.authorized && <span className="review-ready"><Check />Connected</span>}
@@ -40,7 +40,7 @@ export function ReviewLauncher(props: {
           onClick={props.onOpen}
         >
           <Maximize2 />
-          {props.authorized ? "Open annotation board" : "Approve and open annotation board"}
+          {props.authorized ? "Open visual editor" : "Approve and open visual editor"}
         </button>
         {props.error && <p className="inline-error">{props.error}</p>}
       </section>

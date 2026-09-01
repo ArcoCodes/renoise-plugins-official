@@ -105,6 +105,8 @@ export async function uploadVideoInChunks({
   file,
   expectedRevision,
   durationMs,
+  width,
+  height,
   createPlaybackProxy,
   signal,
   onProgress,
@@ -114,6 +116,8 @@ export async function uploadVideoInChunks({
   file: File;
   expectedRevision: number;
   durationMs: number;
+  width?: number;
+  height?: number;
   createPlaybackProxy?: boolean;
   signal?: AbortSignal;
   onProgress?: Progress;
@@ -126,6 +130,8 @@ export async function uploadVideoInChunks({
     byteLength: file.size,
     expectedRevision,
     durationMs,
+    width,
+    height,
     createPlaybackProxy,
   });
   const uploadId = String(begun.uploadId);

@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtemp, rm } from "node:fs/promises";
+import { chmod, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import test from "node:test";
@@ -28,7 +28,26 @@ async function pollVideoFinalize(client, canvasSessionId, uploadId) {
 test("MCP server exposes the widget resource and exact model/app visibility boundary", async (context) => {
   const projectDir = await mkdtemp(join(tmpdir(), "renoise-mcp-probe-"));
   context.after(() => rm(projectDir, { recursive: true, force: true }));
-  const transport = new StdioClientTransport({ command: process.execPath, args: [serverPath] });
+  const fakeRenoiseCli = join(projectDir, "fake-renoise");
+  const materialArgvCapture = join(projectDir, "material-argv.json");
+  await writeFile(fakeRenoiseCli, `#!/usr/bin/env node
+import { writeFileSync } from "node:fs";
+writeFileSync(process.env.RENOISE_MCP_CAPTURE, JSON.stringify(process.argv.slice(2)));
+process.stdout.write(JSON.stringify({ materials: [
+  { id: 301, name: "Still", type: "image", mimeType: "image/png", url: "https://asset.renoise.ai/signed/301" },
+  { id: 302, name: "Clip", type: "video", mimeType: "video/mp4", url: "https://asset.renoise.ai/signed/302" }
+] }));
+`);
+  await chmod(fakeRenoiseCli, 0o755);
+  const transport = new StdioClientTransport({
+    command: process.execPath,
+    args: [serverPath],
+    env: {
+      ...process.env,
+      RENOISE_CLI_PATH: fakeRenoiseCli,
+      RENOISE_MCP_CAPTURE: materialArgvCapture,
+    },
+  });
   const client = new Client(
     { name: "whiteboard-contract-test", version: "1.0.0" },
     { capabilities: { extensions: { "io.modelcontextprotocol/ui": {} } } },
@@ -37,7 +56,7 @@ test("MCP server exposes the widget resource and exact model/app visibility boun
   await client.connect(transport);
 
   const { tools } = await client.listTools();
-  assert.equal(tools.length, 26);
+  assert.equal(tools.length, 27);
   assert.equal(tools.some(({ name }) => name === "save_renoise_whiteboard_video"), false);
   assert.equal(tools.some(({ name }) => name === "insert_renoise_whiteboard_media"), false);
   for (const name of [
@@ -46,7 +65,9 @@ test("MCP server exposes the widget resource and exact model/app visibility boun
     "finalize_renoise_whiteboard_image_upload",
     "abort_renoise_whiteboard_image_upload",
   ]) assert.ok(tools.some((tool) => tool.name === name), `${name} must be registered`);
+  assert.ok(tools.some((tool) => tool.name === "list_renoise_whiteboard_materials"), "material picker tool must be registered");
   const visible = new Map(tools.map((tool) => [tool.name, tool._meta?.ui?.visibility]));
+  const toolByName = new Map(tools.map((tool) => [tool.name, tool]));
   for (const name of [
     "render_renoise_whiteboard_widget",
     "get_renoise_whiteboard_revision_intent",
@@ -59,6 +80,11 @@ test("MCP server exposes the widget resource and exact model/app visibility boun
       assert.deepEqual(visibility, ["app"], `${name} must remain app-only`);
     }
   }
+  assert.match(toolByName.get("render_renoise_whiteboard_widget")?._meta?.ui?.resourceUri ?? "", /^ui:\/\/renoise\/whiteboard-/);
+  for (const name of ["get_renoise_whiteboard_revision_intent", "prepare_renoise_whiteboard_references"]) {
+    assert.equal(toolByName.get(name)?._meta?.ui?.resourceUri, undefined, `${name} must not render the annotation-board UI`);
+    assert.equal(toolByName.get(name)?._meta?.["ui/resourceUri"], undefined, `${name} must not expose a legacy UI resource`);
+  }
   for (const tool of tools) {
     assert.equal(typeof tool.annotations?.readOnlyHint, "boolean", `${tool.name} must declare readOnlyHint`);
     assert.equal(typeof tool.annotations?.destructiveHint, "boolean", `${tool.name} must declare destructiveHint`);
@@ -69,19 +95,20 @@ test("MCP server exposes the widget resource and exact model/app visibility boun
   const resources = await client.listResources();
   const whiteboard = resources.resources.find(({ uri }) => /^ui:\/\/renoise\/whiteboard-[a-f0-9]{12}\.html$/.test(uri));
   assert.ok(whiteboard, "whiteboard resource URI should be cache-busted by its widget build ID");
-  assert.equal(whiteboard.title, "Renoise Annotation Board");
-  assert.equal(whiteboard.name, "Renoise Annotation Board");
+  assert.equal(whiteboard.title, "Renoise Visual Edit");
+  assert.equal(whiteboard.name, "Renoise Visual Edit");
   assert.equal(whiteboard.icons?.[0]?.mimeType, "image/svg+xml");
   assert.match(whiteboard.icons?.[0]?.src ?? "", /^data:image\/svg\+xml;base64,/);
   const resource = await client.readResource({ uri: whiteboard.uri });
   const html = resource.contents[0].text;
-  assert.match(html, /Renoise Annotation Board/);
+  assert.match(html, /Renoise Visual Edit/);
   assert.match(html, /fabric-viewport/);
   assert.doesNotMatch(html, /https?:\/\/[^"']+\.(?:js|css)/);
   const gatewayOrigins = resource.contents[0]._meta?.ui?.csp?.resourceDomains ?? [];
-  assert.equal(gatewayOrigins.length, 2);
+  assert.equal(gatewayOrigins.length, 3);
   assert.match(gatewayOrigins[0], /^http:\/\/127\.0\.0\.1:\d+$/);
   assert.equal(gatewayOrigins[1], "blob:");
+  assert.equal(gatewayOrigins[2], "https://asset.renoise.ai");
   assert.deepEqual(resource.contents[0]._meta?.ui?.csp?.connectDomains, [gatewayOrigins[0]]);
 
   const opened = await client.callTool({
@@ -90,15 +117,15 @@ test("MCP server exposes the widget resource and exact model/app visibility boun
   });
   const pending = opened.structuredContent;
   assert.equal(pending.authorization.state, "pending_authorization");
-  assert.equal(pending.canvasSessionId, undefined);
+  assert.match(pending.canvasSessionId, /^session_[a-f0-9]{32}$/);
   assert.equal(pending.authorization.nonce, undefined);
 
   const approved = await client.callTool({
     name: "authorize_renoise_whiteboard_workspace",
-    arguments: { approvedProjectDir: projectDir },
+    arguments: { approvedProjectDir: projectDir, canvasSessionId: pending.canvasSessionId },
   });
   const canvasSessionId = approved.structuredContent.canvasSessionId;
-  pending.canvasSessionId = canvasSessionId;
+  assert.equal(pending.canvasSessionId, canvasSessionId);
   assert.match(canvasSessionId, /^session_[a-f0-9]{32}$/);
   assert.equal(approved.structuredContent.authorization.state, "active");
   assert.equal(approved.structuredContent.document.page.revision, 0);
@@ -107,9 +134,42 @@ test("MCP server exposes the widget resource and exact model/app visibility boun
   assert.match(approved.structuredContent.assetGateway.accessToken, /^[a-f0-9]{64}$/);
   assert.ok(Buffer.byteLength(JSON.stringify(approved.structuredContent)) < 16 * 1024);
 
+  const listedMaterials = await client.callTool({
+    name: "list_renoise_whiteboard_materials",
+    // A stale client may still send the former video filter. The specialized
+    // whiteboard tool must ignore it and enforce an image-only CLI query.
+    arguments: { canvasSessionId, type: "video", limit: 5, offset: 0 },
+  });
+  assert.equal(listedMaterials.isError, undefined);
+  assert.deepEqual(
+    listedMaterials.structuredContent.materials.map(({ materialId, type }) => ({ materialId, type })),
+    [{ materialId: 301, type: "image" }],
+  );
+  assert.deepEqual(
+    JSON.parse(await readFile(materialArgvCapture, "utf8")),
+    ["material", "--json", "--limit", "5", "--offset", "0", "--type", "image"],
+  );
+
+  const resumed = await client.callTool({
+    name: "render_renoise_whiteboard_widget",
+    arguments: { canvasSessionId },
+  });
+  assert.equal(resumed.structuredContent.canvasSessionId, canvasSessionId);
+  assert.equal(resumed.structuredContent.authorization.state, "active");
+  assert.equal(resumed.structuredContent.authorization.projectDir, approved.structuredContent.authorization.projectDir);
+  assert.equal(resumed.structuredContent.requestedDisplayMode, "fullscreen");
+  assert.equal(resumed.structuredContent.document.page.id, approved.structuredContent.document.page.id);
+
+  const missingLaunchTarget = await client.callTool({
+    name: "render_renoise_whiteboard_widget",
+    arguments: {},
+  });
+  assert.equal(missingLaunchTarget.isError, true);
+  assert.match(missingLaunchTarget.content[0].text, /projectDir is required/);
+
   const replay = await client.callTool({
     name: "authorize_renoise_whiteboard_workspace",
-    arguments: { approvedProjectDir: projectDir },
+    arguments: { approvedProjectDir: projectDir, canvasSessionId: pending.canvasSessionId },
   });
   assert.equal(replay.isError, true);
   assert.match(replay.content[0].text, /AUTHORIZATION_REQUIRED/);
@@ -524,6 +584,7 @@ test("MCP server exposes the widget resource and exact model/app visibility boun
       canvasSessionId: pending.canvasSessionId,
       expectedRevision: 3,
       instruction: "把框选区域调整为暖色，并保留人物身份。",
+      outputResolution: "1080p",
     },
   });
   const revisionIntentId = submitted.structuredContent.revisionIntent.id;
@@ -531,9 +592,12 @@ test("MCP server exposes the widget resource and exact model/app visibility boun
   assert.deepEqual(submitted.structuredContent.revisionIntent.targetObjectIds, [targetId, secondTargetId]);
   assert.deepEqual(submitted.structuredContent.revisionIntent.markObjectIds, [markId]);
   assert.equal(submitted.structuredContent.revisionIntent.sources[0].sourceTimeMs, 417);
+  assert.equal(submitted.structuredContent.revisionIntent.sources[0].authoritativeSourceAssetId, importedVideo.structuredContent.asset.id);
+  assert.equal(submitted.structuredContent.revisionIntent.sources[0].annotationGuideAssetId, undefined);
   assert.equal(submitted.structuredContent.revisionIntent.sources[0].sourceVideoAssetId, importedVideo.structuredContent.asset.id);
   assert.equal(submitted.structuredContent.revisionIntent.sources[0].sourceVideoSha256, importedVideo.structuredContent.asset.sha256);
   assert.equal(submitted.structuredContent.revisionIntent.sources[1].sourceTimeMs, 837);
+  assert.equal(submitted.structuredContent.revisionIntent.outputResolution, "1080p");
   assert.equal(submitted.structuredContent.revisionIntent.sources[1].sourceVideoAssetId, importedVideo.structuredContent.asset.id);
   assert.equal(submitted.structuredContent.document.page.objects.length, 0);
   assert.equal(submitted.structuredContent.document.page.annotations.length, 0);
@@ -546,6 +610,8 @@ test("MCP server exposes the widget resource and exact model/app visibility boun
     arguments: { canvasSessionId: pending.canvasSessionId, revisionIntentId },
   });
   assert.equal(intent.structuredContent.revisionIntent.instruction, "把框选区域调整为暖色，并保留人物身份。");
+  assert.equal(intent.structuredContent.revisionIntent.outputResolution, "1080p");
+  assert.match(intent.content[0].text, /1080P/);
   assert.match(intent.content[0].text, /localized SOURCE VIDEO EDIT/);
   assert.deepEqual(intent.structuredContent.assetIds, [imported.structuredContent.asset.id]);
   assert.deepEqual(intent.structuredContent.sourceVideoAssetIds, [importedVideo.structuredContent.asset.id]);
@@ -553,11 +619,18 @@ test("MCP server exposes the widget resource and exact model/app visibility boun
     importedVideo.structuredContent.asset.id,
     imported.structuredContent.asset.id,
   ]);
+  assert.deepEqual(intent.structuredContent.uploadPlan, [
+    { assetId: importedVideo.structuredContent.asset.id, role: "reference_video", scope: "user", purpose: "authoritative_source" },
+    { assetId: imported.structuredContent.asset.id, role: "reference_image", scope: "mask", purpose: "annotation_guide" },
+  ]);
   assert.equal(intent.structuredContent.interpretation.defaultOperation, "source-video-segment-edit");
   assert.equal(intent.structuredContent.interpretation.preserveUnannotatedSourceVideo, true);
   assert.equal(intent.structuredContent.interpretation.annotatedFramesAreStandaloneEndpoints, false);
   assert.deepEqual(intent.structuredContent.interpretation.videoEditContexts[0].annotatedTimeMs, [417, 837]);
-  assert.deepEqual(intent.structuredContent.interpretation.videoEditContexts[0].annotationBoundsMs, { startMs: 417, endMs: 837 });
+  assert.equal(intent.structuredContent.interpretation.videoEditContexts[0].annotationBoundsMs, null);
+  assert.deepEqual(intent.structuredContent.interpretation.videoEditContexts[0].candidateBoundsMs, { startMs: 417, endMs: 837 });
+  assert.equal(intent.structuredContent.interpretation.videoEditContexts[0].temporalIntent.mode, "unknown");
+  assert.equal(intent.structuredContent.interpretation.videoEditContexts[0].requiresTemporalRangeClarification, true);
   assert.equal(intent.structuredContent.interpretation.videoEditContexts[0].sourceDurationMs, null);
   const preparedIntent = await client.callTool({
     name: "prepare_renoise_whiteboard_references",
@@ -574,7 +647,7 @@ test("MCP server exposes the widget resource and exact model/app visibility boun
   });
   const reauthorized = await client.callTool({
     name: "authorize_renoise_whiteboard_workspace",
-    arguments: { approvedProjectDir: projectDir },
+    arguments: { approvedProjectDir: projectDir, canvasSessionId: reopened.structuredContent.canvasSessionId },
   });
   const reopenedSessionId = reauthorized.structuredContent.canvasSessionId;
   assert.equal(reauthorized.structuredContent.document.page.id, document.page.id);
@@ -617,11 +690,11 @@ test("a host that renders MCP Apps without declaring the optional extension can 
   });
   assert.equal(rendered.isError, undefined);
   assert.equal(rendered.structuredContent.authorization.projectDir, projectDir);
-  assert.equal(rendered.structuredContent.canvasSessionId, undefined);
+  assert.match(rendered.structuredContent.canvasSessionId, /^session_[a-f0-9]{32}$/);
 
   const authorized = await client.callTool({
     name: "authorize_renoise_whiteboard_workspace",
-    arguments: { approvedProjectDir: projectDir },
+    arguments: { approvedProjectDir: projectDir, canvasSessionId: rendered.structuredContent.canvasSessionId },
   });
   assert.equal(authorized.isError, undefined);
   assert.match(authorized.structuredContent.canvasSessionId, /^session_[a-f0-9]{32}$/);

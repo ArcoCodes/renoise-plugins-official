@@ -17,6 +17,9 @@ declare global {
     __mockImportedAssetCount?: number;
     __mockStartEmpty?: boolean;
     __mockOmitRootParentIdInSaveResponse?: boolean;
+    __mockResumeSession?: boolean;
+    __mockPendingSessionMissing?: boolean;
+    __mockPendingSessionRecreated?: boolean;
     __startWhiteboardMockHost?: (iframe: HTMLIFrameElement) => Promise<void>;
   }
 }
@@ -32,6 +35,7 @@ window.__mockFailImageChunkReads = false;
 window.__mockResourceReads = [];
 window.__mockResourceReadsAvailable = true;
 window.__mockImportedAssetCount = 0;
+window.__mockPendingSessionRecreated = false;
 
 const assetGateway = {
   schemaVersion: 1 as const,
@@ -109,6 +113,7 @@ window.__startWhiteboardMockHost = async (iframe) => {
     camera: { x: 48, y: 32, zoom: 1.1 },
     theme: "light",
     promptDrafts: {},
+    materialReferencePools: {},
   };
   window.__mockView = structuredClone(view);
   const mediaTransport = () => ({ assetGateway });
@@ -157,15 +162,30 @@ window.__startWhiteboardMockHost = async (iframe) => {
     calls.push({ name, arguments: args });
     let structuredContent: Record<string, unknown> = { ok: true };
     if (name === "authorize_renoise_whiteboard_workspace") {
+      if (window.__mockPendingSessionMissing && !window.__mockPendingSessionRecreated) {
+        return {
+          isError: true,
+          content: [{ type: "text", text: "AUTHORIZATION_REQUIRED: Open the annotation board for this exact project before approving it" }],
+        };
+      }
       window.__mockSessionActive = true;
+      const requestedSession = String((args as { canvasSessionId?: string }).canvasSessionId ?? "session_mocked");
+      const requestedProject = String((args as { approvedProjectDir?: string }).approvedProjectDir ?? "/tmp/renoise-mock");
       structuredContent = {
         ok: true,
-        canvasSessionId: "session_mocked",
-        authorization: { state: "active", projectDir: "/tmp/renoise-mock" },
+        canvasSessionId: requestedSession,
+        authorization: { state: "active", projectDir: requestedProject },
         document,
         view,
         selection,
         ...mediaTransport(),
+      };
+    } else if (name === "render_renoise_whiteboard_widget") {
+      window.__mockPendingSessionRecreated = true;
+      structuredContent = {
+        ok: true,
+        canvasSessionId: "session_recreated",
+        authorization: { state: "pending_authorization", projectDir: String((args as { projectDir?: string }).projectDir ?? "/tmp/renoise-mock") },
       };
     } else if (name === "save_renoise_whiteboard_state") {
       const candidate = structuredClone((args as { document: WhiteboardDocument }).document);
@@ -331,11 +351,30 @@ window.__startWhiteboardMockHost = async (iframe) => {
     return { content: [], structuredContent };
   };
   bridge.oninitialized = () => {
+    if (window.__mockResumeSession) {
+      window.__mockSessionActive = true;
+      void bridge.sendToolInput({ arguments: { canvasSessionId: "session_mocked" } });
+      void bridge.sendToolResult({
+        content: [],
+        structuredContent: {
+          ok: true,
+          canvasSessionId: "session_mocked",
+          authorization: { state: "active", projectDir: "/tmp/renoise-mock" },
+          requestedDisplayMode: "fullscreen",
+          document,
+          view,
+          selection,
+          ...mediaTransport(),
+        },
+      });
+      return;
+    }
     void bridge.sendToolInput({ arguments: { projectDir: "/tmp/renoise-mock" } });
     void bridge.sendToolResult({
       content: [],
       structuredContent: {
         ok: true,
+        canvasSessionId: "session_pending_a",
         authorization: {
           state: "pending_authorization",
           projectDir: "/tmp/renoise-mock",

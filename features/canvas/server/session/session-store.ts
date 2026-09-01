@@ -54,13 +54,12 @@ export class SessionStore {
     return session;
   }
 
-  async authorizePending(approvedProjectDir: string): Promise<CanvasSession> {
+  async authorizePending(approvedProjectDir: string, pendingSessionId: string): Promise<CanvasSession> {
     const requestedProjectDir = resolve(approvedProjectDir);
-    const pending = [...this.sessions.values()]
-      .filter((session) => session.state === "pending_authorization"
-        && session.requestedProjectDir === requestedProjectDir
-        && session.expiresAt > Date.now())
-      .at(-1);
+    const pending = this.get(pendingSessionId, false);
+    if (pending?.state !== "pending_authorization" || pending.requestedProjectDir !== requestedProjectDir) {
+      throw new WhiteboardError("AUTHORIZATION_REQUIRED", "Approve the exact pending whiteboard session shown by the widget");
+    }
     if (!pending?.authorizationNonce) {
       throw new WhiteboardError(
         "AUTHORIZATION_REQUIRED",

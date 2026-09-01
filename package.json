@@ -19,7 +19,9 @@
     "url": "https://github.com/ArcoCodes/renoise-plugins-official.git"
   },
   "openclaw": {
-    "extensions": ["./index.mjs"]
+    "extensions": [
+      "./index.mjs"
+    ]
   },
   "files": [
     ".agents/",
@@ -37,19 +39,24 @@
     "README.md"
   ],
   "dependencies": {
+    "@lexical/react": "0.31.2",
+    "@lexical/utils": "0.31.2",
     "@modelcontextprotocol/ext-apps": "1.7.5",
     "@modelcontextprotocol/sdk": "1.30.0",
     "fabric": "7.4.0",
+    "konva": "10.3.0",
+    "lexical": "0.31.2",
     "lucide-react": "0.536.0",
-    "react": "19.1.1",
-    "react-dom": "19.1.1",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "react-konva": "19.2.5",
     "zod": "4.4.3"
   },
   "devDependencies": {
     "@playwright/test": "1.62.0",
     "@types/node": "24.1.0",
-    "@types/react": "19.1.9",
-    "@types/react-dom": "19.1.7",
+    "@types/react": "19.2.14",
+    "@types/react-dom": "19.2.3",
     "@vitejs/plugin-react": "4.7.0",
     "esbuild": "0.25.8",
     "typescript": "5.8.3",

@@ -14651,13 +14651,22 @@ var CameraSchema = external_exports.object({
   y: external_exports.number().finite(),
   zoom: external_exports.number().min(0.05).max(8)
 });
+var OutputResolutionSchema = external_exports.enum(["480p", "720p", "1080p"]);
+var RenoiseMaterialReferenceSchema = external_exports.object({
+  materialId: external_exports.number().int().positive(),
+  name: external_exports.string().trim().min(1).max(255),
+  type: external_exports.enum(["image", "video"]),
+  mimeType: external_exports.string().trim().min(1).max(127)
+}).strict();
 var ViewStateSchema = external_exports.object({
   schemaVersion: external_exports.literal(1),
   pageId: IdSchema,
   camera: CameraSchema,
   theme: external_exports.enum(["light", "dark"]).default("light"),
   activeTargetId: IdSchema.optional(),
-  promptDrafts: external_exports.record(IdSchema, external_exports.string().max(1e4)).default({})
+  promptDrafts: external_exports.record(IdSchema, external_exports.string().max(1e4)).default({}),
+  materialReferencePools: external_exports.record(IdSchema, external_exports.array(RenoiseMaterialReferenceSchema).max(100)).default({}),
+  outputResolution: OutputResolutionSchema.optional()
 });
 var SelectionStateSchema = external_exports.object({
   schemaVersion: external_exports.literal(1),
@@ -14671,12 +14680,24 @@ var RevisionIntentSourceSchema = external_exports.object({
   objectType: external_exports.enum(["image", "video-card"]),
   assetId: IdSchema,
   assetSha256: external_exports.string().regex(/^[a-f0-9]{64}$/),
+  // New intents distinguish the clean/authoritative source from the rendered
+  // annotation guide. Optional pairs keep persisted pre-upgrade intents valid.
+  authoritativeSourceAssetId: IdSchema.optional(),
+  authoritativeSourceSha256: external_exports.string().regex(/^[a-f0-9]{64}$/).optional(),
+  annotationGuideAssetId: IdSchema.optional(),
+  annotationGuideSha256: external_exports.string().regex(/^[a-f0-9]{64}$/).optional(),
   sourceTimeMs: external_exports.number().int().nonnegative().nullable(),
   sourceVideoAssetId: IdSchema.optional(),
   sourceVideoSha256: external_exports.string().regex(/^[a-f0-9]{64}$/).optional()
 }).refine(
   ({ sourceVideoAssetId, sourceVideoSha256 }) => sourceVideoAssetId === void 0 === (sourceVideoSha256 === void 0),
   "Video asset ID and SHA-256 must be provided together"
+).refine(
+  ({ authoritativeSourceAssetId, authoritativeSourceSha256 }) => authoritativeSourceAssetId === void 0 === (authoritativeSourceSha256 === void 0),
+  "Authoritative source asset ID and SHA-256 must be provided together"
+).refine(
+  ({ annotationGuideAssetId, annotationGuideSha256 }) => annotationGuideAssetId === void 0 === (annotationGuideSha256 === void 0),
+  "Annotation guide asset ID and SHA-256 must be provided together"
 );
 var RevisionIntentSchema = external_exports.object({
   schemaVersion: external_exports.literal(1),
@@ -14684,11 +14705,13 @@ var RevisionIntentSchema = external_exports.object({
   pageId: IdSchema,
   documentRevision: external_exports.number().int().nonnegative(),
   instruction: external_exports.string().trim().min(1).max(1e4),
+  outputResolution: OutputResolutionSchema.optional(),
   selectedObjectIds: external_exports.array(IdSchema).min(1),
   selectedAnnotationIds: external_exports.array(IdSchema),
   targetObjectIds: external_exports.array(IdSchema).min(1),
   markObjectIds: external_exports.array(IdSchema),
   sources: external_exports.array(RevisionIntentSourceSchema).min(1),
+  materialReferences: external_exports.array(RenoiseMaterialReferenceSchema).max(20).default([]),
   status: external_exports.enum(["submitted", "completed"]),
   resultObjectIds: external_exports.array(IdSchema),
   createdAt: IsoDateSchema,
@@ -14732,6 +14755,10 @@ function assetGatewayMediaUrl(descriptor, assetId, variant = "original") {
   );
   if (variant === "canvas") url2.searchParams.set("variant", "canvas");
   return url2.toString();
+}
+function assetGatewayMaterialUrl(descriptor, materialId) {
+  if (!Number.isSafeInteger(materialId) || materialId <= 0) throw new Error("Material ID must be a positive integer");
+  return authorizedUrl(descriptor, `/v1/materials/${encodeURIComponent(descriptor.canvasSessionId)}/${materialId}`).toString();
 }
 function assetGatewayImportUrl(descriptor, kind, metadata) {
   const url2 = authorizedUrl(
@@ -14815,8 +14842,76 @@ function reviewBounds(rectangles, padding = 24) {
 }
 
 // features/canvas/shared/revision-intent-context.ts
+function clampUnit(value) {
+  return Math.max(0, Math.min(1, value));
+}
+function markWorldBounds(mark) {
+  if (mark.type === "line" || mark.type === "arrow" || mark.type === "freehand") {
+    const points = mark.data.points;
+    if (!points.length) return null;
+    const xs = points.map(({ x }) => mark.transform.x + x);
+    const ys = points.map(({ y }) => mark.transform.y + y);
+    const minX = Math.min(...xs);
+    const maxX = Math.max(...xs);
+    const minY = Math.min(...ys);
+    const maxY = Math.max(...ys);
+    return { x: minX, y: minY, width: Math.max(1, maxX - minX), height: Math.max(1, maxY - minY) };
+  }
+  if (["rect", "ellipse", "text", "sticky"].includes(mark.type)) return mark.transform;
+  return null;
+}
+function normalizeMarkBounds(mark, target) {
+  const bounds = markWorldBounds(mark);
+  if (!bounds || target.transform.width <= 0 || target.transform.height <= 0) return null;
+  const left = clampUnit((bounds.x - target.transform.x) / target.transform.width);
+  const top = clampUnit((bounds.y - target.transform.y) / target.transform.height);
+  const right = clampUnit((bounds.x + bounds.width - target.transform.x) / target.transform.width);
+  const bottom = clampUnit((bounds.y + bounds.height - target.transform.y) / target.transform.height);
+  return { x: left, y: top, width: Math.max(0, right - left), height: Math.max(0, bottom - top) };
+}
+function markShape(mark) {
+  if (mark.type === "ellipse" && mark.style.variant === "numbered-pin") return "pin";
+  return mark.type;
+}
 function describeRevisionIntent(revisionIntent, document) {
   const referenceAssetIds = [...new Set(revisionIntent.sources.map(({ assetId }) => assetId))];
+  const objectById = new Map(document.page.objects.map((object2) => [object2.id, object2]));
+  const sourceByObjectId = new Map(revisionIntent.sources.map((source) => [source.objectId, source]));
+  const resolveSourceMediaMetadata = (assetId) => {
+    const video = document.page.objects.find((object2) => object2.type === "video-card" && object2.data.assetId === assetId);
+    const candidateAssets = [
+      document.page.assets[assetId],
+      video?.type === "video-card" && video.data.playbackAssetId ? document.page.assets[video.data.playbackAssetId] : void 0,
+      video?.type === "video-card" && video.data.posterAssetId ? document.page.assets[video.data.posterAssetId] : void 0
+    ];
+    const dimensions = candidateAssets.find((asset) => Number.isSafeInteger(asset?.width) && Number.isSafeInteger(asset?.height) && asset.width > 0 && asset.height > 0);
+    if (!dimensions?.width || !dimensions.height) return null;
+    const durationSec = video?.type === "video-card" && video.data.durationMs > 0 ? video.data.durationMs / 1e3 : void 0;
+    return {
+      assetId,
+      width: dimensions.width,
+      height: dimensions.height,
+      ...durationSec !== void 0 ? { durationSec } : {}
+    };
+  };
+  const resolveAuthoritativeAssetId = (source) => {
+    if (source.authoritativeSourceAssetId) return source.authoritativeSourceAssetId;
+    if (source.sourceVideoAssetId) return source.sourceVideoAssetId;
+    const object2 = objectById.get(source.objectId);
+    if (object2?.type === "image" && "relation" in object2.data.source && object2.data.source.relation === "revision-of") {
+      const related = objectById.get(object2.data.source.objectId);
+      if (related?.type === "image" || related?.type === "video-card") return related.data.assetId;
+    }
+    return source.assetId;
+  };
+  const resolveGuideAssetId = (source) => {
+    if (source.annotationGuideAssetId) return source.annotationGuideAssetId;
+    const object2 = objectById.get(source.objectId);
+    if (source.sourceVideoAssetId || object2?.type === "image" && object2.style.role === "annotation-snapshot") {
+      return source.assetId;
+    }
+    return null;
+  };
   const groups = /* @__PURE__ */ new Map();
   for (const source of revisionIntent.sources) {
     if (!source.sourceVideoAssetId || !source.sourceVideoSha256) continue;
@@ -14831,38 +14926,105 @@ function describeRevisionIntent(revisionIntent, document) {
   }
   const videoEditContexts = [...groups.values()].map((group) => {
     const video = document.page.objects.find((object2) => object2.type === "video-card" && object2.data.assetId === group.sourceVideoAssetId);
+    const sourceMediaMetadata2 = resolveSourceMediaMetadata(group.sourceVideoAssetId);
     const annotatedTimeMs = [...group.times].sort((left, right) => left - right);
     return {
       sourceVideoAssetId: group.sourceVideoAssetId,
       sourceVideoSha256: group.sourceVideoSha256,
       sourceDurationMs: video?.type === "video-card" ? video.data.durationMs : null,
       sourceFileName: video?.type === "video-card" ? video.data.fileName : null,
+      sourceMediaMeta: sourceMediaMetadata2 ? {
+        width: sourceMediaMetadata2.width,
+        height: sourceMediaMetadata2.height,
+        ...sourceMediaMetadata2.durationSec !== void 0 ? { durationSec: sourceMediaMetadata2.durationSec } : {}
+      } : null,
       annotatedTimeMs,
-      annotationBoundsMs: annotatedTimeMs.length >= 2 ? { startMs: annotatedTimeMs[0], endMs: annotatedTimeMs.at(-1) } : null,
-      requiresTemporalRangeClarification: annotatedTimeMs.length < 2
+      // Multiple frames may be tracking anchors or independent edits. They are
+      // a range only after the user/agent resolves that semantic distinction.
+      annotationBoundsMs: null,
+      candidateBoundsMs: annotatedTimeMs.length >= 2 ? { startMs: annotatedTimeMs[0], endMs: annotatedTimeMs.at(-1) } : null,
+      temporalIntent: {
+        mode: annotatedTimeMs.length === 1 ? "single-anchor" : "unknown",
+        explicit: false,
+        anchorTimesMs: annotatedTimeMs,
+        startMs: null,
+        endMs: null
+      },
+      requiresTemporalRangeClarification: annotatedTimeMs.length >= 2
     };
   });
   const sourceVideoAssetIds = [...new Set(videoEditContexts.map(({ sourceVideoAssetId }) => sourceVideoAssetId))];
+  const authoritativeSourceAssetIds = [...new Set(revisionIntent.sources.map(resolveAuthoritativeAssetId))];
+  const sourceMediaMetadata = authoritativeSourceAssetIds.map(resolveSourceMediaMetadata).filter((metadata) => metadata !== null);
+  const annotationGuideAssetIds = [...new Set(revisionIntent.sources.map(resolveGuideAssetId).filter((assetId) => Boolean(assetId)))];
+  const preparableAssetIds = [.../* @__PURE__ */ new Set([...authoritativeSourceAssetIds, ...annotationGuideAssetIds])];
+  const sourceVideoAssetSet = new Set(sourceVideoAssetIds);
+  const annotationGuideAssetSet = new Set(annotationGuideAssetIds);
+  const uploadPlan = preparableAssetIds.map((assetId) => ({
+    assetId,
+    role: sourceVideoAssetSet.has(assetId) ? "reference_video" : "reference_image",
+    // `mask` is a library-visibility scope, not a provider mask role. The
+    // authoritative image/video remains reusable; rendered guides stay hidden.
+    scope: annotationGuideAssetSet.has(assetId) ? "mask" : "user",
+    purpose: annotationGuideAssetSet.has(assetId) ? "annotation_guide" : "authoritative_source"
+  }));
+  const annotationBindings = revisionIntent.selectedAnnotationIds.flatMap((annotationId) => {
+    const annotation = document.page.annotations.find(({ id }) => id === annotationId);
+    if (!annotation) return [];
+    return annotation.targetObjectIds.flatMap((targetObjectId) => {
+      const target = objectById.get(targetObjectId);
+      const source = sourceByObjectId.get(targetObjectId);
+      if (!target || !source) return [];
+      const regions = annotation.markObjectIds.flatMap((markObjectId) => {
+        const mark = objectById.get(markObjectId);
+        if (!mark) return [];
+        const normalizedBounds = normalizeMarkBounds(mark, target);
+        if (!normalizedBounds) return [];
+        return [{ markObjectId, shape: markShape(mark), normalizedBounds }];
+      });
+      return [{
+        annotationId,
+        targetObjectId,
+        sourceKind: source.sourceVideoAssetId ? "video-frame" : "image",
+        authoritativeSourceAssetId: resolveAuthoritativeAssetId(source),
+        annotationGuideAssetId: resolveGuideAssetId(source),
+        sourceVideoAssetId: source.sourceVideoAssetId ?? null,
+        sourceTimeMs: source.sourceTimeMs,
+        regions
+      }];
+    });
+  });
   return {
     defaultOperation: videoEditContexts.length ? "source-video-segment-edit" : "image-revision",
     referenceAssetIds,
     sourceVideoAssetIds,
-    preparableAssetIds: [.../* @__PURE__ */ new Set([...sourceVideoAssetIds, ...referenceAssetIds])],
+    authoritativeSourceAssetIds,
+    sourceMediaMetadata,
+    annotationGuideAssetIds,
+    preparableAssetIds,
+    uploadPlan,
+    annotationBindings,
+    annotationGuidesAreProviderMasks: false,
     videoEditContexts,
     preserveUnannotatedSourceVideo: videoEditContexts.length > 0,
     annotatedFramesAreStandaloneEndpoints: false,
-    standaloneGenerationRequiresExplicitUserRequest: videoEditContexts.length > 0
+    standaloneGenerationRequiresExplicitUserRequest: videoEditContexts.length > 0,
+    materialIds: revisionIntent.materialReferences.map(({ materialId }) => materialId),
+    materialReferences: revisionIntent.materialReferences,
+    materialTokens: revisionIntent.materialReferences.map(({ materialId }) => `@material:${materialId}`)
   };
 }
 
 // features/canvas/shared/tool-contracts.ts
 var SessionInput = { canvasSessionId: IdSchema };
 var RenderInput = {
-  projectDir: external_exports.string().min(1).describe("Absolute project directory shown to the user for explicit approval"),
+  projectDir: external_exports.string().min(1).optional().describe("Absolute project directory shown to the user for explicit approval when opening a new session"),
+  canvasSessionId: IdSchema.optional().describe("Existing active annotation session to bring back into view without creating or approving another session"),
   pageName: external_exports.string().min(1).max(200).optional()
 };
 var AuthorizeInput = {
-  approvedProjectDir: external_exports.string().min(1)
+  approvedProjectDir: external_exports.string().min(1),
+  canvasSessionId: IdSchema.describe("Exact pending session shown by the app")
 };
 var GetStateInput = { ...SessionInput, sinceRevision: external_exports.number().int().nonnegative().optional() };
 var SaveStateInput = {
@@ -14874,7 +15036,16 @@ var SaveSelectionInput = { ...SessionInput, selection: SelectionStateSchema };
 var SubmitRevisionIntentInput = {
   ...SessionInput,
   expectedRevision: external_exports.number().int().nonnegative(),
-  instruction: external_exports.string().trim().min(1).max(1e4)
+  instruction: external_exports.string().trim().min(1).max(1e4),
+  outputResolution: OutputResolutionSchema.optional(),
+  materialIds: external_exports.array(external_exports.number().int().positive()).max(20).default([])
+};
+var ListRenoiseMaterialsInput = {
+  ...SessionInput,
+  search: external_exports.string().trim().max(200).optional(),
+  type: external_exports.enum(["image", "video"]).optional(),
+  limit: external_exports.number().int().min(1).max(50).default(24),
+  offset: external_exports.number().int().nonnegative().default(0)
 };
 var GetRevisionIntentInput = {
   ...SessionInput,
@@ -14914,6 +15085,8 @@ var BeginVideoUploadInput = {
   mimeType: VideoMimeSchema,
   byteLength: external_exports.number().int().positive(),
   durationMs: external_exports.number().int().nonnegative(),
+  width: external_exports.number().int().positive().max(1e5).optional(),
+  height: external_exports.number().int().positive().max(1e5).optional(),
   createPlaybackProxy: external_exports.boolean().optional()
 };
 var AppendVideoUploadInput = {
@@ -15222,13 +15395,16 @@ export {
   GetVideoUploadFinalizeStatusInput,
   IdSchema,
   IsoDateSchema,
+  ListRenoiseMaterialsInput,
   MODEL_VISIBLE_TOOLS,
   MutationScheduler,
+  OutputResolutionSchema,
   PageSchema,
   PreviewRecordSchema,
   ReadImageChunkInput,
   ReadVideoChunkInput,
   RenderInput,
+  RenoiseMaterialReferenceSchema,
   RevisionIntentSchema,
   RevisionIntentSourceSchema,
   RevisionPatchSchema,
@@ -15248,6 +15424,7 @@ export {
   annotationIdsForObjects,
   assetGatewayHealthUrl,
   assetGatewayImportUrl,
+  assetGatewayMaterialUrl,
   assetGatewayMediaUrl,
   boundsOf,
   cameraToViewportTransform,

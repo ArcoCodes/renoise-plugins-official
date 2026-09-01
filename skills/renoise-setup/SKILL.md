@@ -49,13 +49,14 @@ If `renoise` exists, verify the plugin contract rather than trusting a static ve
 ```text
 renoise version
 renoise help task create
+renoise help task cost
 renoise help task wait
 renoise help analyze
 renoise help auth exec
 renoise help auth login
 ```
 
-The outputs must contain the exact usage paths `renoise task create`, `renoise task wait`, `renoise analyze`, and `renoise auth exec`, the task flag `--prompt-file`, the analyze flag `--mode`, plus the `auth login` flag `--web`; older Cobra builds may show parent help and still exit successfully.
+The outputs must contain the exact usage paths `renoise task create`, `renoise task cost`, `renoise task wait`, `renoise analyze`, and `renoise auth exec`; the create flag `--prompt-file`; the cost flag `--edit`; the analyze flag `--mode`; plus the `auth login` flag `--web`. Older Cobra builds may show parent help and still exit successfully.
 
 Generation preflight auto-keeps the **managed** CLI current. It reads `https://download.renoise.ai/cli/latest.json` and installs/replaces only the managed target when missing, incompatible, or older than the latest public release — no prompt:
 

@@ -8,6 +8,7 @@ import {
   assetGatewayHealthUrl,
   assetGatewayImportUrl,
   assetGatewayMediaUrl,
+  assetGatewayMaterialUrl,
 } from "../../features/canvas/dist/shared.mjs";
 import { MediaGateway } from "../../features/canvas/build/.test-dist/media/media-gateway.js";
 import { SessionStore } from "../../features/canvas/build/.test-dist/session/session-store.js";
@@ -27,6 +28,19 @@ async function activeSession(sessions, store, projectDir, name) {
   await sessions.authorize(session.id, projectDir, session.authorizationNonce);
   await store.initialize(session, name);
   return session;
+}
+
+function rawGet(target, headers = {}) {
+  const url = new URL(target);
+  return new Promise((resolve, reject) => {
+    const request = httpRequest({ host: url.hostname, port: url.port, path: `${url.pathname}${url.search}`, headers }, (response) => {
+      const chunks = [];
+      response.on("data", (chunk) => chunks.push(chunk));
+      response.on("end", () => resolve({ status: response.statusCode, headers: response.headers, body: Buffer.concat(chunks) }));
+    });
+    request.on("error", reject);
+    request.end();
+  });
 }
 
 test("loopback media gateway streams project assets with scoped capabilities and video ranges", async (context) => {
@@ -107,6 +121,8 @@ test("loopback media gateway streams project assets with scoped capabilities and
     fileName: "source.mp4",
     byteLength: tinyMp4Bytes.length,
     durationMs: 1_200,
+    width: 1280,
+    height: 720,
     requestId: "upload_22222222222222222222222222222222",
   }), {
     method: "POST",
@@ -116,6 +132,8 @@ test("loopback media gateway streams project assets with scoped capabilities and
   assert.equal(videoUpload.status, 201);
   const importedVideo = await videoUpload.json();
   assert.equal(importedVideo.revision, 2);
+  assert.equal(importedVideo.asset.width, 1280);
+  assert.equal(importedVideo.asset.height, 720);
   const videoUrl = assetGatewayMediaUrl(descriptor, importedVideo.asset.id);
   const videoRange = await fetch(videoUrl, { headers: { range: "bytes=4-11" } });
   assert.equal(videoRange.status, 206);
@@ -132,4 +150,46 @@ test("loopback media gateway streams project assets with scoped capabilities and
   assert.equal("renderBootstrap" in state, false);
   assert.equal(state.document.page.assets[importedImage.asset.id].sha256, importedImage.asset.sha256);
   assert.equal(state.document.page.assets[importedVideo.asset.id].sha256, importedVideo.asset.sha256);
+});
+
+test("material preview proxy uses the bounded preview resolver and rejects unauthorized, non-image, and oversized responses", async (context) => {
+  const projectDir = await mkdtemp(join(tmpdir(), "renoise-material-gateway-"));
+  context.after(() => rm(projectDir, { recursive: true, force: true }));
+  const sessions = new SessionStore();
+  const store = new ProjectStore();
+  const session = await activeSession(sessions, store, projectDir, "Material Gateway");
+  const materialLibrary = {
+    async preview(materialId) {
+      return {
+        materialId,
+        name: `Material ${materialId}`,
+        type: materialId === 2 ? "video" : "image",
+        mimeType: materialId === 2 ? "video/mp4" : "image/png",
+        url: `https://asset.renoise.ai/material/${materialId}`,
+      };
+    },
+  };
+  const gateway = await MediaGateway.start(sessions, store, materialLibrary);
+  context.after(() => gateway.close());
+  const descriptor = gateway.describe(session);
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async (url) => {
+    const id = Number(new URL(url).pathname.split("/").at(-1));
+    if (id === 4) return new Response(tinyPngBytes, { headers: { "content-type": "image/png", "content-length": String(21 * 1024 * 1024) } });
+    if (id === 3) return new Response(tinyPngBytes, { headers: { "content-type": "text/html", "content-length": String(tinyPngBytes.length) } });
+    return new Response(tinyPngBytes, { headers: { "content-type": "image/png", "content-length": String(tinyPngBytes.length) } });
+  };
+  context.after(() => { globalThis.fetch = originalFetch; });
+
+  const validUrl = assetGatewayMaterialUrl(descriptor, 1);
+  const valid = await rawGet(validUrl);
+  assert.equal(valid.status, 200);
+  assert.equal(valid.headers["content-type"], "image/png");
+  assert.deepEqual(valid.body, tinyPngBytes);
+  const missingToken = new URL(validUrl); missingToken.searchParams.delete("access_token");
+  assert.equal((await rawGet(missingToken)).status, 401);
+  assert.equal((await rawGet(assetGatewayMaterialUrl(descriptor, 2))).status, 400);
+  assert.equal((await rawGet(assetGatewayMaterialUrl(descriptor, 3))).status, 400);
+  assert.equal((await rawGet(assetGatewayMaterialUrl(descriptor, 4))).status, 400);
+  assert.equal((await rawGet(validUrl, { host: "attacker.example" })).status, 421);
 });

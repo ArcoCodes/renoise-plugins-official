@@ -1,6 +1,7 @@
 import { z } from "zod";
 import {
   IdSchema,
+  OutputResolutionSchema,
   SelectionStateSchema,
   ViewStateSchema,
   WhiteboardDocumentSchema,
@@ -8,11 +9,13 @@ import {
 
 export const SessionInput = { canvasSessionId: IdSchema };
 export const RenderInput = {
-  projectDir: z.string().min(1).describe("Absolute project directory shown to the user for explicit approval"),
+  projectDir: z.string().min(1).optional().describe("Absolute project directory shown to the user for explicit approval when opening a new session"),
+  canvasSessionId: IdSchema.optional().describe("Existing active annotation session to bring back into view without creating or approving another session"),
   pageName: z.string().min(1).max(200).optional(),
 };
 export const AuthorizeInput = {
   approvedProjectDir: z.string().min(1),
+  canvasSessionId: IdSchema.describe("Exact pending session shown by the app"),
 };
 export const GetStateInput = { ...SessionInput, sinceRevision: z.number().int().nonnegative().optional() };
 export const SaveStateInput = {
@@ -25,6 +28,15 @@ export const SubmitRevisionIntentInput = {
   ...SessionInput,
   expectedRevision: z.number().int().nonnegative(),
   instruction: z.string().trim().min(1).max(10_000),
+  outputResolution: OutputResolutionSchema.optional(),
+  materialIds: z.array(z.number().int().positive()).max(20).default([]),
+};
+export const ListRenoiseMaterialsInput = {
+  ...SessionInput,
+  search: z.string().trim().max(200).optional(),
+  type: z.enum(["image", "video"]).optional(),
+  limit: z.number().int().min(1).max(50).default(24),
+  offset: z.number().int().nonnegative().default(0),
 };
 export const GetRevisionIntentInput = {
   ...SessionInput,
@@ -69,6 +81,8 @@ export const BeginVideoUploadInput = {
   mimeType: VideoMimeSchema,
   byteLength: z.number().int().positive(),
   durationMs: z.number().int().nonnegative(),
+  width: z.number().int().positive().max(100_000).optional(),
+  height: z.number().int().positive().max(100_000).optional(),
   createPlaybackProxy: z.boolean().optional(),
 };
 export const AppendVideoUploadInput = {

@@ -4193,7 +4193,7 @@
         "format": "esm"
       },
       "features/canvas/server/session/session-store.ts": {
-        "bytes": 4514,
+        "bytes": 4599,
         "imports": [
           {
             "path": "node:crypto",
@@ -4224,7 +4224,7 @@
         "format": "esm"
       },
       "features/canvas/shared/document-schema.ts": {
-        "bytes": 7886,
+        "bytes": 9456,
         "imports": [
           {
             "path": "node_modules/zod/index.js",
@@ -4235,7 +4235,7 @@
         "format": "esm"
       },
       "features/canvas/shared/tool-contracts.ts": {
-        "bytes": 4645,
+        "bytes": 5467,
         "imports": [
           {
             "path": "node_modules/zod/index.js",
@@ -4292,7 +4292,7 @@
         "format": "esm"
       },
       "features/canvas/server/storage/project-store.ts": {
-        "bytes": 81574,
+        "bytes": 83986,
         "imports": [
           {
             "path": "node:crypto",
@@ -4353,7 +4353,7 @@
         "format": "esm"
       },
       "features/canvas/shared/asset-gateway.ts": {
-        "bytes": 2705,
+        "bytes": 3053,
         "imports": [
           {
             "path": "node_modules/zod/index.js",
@@ -4369,7 +4369,7 @@
         "format": "esm"
       },
       "features/canvas/server/media/media-gateway.ts": {
-        "bytes": 15619,
+        "bytes": 20098,
         "imports": [
           {
             "path": "node:crypto",
@@ -4415,7 +4415,7 @@
         "format": "esm"
       },
       "features/canvas/shared/revision-intent-context.ts": {
-        "bytes": 2676,
+        "bytes": 10866,
         "imports": [],
         "format": "esm"
       },
@@ -4424,8 +4424,49 @@
         "imports": [],
         "format": "esm"
       },
+      "features/canvas/server/renoise/material-library.ts": {
+        "bytes": 7807,
+        "imports": [
+          {
+            "path": "node:child_process",
+            "kind": "import-statement",
+            "external": true
+          },
+          {
+            "path": "node:os",
+            "kind": "import-statement",
+            "external": true
+          },
+          {
+            "path": "node:path",
+            "kind": "import-statement",
+            "external": true
+          },
+          {
+            "path": "node:util",
+            "kind": "import-statement",
+            "external": true
+          },
+          {
+            "path": "node_modules/zod/index.js",
+            "kind": "import-statement",
+            "original": "zod"
+          },
+          {
+            "path": "features/canvas/shared/document-schema.ts",
+            "kind": "import-statement",
+            "original": "../../shared/document-schema.js"
+          },
+          {
+            "path": "features/canvas/shared/errors.ts",
+            "kind": "import-statement",
+            "original": "../../shared/errors.js"
+          }
+        ],
+        "format": "esm"
+      },
       "features/canvas/server/tools/register-tools.ts": {
-        "bytes": 24213,
+        "bytes": 27775,
         "imports": [
           {
             "path": "node:crypto",
@@ -4461,12 +4502,17 @@
             "path": "features/canvas/server/resource-uri.ts",
             "kind": "import-statement",
             "original": "../resource-uri.js"
+          },
+          {
+            "path": "features/canvas/server/renoise/material-library.ts",
+            "kind": "import-statement",
+            "original": "../renoise/material-library.js"
           }
         ],
         "format": "esm"
       },
       "features/canvas/server/main.ts": {
-        "bytes": 2034,
+        "bytes": 2238,
         "imports": [
           {
             "path": "node:fs/promises",
@@ -4512,6 +4558,11 @@
             "path": "features/canvas/server/resource-uri.ts",
             "kind": "import-statement",
             "original": "./resource-uri.js"
+          },
+          {
+            "path": "features/canvas/server/renoise/material-library.ts",
+            "kind": "import-statement",
+            "original": "./renoise/material-library.js"
           }
         ],
         "format": "esm"
@@ -4629,6 +4680,26 @@
             "path": "node:crypto",
             "kind": "import-statement",
             "external": true
+          },
+          {
+            "path": "node:child_process",
+            "kind": "import-statement",
+            "external": true
+          },
+          {
+            "path": "node:os",
+            "kind": "import-statement",
+            "external": true
+          },
+          {
+            "path": "node:path",
+            "kind": "import-statement",
+            "external": true
+          },
+          {
+            "path": "node:util",
+            "kind": "import-statement",
+            "external": true
           }
         ],
         "exports": [],
@@ -4638,7 +4709,7 @@
             "bytesInOutput": 1208
           },
           "node_modules/zod/v4/core/util.js": {
-            "bytesInOutput": 10667
+            "bytesInOutput": 10669
           },
           "node_modules/zod/v4/core/errors.js": {
             "bytesInOutput": 2250
@@ -4659,7 +4730,7 @@
             "bytesInOutput": 48
           },
           "node_modules/zod/v4/core/schemas.js": {
-            "bytesInOutput": 32083
+            "bytesInOutput": 32114
           },
           "node_modules/zod/v4/locales/ar.js": {
             "bytesInOutput": 5678
@@ -4854,7 +4925,7 @@
             "bytesInOutput": 182
           },
           "node_modules/zod/v4/classic/schemas.js": {
-            "bytesInOutput": 22547
+            "bytesInOutput": 22590
           },
           "node_modules/zod/v4/classic/compat.js": {
             "bytesInOutput": 425
@@ -4866,7 +4937,7 @@
             "bytesInOutput": 269
           },
           "node_modules/zod/v4/classic/external.js": {
-            "bytesInOutput": 3936
+            "bytesInOutput": 3937
           },
           "node_modules/zod/v4/classic/index.js": {
             "bytesInOutput": 26
@@ -4953,7 +5024,7 @@
             "bytesInOutput": 155
           },
           "node_modules/ajv/dist/core.js": {
-            "bytesInOutput": 12313
+            "bytesInOutput": 12305
           },
           "node_modules/ajv/dist/vocabularies/core/id.js": {
             "bytesInOutput": 195
@@ -5055,7 +5126,7 @@
             "bytesInOutput": 462
           },
           "node_modules/ajv/dist/vocabularies/format/format.js": {
-            "bytesInOutput": 1955
+            "bytesInOutput": 1950
           },
           "node_modules/ajv/dist/vocabularies/format/index.js": {
             "bytesInOutput": 121
@@ -5070,7 +5141,7 @@
             "bytesInOutput": 181
           },
           "node_modules/ajv/dist/vocabularies/discriminator/index.js": {
-            "bytesInOutput": 2298
+            "bytesInOutput": 2290
           },
           "node_modules/ajv/dist/refs/json-schema-draft-07.json": {
             "bytesInOutput": 2481
@@ -5088,7 +5159,7 @@
             "bytesInOutput": 784
           },
           "features/canvas/server/main.ts": {
-            "bytesInOutput": 759
+            "bytesInOutput": 767
           },
           "node_modules/zod/v3/helpers/util.js": {
             "bytesInOutput": 1705
@@ -5118,7 +5189,7 @@
             "bytesInOutput": 5
           },
           "node_modules/zod/v4/mini/schemas.js": {
-            "bytesInOutput": 730
+            "bytesInOutput": 731
           },
           "node_modules/@modelcontextprotocol/sdk/dist/esm/server/zod-compat.js": {
             "bytesInOutput": 1811
@@ -5286,47 +5357,50 @@
             "bytesInOutput": 17433
           },
           "features/canvas/server/session/session-store.ts": {
-            "bytesInOutput": 2390
+            "bytesInOutput": 2446
           },
           "features/canvas/shared/errors.ts": {
             "bytesInOutput": 111
           },
           "features/canvas/server/storage/project-store.ts": {
-            "bytesInOutput": 42815
+            "bytesInOutput": 43913
           },
           "features/canvas/shared/document-schema.ts": {
-            "bytesInOutput": 5000
+            "bytesInOutput": 5926
           },
           "features/canvas/shared/tool-contracts.ts": {
-            "bytesInOutput": 2232
+            "bytesInOutput": 2891
           },
           "features/canvas/server/media/video-normalizer.ts": {
             "bytesInOutput": 3525
           },
           "features/canvas/server/media/media-gateway.ts": {
-            "bytesInOutput": 7977
+            "bytesInOutput": 10416
           },
           "features/canvas/shared/asset-gateway.ts": {
             "bytesInOutput": 360
           },
           "features/canvas/server/tools/register-tools.ts": {
-            "bytesInOutput": 15076
+            "bytesInOutput": 16935
           },
           "features/canvas/shared/revision-intent-context.ts": {
-            "bytesInOutput": 1254
+            "bytesInOutput": 4831
           },
           "features/canvas/server/resource-uri.ts": {
             "bytesInOutput": 62
+          },
+          "features/canvas/server/renoise/material-library.ts": {
+            "bytesInOutput": 3651
           }
         },
-        "bytes": 696714
+        "bytes": 711044
       }
     }
   },
   "widget": {
     "inputs": {
       "node_modules/react/cjs/react.production.js": {
-        "bytes": 17075,
+        "bytes": 17217,
         "imports": [],
         "format": "cjs"
       },
@@ -5380,7 +5454,7 @@
         "format": "cjs"
       },
       "node_modules/react-dom/cjs/react-dom-client.production.js": {
-        "bytes": 515019,
+        "bytes": 536016,
         "imports": [
           {
             "path": "node_modules/scheduler/index.js",
@@ -42302,7 +42376,7 @@
         "format": "esm"
       },
       "features/canvas/shared/document-schema.ts": {
-        "bytes": 7886,
+        "bytes": 9456,
         "imports": [
           {
             "path": "node_modules/zod/index.js",
@@ -42313,7 +42387,7 @@
         "format": "esm"
       },
       "features/canvas/shared/asset-gateway.ts": {
-        "bytes": 2705,
+        "bytes": 3053,
         "imports": [
           {
             "path": "node_modules/zod/index.js",
@@ -42338,6 +42412,70 @@
         "imports": [],
         "format": "esm"
       },
+      "node_modules/@lexical/react/LexicalComposerContext.dev.mjs": {
+        "bytes": 1361,
+        "imports": [
+          {
+            "path": "node_modules/react/index.js",
+            "kind": "import-statement",
+            "original": "react"
+          }
+        ],
+        "format": "esm"
+      },
+      "node_modules/@lexical/react/LexicalComposerContext.prod.mjs": {
+        "bytes": 873,
+        "imports": [
+          {
+            "path": "node_modules/react/index.js",
+            "kind": "import-statement",
+            "original": "react"
+          }
+        ],
+        "format": "esm"
+      },
+      "node_modules/@lexical/react/LexicalComposerContext.mjs": {
+        "bytes": 602,
+        "imports": [
+          {
+            "path": "node_modules/@lexical/react/LexicalComposerContext.dev.mjs",
+            "kind": "import-statement",
+            "original": "./LexicalComposerContext.dev.mjs"
+          },
+          {
+            "path": "node_modules/@lexical/react/LexicalComposerContext.prod.mjs",
+            "kind": "import-statement",
+            "original": "./LexicalComposerContext.prod.mjs"
+          }
+        ],
+        "format": "esm"
+      },
+      "node_modules/lexical/Lexical.dev.mjs": {
+        "bytes": 470368,
+        "imports": [],
+        "format": "esm"
+      },
+      "node_modules/lexical/Lexical.prod.mjs": {
+        "bytes": 126094,
+        "imports": [],
+        "format": "esm"
+      },
+      "node_modules/lexical/Lexical.mjs": {
+        "bytes": 11330,
+        "imports": [
+          {
+            "path": "node_modules/lexical/Lexical.dev.mjs",
+            "kind": "import-statement",
+            "original": "./Lexical.dev.mjs"
+          },
+          {
+            "path": "node_modules/lexical/Lexical.prod.mjs",
+            "kind": "import-statement",
+            "original": "./Lexical.prod.mjs"
+          }
+        ],
+        "format": "esm"
+      },
       "node_modules/react/cjs/react-jsx-runtime.production.js": {
         "bytes": 976,
         "imports": [],
@@ -42354,8 +42492,968 @@
         ],
         "format": "cjs"
       },
+      "node_modules/@lexical/react/LexicalComposer.dev.mjs": {
+        "bytes": 3922,
+        "imports": [
+          {
+            "path": "node_modules/@lexical/react/LexicalComposerContext.mjs",
+            "kind": "import-statement",
+            "original": "@lexical/react/LexicalComposerContext"
+          },
+          {
+            "path": "node_modules/lexical/Lexical.mjs",
+            "kind": "import-statement",
+            "original": "lexical"
+          },
+          {
+            "path": "node_modules/react/index.js",
+            "kind": "import-statement",
+            "original": "react"
+          },
+          {
+            "path": "node_modules/react/jsx-runtime.js",
+            "kind": "import-statement",
+            "original": "react/jsx-runtime"
+          }
+        ],
+        "format": "esm"
+      },
+      "node_modules/@lexical/react/LexicalComposer.prod.mjs": {
+        "bytes": 1458,
+        "imports": [
+          {
+            "path": "node_modules/@lexical/react/LexicalComposerContext.mjs",
+            "kind": "import-statement",
+            "original": "@lexical/react/LexicalComposerContext"
+          },
+          {
+            "path": "node_modules/lexical/Lexical.mjs",
+            "kind": "import-statement",
+            "original": "lexical"
+          },
+          {
+            "path": "node_modules/react/index.js",
+            "kind": "import-statement",
+            "original": "react"
+          },
+          {
+            "path": "node_modules/react/jsx-runtime.js",
+            "kind": "import-statement",
+            "original": "react/jsx-runtime"
+          }
+        ],
+        "format": "esm"
+      },
+      "node_modules/@lexical/react/LexicalComposer.mjs": {
+        "bytes": 424,
+        "imports": [
+          {
+            "path": "node_modules/@lexical/react/LexicalComposer.dev.mjs",
+            "kind": "import-statement",
+            "original": "./LexicalComposer.dev.mjs"
+          },
+          {
+            "path": "node_modules/@lexical/react/LexicalComposer.prod.mjs",
+            "kind": "import-statement",
+            "original": "./LexicalComposer.prod.mjs"
+          }
+        ],
+        "format": "esm"
+      },
+      "node_modules/@lexical/text/LexicalText.dev.mjs": {
+        "bytes": 11441,
+        "imports": [
+          {
+            "path": "node_modules/lexical/Lexical.mjs",
+            "kind": "import-statement",
+            "original": "lexical"
+          }
+        ],
+        "format": "esm"
+      },
+      "node_modules/@lexical/text/LexicalText.prod.mjs": {
+        "bytes": 3133,
+        "imports": [
+          {
+            "path": "node_modules/lexical/Lexical.mjs",
+            "kind": "import-statement",
+            "original": "lexical"
+          }
+        ],
+        "format": "esm"
+      },
+      "node_modules/@lexical/text/LexicalText.mjs": {
+        "bytes": 858,
+        "imports": [
+          {
+            "path": "node_modules/@lexical/text/LexicalText.dev.mjs",
+            "kind": "import-statement",
+            "original": "./LexicalText.dev.mjs"
+          },
+          {
+            "path": "node_modules/@lexical/text/LexicalText.prod.mjs",
+            "kind": "import-statement",
+            "original": "./LexicalText.prod.mjs"
+          }
+        ],
+        "format": "esm"
+      },
+      "node_modules/@lexical/selection/LexicalSelection.dev.mjs": {
+        "bytes": 36780,
+        "imports": [
+          {
+            "path": "node_modules/lexical/Lexical.mjs",
+            "kind": "import-statement",
+            "original": "lexical"
+          },
+          {
+            "path": "node_modules/lexical/Lexical.mjs",
+            "kind": "import-statement",
+            "original": "lexical"
+          }
+        ],
+        "format": "esm"
+      },
+      "node_modules/@lexical/selection/LexicalSelection.prod.mjs": {
+        "bytes": 10117,
+        "imports": [
+          {
+            "path": "node_modules/lexical/Lexical.mjs",
+            "kind": "import-statement",
+            "original": "lexical"
+          },
+          {
+            "path": "node_modules/lexical/Lexical.mjs",
+            "kind": "import-statement",
+            "original": "lexical"
+          }
+        ],
+        "format": "esm"
+      },
+      "node_modules/@lexical/selection/LexicalSelection.mjs": {
+        "bytes": 1764,
+        "imports": [
+          {
+            "path": "node_modules/@lexical/selection/LexicalSelection.dev.mjs",
+            "kind": "import-statement",
+            "original": "./LexicalSelection.dev.mjs"
+          },
+          {
+            "path": "node_modules/@lexical/selection/LexicalSelection.prod.mjs",
+            "kind": "import-statement",
+            "original": "./LexicalSelection.prod.mjs"
+          }
+        ],
+        "format": "esm"
+      },
+      "node_modules/@lexical/utils/LexicalUtils.dev.mjs": {
+        "bytes": 41727,
+        "imports": [
+          {
+            "path": "node_modules/lexical/Lexical.mjs",
+            "kind": "import-statement",
+            "original": "lexical"
+          },
+          {
+            "path": "node_modules/lexical/Lexical.mjs",
+            "kind": "import-statement",
+            "original": "lexical"
+          },
+          {
+            "path": "node_modules/@lexical/selection/LexicalSelection.mjs",
+            "kind": "import-statement",
+            "original": "@lexical/selection"
+          }
+        ],
+        "format": "esm"
+      },
+      "node_modules/@lexical/utils/LexicalUtils.prod.mjs": {
+        "bytes": 10652,
+        "imports": [
+          {
+            "path": "node_modules/lexical/Lexical.mjs",
+            "kind": "import-statement",
+            "original": "lexical"
+          },
+          {
+            "path": "node_modules/lexical/Lexical.mjs",
+            "kind": "import-statement",
+            "original": "lexical"
+          },
+          {
+            "path": "node_modules/@lexical/selection/LexicalSelection.mjs",
+            "kind": "import-statement",
+            "original": "@lexical/selection"
+          }
+        ],
+        "format": "esm"
+      },
+      "node_modules/@lexical/utils/LexicalUtils.mjs": {
+        "bytes": 3258,
+        "imports": [
+          {
+            "path": "node_modules/@lexical/utils/LexicalUtils.dev.mjs",
+            "kind": "import-statement",
+            "original": "./LexicalUtils.dev.mjs"
+          },
+          {
+            "path": "node_modules/@lexical/utils/LexicalUtils.prod.mjs",
+            "kind": "import-statement",
+            "original": "./LexicalUtils.prod.mjs"
+          }
+        ],
+        "format": "esm"
+      },
+      "node_modules/@lexical/react/LexicalContentEditable.dev.mjs": {
+        "bytes": 7417,
+        "imports": [
+          {
+            "path": "node_modules/@lexical/react/LexicalComposerContext.mjs",
+            "kind": "import-statement",
+            "original": "@lexical/react/LexicalComposerContext"
+          },
+          {
+            "path": "node_modules/react/index.js",
+            "kind": "import-statement",
+            "original": "react"
+          },
+          {
+            "path": "node_modules/react/jsx-runtime.js",
+            "kind": "import-statement",
+            "original": "react/jsx-runtime"
+          },
+          {
+            "path": "node_modules/@lexical/text/LexicalText.mjs",
+            "kind": "import-statement",
+            "original": "@lexical/text"
+          },
+          {
+            "path": "node_modules/@lexical/utils/LexicalUtils.mjs",
+            "kind": "import-statement",
+            "original": "@lexical/utils"
+          }
+        ],
+        "format": "esm"
+      },
+      "node_modules/@lexical/react/LexicalContentEditable.prod.mjs": {
+        "bytes": 2560,
+        "imports": [
+          {
+            "path": "node_modules/@lexical/react/LexicalComposerContext.mjs",
+            "kind": "import-statement",
+            "original": "@lexical/react/LexicalComposerContext"
+          },
+          {
+            "path": "node_modules/react/index.js",
+            "kind": "import-statement",
+            "original": "react"
+          },
+          {
+            "path": "node_modules/react/jsx-runtime.js",
+            "kind": "import-statement",
+            "original": "react/jsx-runtime"
+          },
+          {
+            "path": "node_modules/@lexical/text/LexicalText.mjs",
+            "kind": "import-statement",
+            "original": "@lexical/text"
+          },
+          {
+            "path": "node_modules/@lexical/utils/LexicalUtils.mjs",
+            "kind": "import-statement",
+            "original": "@lexical/utils"
+          }
+        ],
+        "format": "esm"
+      },
+      "node_modules/@lexical/react/LexicalContentEditable.mjs": {
+        "bytes": 504,
+        "imports": [
+          {
+            "path": "node_modules/@lexical/react/LexicalContentEditable.dev.mjs",
+            "kind": "import-statement",
+            "original": "./LexicalContentEditable.dev.mjs"
+          },
+          {
+            "path": "node_modules/@lexical/react/LexicalContentEditable.prod.mjs",
+            "kind": "import-statement",
+            "original": "./LexicalContentEditable.prod.mjs"
+          }
+        ],
+        "format": "esm"
+      },
+      "node_modules/@lexical/react/LexicalErrorBoundary.dev.mjs": {
+        "bytes": 4632,
+        "imports": [
+          {
+            "path": "node_modules/react/index.js",
+            "kind": "import-statement",
+            "original": "react"
+          },
+          {
+            "path": "node_modules/react/jsx-runtime.js",
+            "kind": "import-statement",
+            "original": "react/jsx-runtime"
+          }
+        ],
+        "format": "esm"
+      },
+      "node_modules/@lexical/react/LexicalErrorBoundary.prod.mjs": {
+        "bytes": 2009,
+        "imports": [
+          {
+            "path": "node_modules/react/index.js",
+            "kind": "import-statement",
+            "original": "react"
+          },
+          {
+            "path": "node_modules/react/jsx-runtime.js",
+            "kind": "import-statement",
+            "original": "react/jsx-runtime"
+          }
+        ],
+        "format": "esm"
+      },
+      "node_modules/@lexical/react/LexicalErrorBoundary.mjs": {
+        "bytes": 444,
+        "imports": [
+          {
+            "path": "node_modules/@lexical/react/LexicalErrorBoundary.dev.mjs",
+            "kind": "import-statement",
+            "original": "./LexicalErrorBoundary.dev.mjs"
+          },
+          {
+            "path": "node_modules/@lexical/react/LexicalErrorBoundary.prod.mjs",
+            "kind": "import-statement",
+            "original": "./LexicalErrorBoundary.prod.mjs"
+          }
+        ],
+        "format": "esm"
+      },
+      "node_modules/@lexical/history/LexicalHistory.dev.mjs": {
+        "bytes": 11342,
+        "imports": [
+          {
+            "path": "node_modules/@lexical/utils/LexicalUtils.mjs",
+            "kind": "import-statement",
+            "original": "@lexical/utils"
+          },
+          {
+            "path": "node_modules/lexical/Lexical.mjs",
+            "kind": "import-statement",
+            "original": "lexical"
+          }
+        ],
+        "format": "esm"
+      },
+      "node_modules/@lexical/history/LexicalHistory.prod.mjs": {
+        "bytes": 3573,
+        "imports": [
+          {
+            "path": "node_modules/@lexical/utils/LexicalUtils.mjs",
+            "kind": "import-statement",
+            "original": "@lexical/utils"
+          },
+          {
+            "path": "node_modules/lexical/Lexical.mjs",
+            "kind": "import-statement",
+            "original": "lexical"
+          }
+        ],
+        "format": "esm"
+      },
+      "node_modules/@lexical/history/LexicalHistory.mjs": {
+        "bytes": 490,
+        "imports": [
+          {
+            "path": "node_modules/@lexical/history/LexicalHistory.dev.mjs",
+            "kind": "import-statement",
+            "original": "./LexicalHistory.dev.mjs"
+          },
+          {
+            "path": "node_modules/@lexical/history/LexicalHistory.prod.mjs",
+            "kind": "import-statement",
+            "original": "./LexicalHistory.prod.mjs"
+          }
+        ],
+        "format": "esm"
+      },
+      "node_modules/@lexical/react/LexicalHistoryPlugin.dev.mjs": {
+        "bytes": 1351,
+        "imports": [
+          {
+            "path": "node_modules/@lexical/react/LexicalComposerContext.mjs",
+            "kind": "import-statement",
+            "original": "@lexical/react/LexicalComposerContext"
+          },
+          {
+            "path": "node_modules/@lexical/history/LexicalHistory.mjs",
+            "kind": "import-statement",
+            "original": "@lexical/history"
+          },
+          {
+            "path": "node_modules/@lexical/history/LexicalHistory.mjs",
+            "kind": "import-statement",
+            "original": "@lexical/history"
+          },
+          {
+            "path": "node_modules/react/index.js",
+            "kind": "import-statement",
+            "original": "react"
+          }
+        ],
+        "format": "esm"
+      },
+      "node_modules/@lexical/react/LexicalHistoryPlugin.prod.mjs": {
+        "bytes": 638,
+        "imports": [
+          {
+            "path": "node_modules/@lexical/react/LexicalComposerContext.mjs",
+            "kind": "import-statement",
+            "original": "@lexical/react/LexicalComposerContext"
+          },
+          {
+            "path": "node_modules/@lexical/history/LexicalHistory.mjs",
+            "kind": "import-statement",
+            "original": "@lexical/history"
+          },
+          {
+            "path": "node_modules/@lexical/history/LexicalHistory.mjs",
+            "kind": "import-statement",
+            "original": "@lexical/history"
+          },
+          {
+            "path": "node_modules/react/index.js",
+            "kind": "import-statement",
+            "original": "react"
+          }
+        ],
+        "format": "esm"
+      },
+      "node_modules/@lexical/react/LexicalHistoryPlugin.mjs": {
+        "bytes": 498,
+        "imports": [
+          {
+            "path": "node_modules/@lexical/react/LexicalHistoryPlugin.dev.mjs",
+            "kind": "import-statement",
+            "original": "./LexicalHistoryPlugin.dev.mjs"
+          },
+          {
+            "path": "node_modules/@lexical/react/LexicalHistoryPlugin.prod.mjs",
+            "kind": "import-statement",
+            "original": "./LexicalHistoryPlugin.prod.mjs"
+          }
+        ],
+        "format": "esm"
+      },
+      "node_modules/@lexical/react/useLexicalEditable.dev.mjs": {
+        "bytes": 3174,
+        "imports": [
+          {
+            "path": "node_modules/@lexical/react/LexicalComposerContext.mjs",
+            "kind": "import-statement",
+            "original": "@lexical/react/LexicalComposerContext"
+          },
+          {
+            "path": "node_modules/react/index.js",
+            "kind": "import-statement",
+            "original": "react"
+          }
+        ],
+        "format": "esm"
+      },
+      "node_modules/@lexical/react/useLexicalEditable.prod.mjs": {
+        "bytes": 858,
+        "imports": [
+          {
+            "path": "node_modules/@lexical/react/LexicalComposerContext.mjs",
+            "kind": "import-statement",
+            "original": "@lexical/react/LexicalComposerContext"
+          },
+          {
+            "path": "node_modules/react/index.js",
+            "kind": "import-statement",
+            "original": "react"
+          }
+        ],
+        "format": "esm"
+      },
+      "node_modules/@lexical/react/useLexicalEditable.mjs": {
+        "bytes": 436,
+        "imports": [
+          {
+            "path": "node_modules/@lexical/react/useLexicalEditable.dev.mjs",
+            "kind": "import-statement",
+            "original": "./useLexicalEditable.dev.mjs"
+          },
+          {
+            "path": "node_modules/@lexical/react/useLexicalEditable.prod.mjs",
+            "kind": "import-statement",
+            "original": "./useLexicalEditable.prod.mjs"
+          }
+        ],
+        "format": "esm"
+      },
+      "node_modules/@lexical/dragon/LexicalDragon.dev.mjs": {
+        "bytes": 3274,
+        "imports": [
+          {
+            "path": "node_modules/lexical/Lexical.mjs",
+            "kind": "import-statement",
+            "original": "lexical"
+          }
+        ],
+        "format": "esm"
+      },
+      "node_modules/@lexical/dragon/LexicalDragon.prod.mjs": {
+        "bytes": 1104,
+        "imports": [
+          {
+            "path": "node_modules/lexical/Lexical.mjs",
+            "kind": "import-statement",
+            "original": "lexical"
+          }
+        ],
+        "format": "esm"
+      },
+      "node_modules/@lexical/dragon/LexicalDragon.mjs": {
+        "bytes": 432,
+        "imports": [
+          {
+            "path": "node_modules/@lexical/dragon/LexicalDragon.dev.mjs",
+            "kind": "import-statement",
+            "original": "./LexicalDragon.dev.mjs"
+          },
+          {
+            "path": "node_modules/@lexical/dragon/LexicalDragon.prod.mjs",
+            "kind": "import-statement",
+            "original": "./LexicalDragon.prod.mjs"
+          }
+        ],
+        "format": "esm"
+      },
+      "node_modules/@lexical/html/LexicalHtml.dev.mjs": {
+        "bytes": 9725,
+        "imports": [
+          {
+            "path": "node_modules/@lexical/selection/LexicalSelection.mjs",
+            "kind": "import-statement",
+            "original": "@lexical/selection"
+          },
+          {
+            "path": "node_modules/@lexical/utils/LexicalUtils.mjs",
+            "kind": "import-statement",
+            "original": "@lexical/utils"
+          },
+          {
+            "path": "node_modules/lexical/Lexical.mjs",
+            "kind": "import-statement",
+            "original": "lexical"
+          }
+        ],
+        "format": "esm"
+      },
+      "node_modules/@lexical/html/LexicalHtml.prod.mjs": {
+        "bytes": 3334,
+        "imports": [
+          {
+            "path": "node_modules/@lexical/selection/LexicalSelection.mjs",
+            "kind": "import-statement",
+            "original": "@lexical/selection"
+          },
+          {
+            "path": "node_modules/@lexical/utils/LexicalUtils.mjs",
+            "kind": "import-statement",
+            "original": "@lexical/utils"
+          },
+          {
+            "path": "node_modules/lexical/Lexical.mjs",
+            "kind": "import-statement",
+            "original": "lexical"
+          }
+        ],
+        "format": "esm"
+      },
+      "node_modules/@lexical/html/LexicalHtml.mjs": {
+        "bytes": 494,
+        "imports": [
+          {
+            "path": "node_modules/@lexical/html/LexicalHtml.dev.mjs",
+            "kind": "import-statement",
+            "original": "./LexicalHtml.dev.mjs"
+          },
+          {
+            "path": "node_modules/@lexical/html/LexicalHtml.prod.mjs",
+            "kind": "import-statement",
+            "original": "./LexicalHtml.prod.mjs"
+          }
+        ],
+        "format": "esm"
+      },
+      "node_modules/@lexical/clipboard/LexicalClipboard.dev.mjs": {
+        "bytes": 16557,
+        "imports": [
+          {
+            "path": "node_modules/@lexical/html/LexicalHtml.mjs",
+            "kind": "import-statement",
+            "original": "@lexical/html"
+          },
+          {
+            "path": "node_modules/@lexical/selection/LexicalSelection.mjs",
+            "kind": "import-statement",
+            "original": "@lexical/selection"
+          },
+          {
+            "path": "node_modules/@lexical/utils/LexicalUtils.mjs",
+            "kind": "import-statement",
+            "original": "@lexical/utils"
+          },
+          {
+            "path": "node_modules/lexical/Lexical.mjs",
+            "kind": "import-statement",
+            "original": "lexical"
+          }
+        ],
+        "format": "esm"
+      },
+      "node_modules/@lexical/clipboard/LexicalClipboard.prod.mjs": {
+        "bytes": 4738,
+        "imports": [
+          {
+            "path": "node_modules/@lexical/html/LexicalHtml.mjs",
+            "kind": "import-statement",
+            "original": "@lexical/html"
+          },
+          {
+            "path": "node_modules/@lexical/selection/LexicalSelection.mjs",
+            "kind": "import-statement",
+            "original": "@lexical/selection"
+          },
+          {
+            "path": "node_modules/@lexical/utils/LexicalUtils.mjs",
+            "kind": "import-statement",
+            "original": "@lexical/utils"
+          },
+          {
+            "path": "node_modules/lexical/Lexical.mjs",
+            "kind": "import-statement",
+            "original": "lexical"
+          }
+        ],
+        "format": "esm"
+      },
+      "node_modules/@lexical/clipboard/LexicalClipboard.mjs": {
+        "bytes": 1102,
+        "imports": [
+          {
+            "path": "node_modules/@lexical/clipboard/LexicalClipboard.dev.mjs",
+            "kind": "import-statement",
+            "original": "./LexicalClipboard.dev.mjs"
+          },
+          {
+            "path": "node_modules/@lexical/clipboard/LexicalClipboard.prod.mjs",
+            "kind": "import-statement",
+            "original": "./LexicalClipboard.prod.mjs"
+          }
+        ],
+        "format": "esm"
+      },
+      "node_modules/@lexical/plain-text/LexicalPlainText.dev.mjs": {
+        "bytes": 9900,
+        "imports": [
+          {
+            "path": "node_modules/@lexical/clipboard/LexicalClipboard.mjs",
+            "kind": "import-statement",
+            "original": "@lexical/clipboard"
+          },
+          {
+            "path": "node_modules/@lexical/selection/LexicalSelection.mjs",
+            "kind": "import-statement",
+            "original": "@lexical/selection"
+          },
+          {
+            "path": "node_modules/@lexical/utils/LexicalUtils.mjs",
+            "kind": "import-statement",
+            "original": "@lexical/utils"
+          },
+          {
+            "path": "node_modules/lexical/Lexical.mjs",
+            "kind": "import-statement",
+            "original": "lexical"
+          }
+        ],
+        "format": "esm"
+      },
+      "node_modules/@lexical/plain-text/LexicalPlainText.prod.mjs": {
+        "bytes": 3736,
+        "imports": [
+          {
+            "path": "node_modules/@lexical/clipboard/LexicalClipboard.mjs",
+            "kind": "import-statement",
+            "original": "@lexical/clipboard"
+          },
+          {
+            "path": "node_modules/@lexical/selection/LexicalSelection.mjs",
+            "kind": "import-statement",
+            "original": "@lexical/selection"
+          },
+          {
+            "path": "node_modules/@lexical/utils/LexicalUtils.mjs",
+            "kind": "import-statement",
+            "original": "@lexical/utils"
+          },
+          {
+            "path": "node_modules/lexical/Lexical.mjs",
+            "kind": "import-statement",
+            "original": "lexical"
+          }
+        ],
+        "format": "esm"
+      },
+      "node_modules/@lexical/plain-text/LexicalPlainText.mjs": {
+        "bytes": 430,
+        "imports": [
+          {
+            "path": "node_modules/@lexical/plain-text/LexicalPlainText.dev.mjs",
+            "kind": "import-statement",
+            "original": "./LexicalPlainText.dev.mjs"
+          },
+          {
+            "path": "node_modules/@lexical/plain-text/LexicalPlainText.prod.mjs",
+            "kind": "import-statement",
+            "original": "./LexicalPlainText.prod.mjs"
+          }
+        ],
+        "format": "esm"
+      },
+      "node_modules/@lexical/react/LexicalPlainTextPlugin.dev.mjs": {
+        "bytes": 5621,
+        "imports": [
+          {
+            "path": "node_modules/@lexical/react/LexicalComposerContext.mjs",
+            "kind": "import-statement",
+            "original": "@lexical/react/LexicalComposerContext"
+          },
+          {
+            "path": "node_modules/@lexical/react/useLexicalEditable.mjs",
+            "kind": "import-statement",
+            "original": "@lexical/react/useLexicalEditable"
+          },
+          {
+            "path": "node_modules/@lexical/text/LexicalText.mjs",
+            "kind": "import-statement",
+            "original": "@lexical/text"
+          },
+          {
+            "path": "node_modules/@lexical/utils/LexicalUtils.mjs",
+            "kind": "import-statement",
+            "original": "@lexical/utils"
+          },
+          {
+            "path": "node_modules/react/index.js",
+            "kind": "import-statement",
+            "original": "react"
+          },
+          {
+            "path": "node_modules/react-dom/index.js",
+            "kind": "import-statement",
+            "original": "react-dom"
+          },
+          {
+            "path": "node_modules/react/jsx-runtime.js",
+            "kind": "import-statement",
+            "original": "react/jsx-runtime"
+          },
+          {
+            "path": "node_modules/@lexical/dragon/LexicalDragon.mjs",
+            "kind": "import-statement",
+            "original": "@lexical/dragon"
+          },
+          {
+            "path": "node_modules/@lexical/plain-text/LexicalPlainText.mjs",
+            "kind": "import-statement",
+            "original": "@lexical/plain-text"
+          }
+        ],
+        "format": "esm"
+      },
+      "node_modules/@lexical/react/LexicalPlainTextPlugin.prod.mjs": {
+        "bytes": 1816,
+        "imports": [
+          {
+            "path": "node_modules/@lexical/react/LexicalComposerContext.mjs",
+            "kind": "import-statement",
+            "original": "@lexical/react/LexicalComposerContext"
+          },
+          {
+            "path": "node_modules/@lexical/react/useLexicalEditable.mjs",
+            "kind": "import-statement",
+            "original": "@lexical/react/useLexicalEditable"
+          },
+          {
+            "path": "node_modules/@lexical/text/LexicalText.mjs",
+            "kind": "import-statement",
+            "original": "@lexical/text"
+          },
+          {
+            "path": "node_modules/@lexical/utils/LexicalUtils.mjs",
+            "kind": "import-statement",
+            "original": "@lexical/utils"
+          },
+          {
+            "path": "node_modules/react/index.js",
+            "kind": "import-statement",
+            "original": "react"
+          },
+          {
+            "path": "node_modules/react-dom/index.js",
+            "kind": "import-statement",
+            "original": "react-dom"
+          },
+          {
+            "path": "node_modules/react/jsx-runtime.js",
+            "kind": "import-statement",
+            "original": "react/jsx-runtime"
+          },
+          {
+            "path": "node_modules/@lexical/dragon/LexicalDragon.mjs",
+            "kind": "import-statement",
+            "original": "@lexical/dragon"
+          },
+          {
+            "path": "node_modules/@lexical/plain-text/LexicalPlainText.mjs",
+            "kind": "import-statement",
+            "original": "@lexical/plain-text"
+          }
+        ],
+        "format": "esm"
+      },
+      "node_modules/@lexical/react/LexicalPlainTextPlugin.mjs": {
+        "bytes": 438,
+        "imports": [
+          {
+            "path": "node_modules/@lexical/react/LexicalPlainTextPlugin.dev.mjs",
+            "kind": "import-statement",
+            "original": "./LexicalPlainTextPlugin.dev.mjs"
+          },
+          {
+            "path": "node_modules/@lexical/react/LexicalPlainTextPlugin.prod.mjs",
+            "kind": "import-statement",
+            "original": "./LexicalPlainTextPlugin.prod.mjs"
+          }
+        ],
+        "format": "esm"
+      },
       "features/canvas/widget/src/composer/Composer.tsx": {
-        "bytes": 19700,
+        "bytes": 76675,
+        "imports": [
+          {
+            "path": "node_modules/@lexical/react/LexicalComposer.mjs",
+            "kind": "import-statement",
+            "original": "@lexical/react/LexicalComposer"
+          },
+          {
+            "path": "node_modules/@lexical/react/LexicalContentEditable.mjs",
+            "kind": "import-statement",
+            "original": "@lexical/react/LexicalContentEditable"
+          },
+          {
+            "path": "node_modules/@lexical/react/LexicalErrorBoundary.mjs",
+            "kind": "import-statement",
+            "original": "@lexical/react/LexicalErrorBoundary"
+          },
+          {
+            "path": "node_modules/@lexical/react/LexicalHistoryPlugin.mjs",
+            "kind": "import-statement",
+            "original": "@lexical/react/LexicalHistoryPlugin"
+          },
+          {
+            "path": "node_modules/@lexical/react/LexicalPlainTextPlugin.mjs",
+            "kind": "import-statement",
+            "original": "@lexical/react/LexicalPlainTextPlugin"
+          },
+          {
+            "path": "node_modules/@lexical/react/LexicalComposerContext.mjs",
+            "kind": "import-statement",
+            "original": "@lexical/react/LexicalComposerContext"
+          },
+          {
+            "path": "node_modules/lexical/Lexical.mjs",
+            "kind": "import-statement",
+            "original": "lexical"
+          },
+          {
+            "path": "node_modules/lucide-react/dist/esm/lucide-react.js",
+            "kind": "import-statement",
+            "original": "lucide-react"
+          },
+          {
+            "path": "node_modules/react/index.js",
+            "kind": "import-statement",
+            "original": "react"
+          },
+          {
+            "path": "node_modules/react-dom/index.js",
+            "kind": "import-statement",
+            "original": "react-dom"
+          },
+          {
+            "path": "node_modules/react/jsx-runtime.js",
+            "kind": "import-statement",
+            "original": "react/jsx-runtime"
+          }
+        ],
+        "format": "esm"
+      },
+      "features/canvas/widget/src/mcp-arguments.ts": {
+        "bytes": 1142,
+        "imports": [],
+        "format": "esm"
+      },
+      "features/canvas/widget/src/inspector/chunked-video-client.ts": {
+        "bytes": 8636,
+        "imports": [],
+        "format": "esm"
+      },
+      "features/canvas/widget/src/inspector/chunked-image-client.ts": {
+        "bytes": 9686,
+        "imports": [
+          {
+            "path": "features/canvas/widget/src/inspector/chunked-video-client.ts",
+            "kind": "import-statement",
+            "original": "./chunked-video-client.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "features/canvas/widget/src/inspector/video-utils.ts": {
+        "bytes": 3880,
+        "imports": [],
+        "format": "esm"
+      },
+      "features/canvas/widget/src/launcher/ReviewLauncher.tsx": {
+        "bytes": 1829,
+        "imports": [
+          {
+            "path": "node_modules/lucide-react/dist/esm/lucide-react.js",
+            "kind": "import-statement",
+            "original": "lucide-react"
+          },
+          {
+            "path": "node_modules/react/jsx-runtime.js",
+            "kind": "import-statement",
+            "original": "react/jsx-runtime"
+          }
+        ],
+        "format": "esm"
+      },
+      "features/canvas/widget/src/frame-annotator/annotation-types.ts": {
+        "bytes": 1572,
+        "imports": [],
+        "format": "esm"
+      },
+      "features/canvas/widget/src/toolbar/AnnotationToolbar.tsx": {
+        "bytes": 6417,
         "imports": [
           {
             "path": "node_modules/react/index.js",
@@ -42373,46 +43471,9 @@
             "original": "lucide-react"
           },
           {
-            "path": "node_modules/react/jsx-runtime.js",
+            "path": "features/canvas/widget/src/frame-annotator/annotation-types.ts",
             "kind": "import-statement",
-            "original": "react/jsx-runtime"
-          }
-        ],
-        "format": "esm"
-      },
-      "features/canvas/widget/src/mcp-arguments.ts": {
-        "bytes": 1142,
-        "imports": [],
-        "format": "esm"
-      },
-      "features/canvas/widget/src/inspector/chunked-video-client.ts": {
-        "bytes": 8557,
-        "imports": [],
-        "format": "esm"
-      },
-      "features/canvas/widget/src/inspector/chunked-image-client.ts": {
-        "bytes": 9686,
-        "imports": [
-          {
-            "path": "features/canvas/widget/src/inspector/chunked-video-client.ts",
-            "kind": "import-statement",
-            "original": "./chunked-video-client.js"
-          }
-        ],
-        "format": "esm"
-      },
-      "features/canvas/widget/src/inspector/video-utils.ts": {
-        "bytes": 3386,
-        "imports": [],
-        "format": "esm"
-      },
-      "features/canvas/widget/src/launcher/ReviewLauncher.tsx": {
-        "bytes": 1845,
-        "imports": [
-          {
-            "path": "node_modules/lucide-react/dist/esm/lucide-react.js",
-            "kind": "import-statement",
-            "original": "lucide-react"
+            "original": "../frame-annotator/annotation-types.js"
           },
           {
             "path": "node_modules/react/jsx-runtime.js",
@@ -42422,13 +43483,1764 @@
         ],
         "format": "esm"
       },
-      "features/canvas/widget/src/toolbar/AnnotationToolbar.tsx": {
-        "bytes": 2134,
+      "features/canvas/widget/src/frame-annotator/use-annotation-stack.ts": {
+        "bytes": 1312,
         "imports": [
           {
-            "path": "node_modules/lucide-react/dist/esm/lucide-react.js",
+            "path": "node_modules/react/index.js",
             "kind": "import-statement",
-            "original": "lucide-react"
+            "original": "react"
+          }
+        ],
+        "format": "esm"
+      },
+      "node_modules/konva/lib/Global.js": {
+        "bytes": 2189,
+        "imports": [],
+        "format": "esm"
+      },
+      "node_modules/konva/lib/Util.js": {
+        "bytes": 29057,
+        "imports": [
+          {
+            "path": "node_modules/konva/lib/Global.js",
+            "kind": "import-statement",
+            "original": "./Global.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "node_modules/konva/lib/Context.js": {
+        "bytes": 17398,
+        "imports": [
+          {
+            "path": "node_modules/konva/lib/Util.js",
+            "kind": "import-statement",
+            "original": "./Util.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Global.js",
+            "kind": "import-statement",
+            "original": "./Global.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "node_modules/konva/lib/Canvas.js": {
+        "bytes": 3654,
+        "imports": [
+          {
+            "path": "node_modules/konva/lib/Util.js",
+            "kind": "import-statement",
+            "original": "./Util.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Context.js",
+            "kind": "import-statement",
+            "original": "./Context.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Global.js",
+            "kind": "import-statement",
+            "original": "./Global.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "node_modules/konva/lib/DragAndDrop.js": {
+        "bytes": 3966,
+        "imports": [
+          {
+            "path": "node_modules/konva/lib/Global.js",
+            "kind": "import-statement",
+            "original": "./Global.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Util.js",
+            "kind": "import-statement",
+            "original": "./Util.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "node_modules/konva/lib/Validators.js": {
+        "bytes": 5670,
+        "imports": [
+          {
+            "path": "node_modules/konva/lib/Global.js",
+            "kind": "import-statement",
+            "original": "./Global.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Util.js",
+            "kind": "import-statement",
+            "original": "./Util.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "node_modules/konva/lib/Factory.js": {
+        "bytes": 4945,
+        "imports": [
+          {
+            "path": "node_modules/konva/lib/Util.js",
+            "kind": "import-statement",
+            "original": "./Util.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Validators.js",
+            "kind": "import-statement",
+            "original": "./Validators.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "node_modules/konva/lib/Node.js": {
+        "bytes": 54487,
+        "imports": [
+          {
+            "path": "node_modules/konva/lib/Canvas.js",
+            "kind": "import-statement",
+            "original": "./Canvas.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Context.js",
+            "kind": "import-statement",
+            "original": "./Context.js"
+          },
+          {
+            "path": "node_modules/konva/lib/DragAndDrop.js",
+            "kind": "import-statement",
+            "original": "./DragAndDrop.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Factory.js",
+            "kind": "import-statement",
+            "original": "./Factory.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Global.js",
+            "kind": "import-statement",
+            "original": "./Global.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Util.js",
+            "kind": "import-statement",
+            "original": "./Util.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Validators.js",
+            "kind": "import-statement",
+            "original": "./Validators.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "node_modules/konva/lib/Container.js": {
+        "bytes": 10222,
+        "imports": [
+          {
+            "path": "node_modules/konva/lib/Factory.js",
+            "kind": "import-statement",
+            "original": "./Factory.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Node.js",
+            "kind": "import-statement",
+            "original": "./Node.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Validators.js",
+            "kind": "import-statement",
+            "original": "./Validators.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "node_modules/konva/lib/PointerEvents.js": {
+        "bytes": 1129,
+        "imports": [
+          {
+            "path": "node_modules/konva/lib/Global.js",
+            "kind": "import-statement",
+            "original": "./Global.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "node_modules/konva/lib/Stage.js": {
+        "bytes": 25493,
+        "imports": [
+          {
+            "path": "node_modules/konva/lib/Util.js",
+            "kind": "import-statement",
+            "original": "./Util.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Factory.js",
+            "kind": "import-statement",
+            "original": "./Factory.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Container.js",
+            "kind": "import-statement",
+            "original": "./Container.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Global.js",
+            "kind": "import-statement",
+            "original": "./Global.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Canvas.js",
+            "kind": "import-statement",
+            "original": "./Canvas.js"
+          },
+          {
+            "path": "node_modules/konva/lib/DragAndDrop.js",
+            "kind": "import-statement",
+            "original": "./DragAndDrop.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Global.js",
+            "kind": "import-statement",
+            "original": "./Global.js"
+          },
+          {
+            "path": "node_modules/konva/lib/PointerEvents.js",
+            "kind": "import-statement",
+            "original": "./PointerEvents.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "node_modules/konva/lib/Shape.js": {
+        "bytes": 22969,
+        "imports": [
+          {
+            "path": "node_modules/konva/lib/Global.js",
+            "kind": "import-statement",
+            "original": "./Global.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Util.js",
+            "kind": "import-statement",
+            "original": "./Util.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Factory.js",
+            "kind": "import-statement",
+            "original": "./Factory.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Node.js",
+            "kind": "import-statement",
+            "original": "./Node.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Validators.js",
+            "kind": "import-statement",
+            "original": "./Validators.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Global.js",
+            "kind": "import-statement",
+            "original": "./Global.js"
+          },
+          {
+            "path": "node_modules/konva/lib/PointerEvents.js",
+            "kind": "import-statement",
+            "original": "./PointerEvents.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "node_modules/konva/lib/Layer.js": {
+        "bytes": 10049,
+        "imports": [
+          {
+            "path": "node_modules/konva/lib/Util.js",
+            "kind": "import-statement",
+            "original": "./Util.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Container.js",
+            "kind": "import-statement",
+            "original": "./Container.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Node.js",
+            "kind": "import-statement",
+            "original": "./Node.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Factory.js",
+            "kind": "import-statement",
+            "original": "./Factory.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Canvas.js",
+            "kind": "import-statement",
+            "original": "./Canvas.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Validators.js",
+            "kind": "import-statement",
+            "original": "./Validators.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Shape.js",
+            "kind": "import-statement",
+            "original": "./Shape.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Global.js",
+            "kind": "import-statement",
+            "original": "./Global.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "node_modules/konva/lib/FastLayer.js": {
+        "bytes": 424,
+        "imports": [
+          {
+            "path": "node_modules/konva/lib/Util.js",
+            "kind": "import-statement",
+            "original": "./Util.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Layer.js",
+            "kind": "import-statement",
+            "original": "./Layer.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Global.js",
+            "kind": "import-statement",
+            "original": "./Global.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "node_modules/konva/lib/Group.js": {
+        "bytes": 427,
+        "imports": [
+          {
+            "path": "node_modules/konva/lib/Util.js",
+            "kind": "import-statement",
+            "original": "./Util.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Container.js",
+            "kind": "import-statement",
+            "original": "./Container.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Global.js",
+            "kind": "import-statement",
+            "original": "./Global.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "node_modules/konva/lib/Animation.js": {
+        "bytes": 3956,
+        "imports": [
+          {
+            "path": "node_modules/konva/lib/Global.js",
+            "kind": "import-statement",
+            "original": "./Global.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Util.js",
+            "kind": "import-statement",
+            "original": "./Util.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "node_modules/konva/lib/Tween.js": {
+        "bytes": 15630,
+        "imports": [
+          {
+            "path": "node_modules/konva/lib/Util.js",
+            "kind": "import-statement",
+            "original": "./Util.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Animation.js",
+            "kind": "import-statement",
+            "original": "./Animation.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Node.js",
+            "kind": "import-statement",
+            "original": "./Node.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Global.js",
+            "kind": "import-statement",
+            "original": "./Global.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "node_modules/konva/lib/_CoreInternals.js": {
+        "bytes": 855,
+        "imports": [
+          {
+            "path": "node_modules/konva/lib/Global.js",
+            "kind": "import-statement",
+            "original": "./Global.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Util.js",
+            "kind": "import-statement",
+            "original": "./Util.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Node.js",
+            "kind": "import-statement",
+            "original": "./Node.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Container.js",
+            "kind": "import-statement",
+            "original": "./Container.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Stage.js",
+            "kind": "import-statement",
+            "original": "./Stage.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Layer.js",
+            "kind": "import-statement",
+            "original": "./Layer.js"
+          },
+          {
+            "path": "node_modules/konva/lib/FastLayer.js",
+            "kind": "import-statement",
+            "original": "./FastLayer.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Group.js",
+            "kind": "import-statement",
+            "original": "./Group.js"
+          },
+          {
+            "path": "node_modules/konva/lib/DragAndDrop.js",
+            "kind": "import-statement",
+            "original": "./DragAndDrop.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Shape.js",
+            "kind": "import-statement",
+            "original": "./Shape.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Animation.js",
+            "kind": "import-statement",
+            "original": "./Animation.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Tween.js",
+            "kind": "import-statement",
+            "original": "./Tween.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Context.js",
+            "kind": "import-statement",
+            "original": "./Context.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Canvas.js",
+            "kind": "import-statement",
+            "original": "./Canvas.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "node_modules/konva/lib/shapes/Arc.js": {
+        "bytes": 2446,
+        "imports": [
+          {
+            "path": "node_modules/konva/lib/Factory.js",
+            "kind": "import-statement",
+            "original": "../Factory.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Shape.js",
+            "kind": "import-statement",
+            "original": "../Shape.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Global.js",
+            "kind": "import-statement",
+            "original": "../Global.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Validators.js",
+            "kind": "import-statement",
+            "original": "../Validators.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Global.js",
+            "kind": "import-statement",
+            "original": "../Global.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "node_modules/konva/lib/shapes/Line.js": {
+        "bytes": 6816,
+        "imports": [
+          {
+            "path": "node_modules/konva/lib/Factory.js",
+            "kind": "import-statement",
+            "original": "../Factory.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Global.js",
+            "kind": "import-statement",
+            "original": "../Global.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Shape.js",
+            "kind": "import-statement",
+            "original": "../Shape.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Validators.js",
+            "kind": "import-statement",
+            "original": "../Validators.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "node_modules/konva/lib/BezierFunctions.js": {
+        "bytes": 34241,
+        "imports": [],
+        "format": "esm"
+      },
+      "node_modules/konva/lib/shapes/Path.js": {
+        "bytes": 26419,
+        "imports": [
+          {
+            "path": "node_modules/konva/lib/Factory.js",
+            "kind": "import-statement",
+            "original": "../Factory.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Global.js",
+            "kind": "import-statement",
+            "original": "../Global.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Shape.js",
+            "kind": "import-statement",
+            "original": "../Shape.js"
+          },
+          {
+            "path": "node_modules/konva/lib/BezierFunctions.js",
+            "kind": "import-statement",
+            "original": "../BezierFunctions.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "node_modules/konva/lib/shapes/Arrow.js": {
+        "bytes": 3511,
+        "imports": [
+          {
+            "path": "node_modules/konva/lib/Factory.js",
+            "kind": "import-statement",
+            "original": "../Factory.js"
+          },
+          {
+            "path": "node_modules/konva/lib/shapes/Line.js",
+            "kind": "import-statement",
+            "original": "./Line.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Validators.js",
+            "kind": "import-statement",
+            "original": "../Validators.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Global.js",
+            "kind": "import-statement",
+            "original": "../Global.js"
+          },
+          {
+            "path": "node_modules/konva/lib/shapes/Path.js",
+            "kind": "import-statement",
+            "original": "./Path.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "node_modules/konva/lib/shapes/Circle.js": {
+        "bytes": 989,
+        "imports": [
+          {
+            "path": "node_modules/konva/lib/Factory.js",
+            "kind": "import-statement",
+            "original": "../Factory.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Shape.js",
+            "kind": "import-statement",
+            "original": "../Shape.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Validators.js",
+            "kind": "import-statement",
+            "original": "../Validators.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Global.js",
+            "kind": "import-statement",
+            "original": "../Global.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "node_modules/konva/lib/shapes/Ellipse.js": {
+        "bytes": 1195,
+        "imports": [
+          {
+            "path": "node_modules/konva/lib/Factory.js",
+            "kind": "import-statement",
+            "original": "../Factory.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Shape.js",
+            "kind": "import-statement",
+            "original": "../Shape.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Validators.js",
+            "kind": "import-statement",
+            "original": "../Validators.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Global.js",
+            "kind": "import-statement",
+            "original": "../Global.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "node_modules/konva/lib/shapes/Image.js": {
+        "bytes": 4603,
+        "imports": [
+          {
+            "path": "node_modules/konva/lib/Util.js",
+            "kind": "import-statement",
+            "original": "../Util.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Factory.js",
+            "kind": "import-statement",
+            "original": "../Factory.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Shape.js",
+            "kind": "import-statement",
+            "original": "../Shape.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Global.js",
+            "kind": "import-statement",
+            "original": "../Global.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Validators.js",
+            "kind": "import-statement",
+            "original": "../Validators.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "node_modules/konva/lib/shapes/Label.js": {
+        "bytes": 6364,
+        "imports": [
+          {
+            "path": "node_modules/konva/lib/Factory.js",
+            "kind": "import-statement",
+            "original": "../Factory.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Shape.js",
+            "kind": "import-statement",
+            "original": "../Shape.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Group.js",
+            "kind": "import-statement",
+            "original": "../Group.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Validators.js",
+            "kind": "import-statement",
+            "original": "../Validators.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Global.js",
+            "kind": "import-statement",
+            "original": "../Global.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "node_modules/konva/lib/shapes/Rect.js": {
+        "bytes": 823,
+        "imports": [
+          {
+            "path": "node_modules/konva/lib/Factory.js",
+            "kind": "import-statement",
+            "original": "../Factory.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Shape.js",
+            "kind": "import-statement",
+            "original": "../Shape.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Global.js",
+            "kind": "import-statement",
+            "original": "../Global.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Util.js",
+            "kind": "import-statement",
+            "original": "../Util.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Validators.js",
+            "kind": "import-statement",
+            "original": "../Validators.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "node_modules/konva/lib/shapes/RegularPolygon.js": {
+        "bytes": 2503,
+        "imports": [
+          {
+            "path": "node_modules/konva/lib/Factory.js",
+            "kind": "import-statement",
+            "original": "../Factory.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Shape.js",
+            "kind": "import-statement",
+            "original": "../Shape.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Validators.js",
+            "kind": "import-statement",
+            "original": "../Validators.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Global.js",
+            "kind": "import-statement",
+            "original": "../Global.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Util.js",
+            "kind": "import-statement",
+            "original": "../Util.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "node_modules/konva/lib/shapes/Ring.js": {
+        "bytes": 1100,
+        "imports": [
+          {
+            "path": "node_modules/konva/lib/Factory.js",
+            "kind": "import-statement",
+            "original": "../Factory.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Shape.js",
+            "kind": "import-statement",
+            "original": "../Shape.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Validators.js",
+            "kind": "import-statement",
+            "original": "../Validators.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Global.js",
+            "kind": "import-statement",
+            "original": "../Global.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "node_modules/konva/lib/shapes/Sprite.js": {
+        "bytes": 3797,
+        "imports": [
+          {
+            "path": "node_modules/konva/lib/Factory.js",
+            "kind": "import-statement",
+            "original": "../Factory.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Shape.js",
+            "kind": "import-statement",
+            "original": "../Shape.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Animation.js",
+            "kind": "import-statement",
+            "original": "../Animation.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Validators.js",
+            "kind": "import-statement",
+            "original": "../Validators.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Global.js",
+            "kind": "import-statement",
+            "original": "../Global.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "node_modules/konva/lib/shapes/Star.js": {
+        "bytes": 1430,
+        "imports": [
+          {
+            "path": "node_modules/konva/lib/Factory.js",
+            "kind": "import-statement",
+            "original": "../Factory.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Shape.js",
+            "kind": "import-statement",
+            "original": "../Shape.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Validators.js",
+            "kind": "import-statement",
+            "original": "../Validators.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Global.js",
+            "kind": "import-statement",
+            "original": "../Global.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "node_modules/konva/lib/shapes/Text.js": {
+        "bytes": 22779,
+        "imports": [
+          {
+            "path": "node_modules/konva/lib/Util.js",
+            "kind": "import-statement",
+            "original": "../Util.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Factory.js",
+            "kind": "import-statement",
+            "original": "../Factory.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Shape.js",
+            "kind": "import-statement",
+            "original": "../Shape.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Global.js",
+            "kind": "import-statement",
+            "original": "../Global.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Validators.js",
+            "kind": "import-statement",
+            "original": "../Validators.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Global.js",
+            "kind": "import-statement",
+            "original": "../Global.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "node_modules/konva/lib/shapes/TextPath.js": {
+        "bytes": 10410,
+        "imports": [
+          {
+            "path": "node_modules/konva/lib/Util.js",
+            "kind": "import-statement",
+            "original": "../Util.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Factory.js",
+            "kind": "import-statement",
+            "original": "../Factory.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Shape.js",
+            "kind": "import-statement",
+            "original": "../Shape.js"
+          },
+          {
+            "path": "node_modules/konva/lib/shapes/Path.js",
+            "kind": "import-statement",
+            "original": "./Path.js"
+          },
+          {
+            "path": "node_modules/konva/lib/shapes/Text.js",
+            "kind": "import-statement",
+            "original": "./Text.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Validators.js",
+            "kind": "import-statement",
+            "original": "../Validators.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Global.js",
+            "kind": "import-statement",
+            "original": "../Global.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "node_modules/konva/lib/shapes/Transformer.js": {
+        "bytes": 41012,
+        "imports": [
+          {
+            "path": "node_modules/konva/lib/Util.js",
+            "kind": "import-statement",
+            "original": "../Util.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Factory.js",
+            "kind": "import-statement",
+            "original": "../Factory.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Node.js",
+            "kind": "import-statement",
+            "original": "../Node.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Shape.js",
+            "kind": "import-statement",
+            "original": "../Shape.js"
+          },
+          {
+            "path": "node_modules/konva/lib/shapes/Rect.js",
+            "kind": "import-statement",
+            "original": "./Rect.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Group.js",
+            "kind": "import-statement",
+            "original": "../Group.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Global.js",
+            "kind": "import-statement",
+            "original": "../Global.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Validators.js",
+            "kind": "import-statement",
+            "original": "../Validators.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Global.js",
+            "kind": "import-statement",
+            "original": "../Global.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "node_modules/konva/lib/shapes/Wedge.js": {
+        "bytes": 1185,
+        "imports": [
+          {
+            "path": "node_modules/konva/lib/Factory.js",
+            "kind": "import-statement",
+            "original": "../Factory.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Shape.js",
+            "kind": "import-statement",
+            "original": "../Shape.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Global.js",
+            "kind": "import-statement",
+            "original": "../Global.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Validators.js",
+            "kind": "import-statement",
+            "original": "../Validators.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Global.js",
+            "kind": "import-statement",
+            "original": "../Global.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "node_modules/konva/lib/filters/Blur.js": {
+        "bytes": 10022,
+        "imports": [
+          {
+            "path": "node_modules/konva/lib/Factory.js",
+            "kind": "import-statement",
+            "original": "../Factory.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Node.js",
+            "kind": "import-statement",
+            "original": "../Node.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Validators.js",
+            "kind": "import-statement",
+            "original": "../Validators.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "node_modules/konva/lib/filters/Brighten.js": {
+        "bytes": 511,
+        "imports": [
+          {
+            "path": "node_modules/konva/lib/Factory.js",
+            "kind": "import-statement",
+            "original": "../Factory.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Node.js",
+            "kind": "import-statement",
+            "original": "../Node.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Validators.js",
+            "kind": "import-statement",
+            "original": "../Validators.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "node_modules/konva/lib/filters/Brightness.js": {
+        "bytes": 362,
+        "imports": [],
+        "format": "esm"
+      },
+      "node_modules/konva/lib/filters/Contrast.js": {
+        "bytes": 1134,
+        "imports": [
+          {
+            "path": "node_modules/konva/lib/Factory.js",
+            "kind": "import-statement",
+            "original": "../Factory.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Node.js",
+            "kind": "import-statement",
+            "original": "../Node.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Validators.js",
+            "kind": "import-statement",
+            "original": "../Validators.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "node_modules/konva/lib/filters/Emboss.js": {
+        "bytes": 4508,
+        "imports": [
+          {
+            "path": "node_modules/konva/lib/Factory.js",
+            "kind": "import-statement",
+            "original": "../Factory.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Node.js",
+            "kind": "import-statement",
+            "original": "../Node.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Validators.js",
+            "kind": "import-statement",
+            "original": "../Validators.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "node_modules/konva/lib/filters/Enhance.js": {
+        "bytes": 2770,
+        "imports": [
+          {
+            "path": "node_modules/konva/lib/Factory.js",
+            "kind": "import-statement",
+            "original": "../Factory.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Node.js",
+            "kind": "import-statement",
+            "original": "../Node.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Validators.js",
+            "kind": "import-statement",
+            "original": "../Validators.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "node_modules/konva/lib/filters/Grayscale.js": {
+        "bytes": 330,
+        "imports": [],
+        "format": "esm"
+      },
+      "node_modules/konva/lib/filters/HSL.js": {
+        "bytes": 1484,
+        "imports": [
+          {
+            "path": "node_modules/konva/lib/Factory.js",
+            "kind": "import-statement",
+            "original": "../Factory.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Node.js",
+            "kind": "import-statement",
+            "original": "../Node.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Validators.js",
+            "kind": "import-statement",
+            "original": "../Validators.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "node_modules/konva/lib/filters/HSV.js": {
+        "bytes": 1468,
+        "imports": [
+          {
+            "path": "node_modules/konva/lib/Factory.js",
+            "kind": "import-statement",
+            "original": "../Factory.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Node.js",
+            "kind": "import-statement",
+            "original": "../Node.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Validators.js",
+            "kind": "import-statement",
+            "original": "../Validators.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "node_modules/konva/lib/filters/Invert.js": {
+        "bytes": 260,
+        "imports": [],
+        "format": "esm"
+      },
+      "node_modules/konva/lib/filters/Kaleidoscope.js": {
+        "bytes": 5506,
+        "imports": [
+          {
+            "path": "node_modules/konva/lib/Factory.js",
+            "kind": "import-statement",
+            "original": "../Factory.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Node.js",
+            "kind": "import-statement",
+            "original": "../Node.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Util.js",
+            "kind": "import-statement",
+            "original": "../Util.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Validators.js",
+            "kind": "import-statement",
+            "original": "../Validators.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "node_modules/konva/lib/filters/Mask.js": {
+        "bytes": 5211,
+        "imports": [
+          {
+            "path": "node_modules/konva/lib/Factory.js",
+            "kind": "import-statement",
+            "original": "../Factory.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Node.js",
+            "kind": "import-statement",
+            "original": "../Node.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Validators.js",
+            "kind": "import-statement",
+            "original": "../Validators.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "node_modules/konva/lib/filters/Noise.js": {
+        "bytes": 590,
+        "imports": [
+          {
+            "path": "node_modules/konva/lib/Factory.js",
+            "kind": "import-statement",
+            "original": "../Factory.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Node.js",
+            "kind": "import-statement",
+            "original": "../Node.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Validators.js",
+            "kind": "import-statement",
+            "original": "../Validators.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "node_modules/konva/lib/filters/Pixelate.js": {
+        "bytes": 2359,
+        "imports": [
+          {
+            "path": "node_modules/konva/lib/Factory.js",
+            "kind": "import-statement",
+            "original": "../Factory.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Util.js",
+            "kind": "import-statement",
+            "original": "../Util.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Node.js",
+            "kind": "import-statement",
+            "original": "../Node.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Validators.js",
+            "kind": "import-statement",
+            "original": "../Validators.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "node_modules/konva/lib/filters/Posterize.js": {
+        "bytes": 494,
+        "imports": [
+          {
+            "path": "node_modules/konva/lib/Factory.js",
+            "kind": "import-statement",
+            "original": "../Factory.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Node.js",
+            "kind": "import-statement",
+            "original": "../Node.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Validators.js",
+            "kind": "import-statement",
+            "original": "../Validators.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "node_modules/konva/lib/filters/RGB.js": {
+        "bytes": 1141,
+        "imports": [
+          {
+            "path": "node_modules/konva/lib/Factory.js",
+            "kind": "import-statement",
+            "original": "../Factory.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Node.js",
+            "kind": "import-statement",
+            "original": "../Node.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Validators.js",
+            "kind": "import-statement",
+            "original": "../Validators.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "node_modules/konva/lib/filters/RGBA.js": {
+        "bytes": 1330,
+        "imports": [
+          {
+            "path": "node_modules/konva/lib/Factory.js",
+            "kind": "import-statement",
+            "original": "../Factory.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Node.js",
+            "kind": "import-statement",
+            "original": "../Node.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Validators.js",
+            "kind": "import-statement",
+            "original": "../Validators.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "node_modules/konva/lib/filters/Sepia.js": {
+        "bytes": 461,
+        "imports": [],
+        "format": "esm"
+      },
+      "node_modules/konva/lib/filters/Solarize.js": {
+        "bytes": 419,
+        "imports": [],
+        "format": "esm"
+      },
+      "node_modules/konva/lib/filters/Threshold.js": {
+        "bytes": 451,
+        "imports": [
+          {
+            "path": "node_modules/konva/lib/Factory.js",
+            "kind": "import-statement",
+            "original": "../Factory.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Node.js",
+            "kind": "import-statement",
+            "original": "../Node.js"
+          },
+          {
+            "path": "node_modules/konva/lib/Validators.js",
+            "kind": "import-statement",
+            "original": "../Validators.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "node_modules/konva/lib/_FullInternals.js": {
+        "bytes": 2373,
+        "imports": [
+          {
+            "path": "node_modules/konva/lib/_CoreInternals.js",
+            "kind": "import-statement",
+            "original": "./_CoreInternals.js"
+          },
+          {
+            "path": "node_modules/konva/lib/shapes/Arc.js",
+            "kind": "import-statement",
+            "original": "./shapes/Arc.js"
+          },
+          {
+            "path": "node_modules/konva/lib/shapes/Arrow.js",
+            "kind": "import-statement",
+            "original": "./shapes/Arrow.js"
+          },
+          {
+            "path": "node_modules/konva/lib/shapes/Circle.js",
+            "kind": "import-statement",
+            "original": "./shapes/Circle.js"
+          },
+          {
+            "path": "node_modules/konva/lib/shapes/Ellipse.js",
+            "kind": "import-statement",
+            "original": "./shapes/Ellipse.js"
+          },
+          {
+            "path": "node_modules/konva/lib/shapes/Image.js",
+            "kind": "import-statement",
+            "original": "./shapes/Image.js"
+          },
+          {
+            "path": "node_modules/konva/lib/shapes/Label.js",
+            "kind": "import-statement",
+            "original": "./shapes/Label.js"
+          },
+          {
+            "path": "node_modules/konva/lib/shapes/Line.js",
+            "kind": "import-statement",
+            "original": "./shapes/Line.js"
+          },
+          {
+            "path": "node_modules/konva/lib/shapes/Path.js",
+            "kind": "import-statement",
+            "original": "./shapes/Path.js"
+          },
+          {
+            "path": "node_modules/konva/lib/shapes/Rect.js",
+            "kind": "import-statement",
+            "original": "./shapes/Rect.js"
+          },
+          {
+            "path": "node_modules/konva/lib/shapes/RegularPolygon.js",
+            "kind": "import-statement",
+            "original": "./shapes/RegularPolygon.js"
+          },
+          {
+            "path": "node_modules/konva/lib/shapes/Ring.js",
+            "kind": "import-statement",
+            "original": "./shapes/Ring.js"
+          },
+          {
+            "path": "node_modules/konva/lib/shapes/Sprite.js",
+            "kind": "import-statement",
+            "original": "./shapes/Sprite.js"
+          },
+          {
+            "path": "node_modules/konva/lib/shapes/Star.js",
+            "kind": "import-statement",
+            "original": "./shapes/Star.js"
+          },
+          {
+            "path": "node_modules/konva/lib/shapes/Text.js",
+            "kind": "import-statement",
+            "original": "./shapes/Text.js"
+          },
+          {
+            "path": "node_modules/konva/lib/shapes/TextPath.js",
+            "kind": "import-statement",
+            "original": "./shapes/TextPath.js"
+          },
+          {
+            "path": "node_modules/konva/lib/shapes/Transformer.js",
+            "kind": "import-statement",
+            "original": "./shapes/Transformer.js"
+          },
+          {
+            "path": "node_modules/konva/lib/shapes/Wedge.js",
+            "kind": "import-statement",
+            "original": "./shapes/Wedge.js"
+          },
+          {
+            "path": "node_modules/konva/lib/filters/Blur.js",
+            "kind": "import-statement",
+            "original": "./filters/Blur.js"
+          },
+          {
+            "path": "node_modules/konva/lib/filters/Brighten.js",
+            "kind": "import-statement",
+            "original": "./filters/Brighten.js"
+          },
+          {
+            "path": "node_modules/konva/lib/filters/Brightness.js",
+            "kind": "import-statement",
+            "original": "./filters/Brightness.js"
+          },
+          {
+            "path": "node_modules/konva/lib/filters/Contrast.js",
+            "kind": "import-statement",
+            "original": "./filters/Contrast.js"
+          },
+          {
+            "path": "node_modules/konva/lib/filters/Emboss.js",
+            "kind": "import-statement",
+            "original": "./filters/Emboss.js"
+          },
+          {
+            "path": "node_modules/konva/lib/filters/Enhance.js",
+            "kind": "import-statement",
+            "original": "./filters/Enhance.js"
+          },
+          {
+            "path": "node_modules/konva/lib/filters/Grayscale.js",
+            "kind": "import-statement",
+            "original": "./filters/Grayscale.js"
+          },
+          {
+            "path": "node_modules/konva/lib/filters/HSL.js",
+            "kind": "import-statement",
+            "original": "./filters/HSL.js"
+          },
+          {
+            "path": "node_modules/konva/lib/filters/HSV.js",
+            "kind": "import-statement",
+            "original": "./filters/HSV.js"
+          },
+          {
+            "path": "node_modules/konva/lib/filters/Invert.js",
+            "kind": "import-statement",
+            "original": "./filters/Invert.js"
+          },
+          {
+            "path": "node_modules/konva/lib/filters/Kaleidoscope.js",
+            "kind": "import-statement",
+            "original": "./filters/Kaleidoscope.js"
+          },
+          {
+            "path": "node_modules/konva/lib/filters/Mask.js",
+            "kind": "import-statement",
+            "original": "./filters/Mask.js"
+          },
+          {
+            "path": "node_modules/konva/lib/filters/Noise.js",
+            "kind": "import-statement",
+            "original": "./filters/Noise.js"
+          },
+          {
+            "path": "node_modules/konva/lib/filters/Pixelate.js",
+            "kind": "import-statement",
+            "original": "./filters/Pixelate.js"
+          },
+          {
+            "path": "node_modules/konva/lib/filters/Posterize.js",
+            "kind": "import-statement",
+            "original": "./filters/Posterize.js"
+          },
+          {
+            "path": "node_modules/konva/lib/filters/RGB.js",
+            "kind": "import-statement",
+            "original": "./filters/RGB.js"
+          },
+          {
+            "path": "node_modules/konva/lib/filters/RGBA.js",
+            "kind": "import-statement",
+            "original": "./filters/RGBA.js"
+          },
+          {
+            "path": "node_modules/konva/lib/filters/Sepia.js",
+            "kind": "import-statement",
+            "original": "./filters/Sepia.js"
+          },
+          {
+            "path": "node_modules/konva/lib/filters/Solarize.js",
+            "kind": "import-statement",
+            "original": "./filters/Solarize.js"
+          },
+          {
+            "path": "node_modules/konva/lib/filters/Threshold.js",
+            "kind": "import-statement",
+            "original": "./filters/Threshold.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "node_modules/konva/lib/index.js": {
+        "bytes": 67,
+        "imports": [
+          {
+            "path": "node_modules/konva/lib/_FullInternals.js",
+            "kind": "import-statement",
+            "original": "./_FullInternals.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "node_modules/konva/lib/Core.js": {
+        "bytes": 112,
+        "imports": [
+          {
+            "path": "node_modules/konva/lib/_CoreInternals.js",
+            "kind": "import-statement",
+            "original": "./_CoreInternals.js"
+          },
+          {
+            "path": "node_modules/konva/lib/_CoreInternals.js",
+            "kind": "import-statement",
+            "original": "./_CoreInternals.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "node_modules/react-reconciler/cjs/react-reconciler.production.js": {
+        "bytes": 407775,
+        "imports": [
+          {
+            "path": "node_modules/react/index.js",
+            "kind": "require-call",
+            "original": "react"
+          },
+          {
+            "path": "node_modules/scheduler/index.js",
+            "kind": "require-call",
+            "original": "scheduler"
+          }
+        ],
+        "format": "cjs"
+      },
+      "node_modules/react-reconciler/index.js": {
+        "bytes": 208,
+        "imports": [
+          {
+            "path": "node_modules/react-reconciler/cjs/react-reconciler.production.js",
+            "kind": "require-call",
+            "original": "./cjs/react-reconciler.production.js"
+          }
+        ],
+        "format": "cjs"
+      },
+      "node_modules/react-reconciler/cjs/react-reconciler-constants.production.js": {
+        "bytes": 498,
+        "imports": [],
+        "format": "cjs"
+      },
+      "node_modules/react-reconciler/constants.js": {
+        "bytes": 228,
+        "imports": [
+          {
+            "path": "node_modules/react-reconciler/cjs/react-reconciler-constants.production.js",
+            "kind": "require-call",
+            "original": "./cjs/react-reconciler-constants.production.js"
+          }
+        ],
+        "format": "cjs"
+      },
+      "node_modules/react-konva/es/makeUpdates.js": {
+        "bytes": 5686,
+        "imports": [
+          {
+            "path": "node_modules/konva/lib/Global.js",
+            "kind": "import-statement",
+            "original": "konva/lib/Global.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "node_modules/react-konva/es/ReactKonvaHostConfig.js": {
+        "bytes": 7914,
+        "imports": [
+          {
+            "path": "node_modules/react/index.js",
+            "kind": "import-statement",
+            "original": "react"
+          },
+          {
+            "path": "node_modules/konva/lib/Core.js",
+            "kind": "import-statement",
+            "original": "konva/lib/Core.js"
+          },
+          {
+            "path": "node_modules/react-konva/es/makeUpdates.js",
+            "kind": "import-statement",
+            "original": "./makeUpdates.js"
+          },
+          {
+            "path": "node_modules/scheduler/index.js",
+            "kind": "import-statement",
+            "original": "scheduler"
+          },
+          {
+            "path": "node_modules/react-reconciler/constants.js",
+            "kind": "import-statement",
+            "original": "react-reconciler/constants.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "node_modules/its-fine/dist/index.js": {
+        "bytes": 3206,
+        "imports": [
+          {
+            "path": "node_modules/react/index.js",
+            "kind": "import-statement",
+            "original": "react"
+          }
+        ],
+        "format": "esm"
+      },
+      "node_modules/react-konva/es/ReactKonvaCore.js": {
+        "bytes": 6433,
+        "imports": [
+          {
+            "path": "node_modules/react/index.js",
+            "kind": "import-statement",
+            "original": "react"
+          },
+          {
+            "path": "node_modules/konva/lib/Core.js",
+            "kind": "import-statement",
+            "original": "konva/lib/Core.js"
+          },
+          {
+            "path": "node_modules/react-reconciler/index.js",
+            "kind": "import-statement",
+            "original": "react-reconciler"
+          },
+          {
+            "path": "node_modules/react-reconciler/constants.js",
+            "kind": "import-statement",
+            "original": "react-reconciler/constants.js"
+          },
+          {
+            "path": "node_modules/react-konva/es/ReactKonvaHostConfig.js",
+            "kind": "import-statement",
+            "original": "./ReactKonvaHostConfig.js"
+          },
+          {
+            "path": "node_modules/react-konva/es/makeUpdates.js",
+            "kind": "import-statement",
+            "original": "./makeUpdates.js"
+          },
+          {
+            "path": "node_modules/its-fine/dist/index.js",
+            "kind": "import-statement",
+            "original": "its-fine"
+          }
+        ],
+        "format": "esm"
+      },
+      "node_modules/react-konva/es/ReactKonva.js": {
+        "bytes": 179,
+        "imports": [
+          {
+            "path": "node_modules/konva/lib/index.js",
+            "kind": "import-statement",
+            "original": "konva"
+          },
+          {
+            "path": "node_modules/react-konva/es/ReactKonvaCore.js",
+            "kind": "import-statement",
+            "original": "./ReactKonvaCore.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "features/canvas/widget/src/frame-annotator/AnnotationStage.tsx": {
+        "bytes": 18404,
+        "imports": [
+          {
+            "path": "node_modules/react/index.js",
+            "kind": "import-statement",
+            "original": "react"
+          },
+          {
+            "path": "node_modules/react-konva/es/ReactKonva.js",
+            "kind": "import-statement",
+            "original": "react-konva"
+          },
+          {
+            "path": "features/canvas/widget/src/frame-annotator/annotation-types.ts",
+            "kind": "import-statement",
+            "original": "./annotation-types.js"
           },
           {
             "path": "node_modules/react/jsx-runtime.js",
@@ -42438,8 +45250,8 @@
         ],
         "format": "esm"
       },
-      "features/canvas/widget/src/review/VideoReviewStage.tsx": {
-        "bytes": 4897,
+      "features/canvas/widget/src/review/ReshootMediaStage.tsx": {
+        "bytes": 15567,
         "imports": [
           {
             "path": "node_modules/react/index.js",
@@ -42452,9 +45264,19 @@
             "original": "lucide-react"
           },
           {
+            "path": "features/canvas/widget/src/frame-annotator/use-annotation-stack.ts",
+            "kind": "import-statement",
+            "original": "../frame-annotator/use-annotation-stack.js"
+          },
+          {
             "path": "features/canvas/widget/src/inspector/video-utils.ts",
             "kind": "import-statement",
             "original": "../inspector/video-utils.js"
+          },
+          {
+            "path": "features/canvas/widget/src/frame-annotator/AnnotationStage.tsx",
+            "kind": "dynamic-import",
+            "original": "../frame-annotator/AnnotationStage.js"
           },
           {
             "path": "node_modules/react/jsx-runtime.js",
@@ -42469,29 +45291,24 @@
         "imports": [],
         "format": "esm"
       },
-      "features/canvas/widget/src/review/FixedMediaAnnotator.tsx": {
-        "bytes": 19878,
+      "features/canvas/widget/src/review/annotation-shape-to-object.ts": {
+        "bytes": 3778,
         "imports": [
           {
-            "path": "node_modules/react/index.js",
+            "path": "features/canvas/widget/src/frame-annotator/annotation-types.ts",
             "kind": "import-statement",
-            "original": "react"
+            "original": "../frame-annotator/annotation-types.js"
           },
           {
             "path": "features/canvas/widget/src/random-id.ts",
             "kind": "import-statement",
             "original": "../random-id.js"
-          },
-          {
-            "path": "node_modules/react/jsx-runtime.js",
-            "kind": "import-statement",
-            "original": "react/jsx-runtime"
           }
         ],
         "format": "esm"
       },
       "features/canvas/widget/src/App.tsx": {
-        "bytes": 71942,
+        "bytes": 69374,
         "imports": [
           {
             "path": "node_modules/@modelcontextprotocol/ext-apps/dist/src/app.js",
@@ -42564,14 +45381,14 @@
             "original": "./toolbar/AnnotationToolbar.js"
           },
           {
-            "path": "features/canvas/widget/src/review/VideoReviewStage.tsx",
+            "path": "features/canvas/widget/src/review/ReshootMediaStage.tsx",
             "kind": "import-statement",
-            "original": "./review/VideoReviewStage.js"
+            "original": "./review/ReshootMediaStage.js"
           },
           {
-            "path": "features/canvas/widget/src/review/FixedMediaAnnotator.tsx",
+            "path": "features/canvas/widget/src/review/annotation-shape-to-object.ts",
             "kind": "import-statement",
-            "original": "./review/FixedMediaAnnotator.js"
+            "original": "./review/annotation-shape-to-object.js"
           },
           {
             "path": "features/canvas/widget/src/random-id.ts",
@@ -42587,7 +45404,7 @@
         "format": "esm"
       },
       "features/canvas/widget/src/styles/theme.css": {
-        "bytes": 37127,
+        "bytes": 68095,
         "imports": []
       },
       "features/canvas/widget/src/main.tsx": {
@@ -42630,46 +45447,46 @@
         "cssBundle": "features/canvas/build/.tmp/widget.css",
         "inputs": {
           "node_modules/react/cjs/react.production.js": {
-            "bytesInOutput": 7687
+            "bytesInOutput": 7659
           },
           "node_modules/react/index.js": {
-            "bytesInOutput": 51
+            "bytesInOutput": 52
           },
           "node_modules/scheduler/cjs/scheduler.production.js": {
             "bytesInOutput": 3662
           },
           "node_modules/scheduler/index.js": {
-            "bytesInOutput": 51
+            "bytesInOutput": 52
           },
           "node_modules/react-dom/cjs/react-dom.production.js": {
             "bytesInOutput": 3343
           },
           "node_modules/react-dom/index.js": {
-            "bytesInOutput": 253
+            "bytesInOutput": 254
           },
           "node_modules/react-dom/cjs/react-dom-client.production.js": {
-            "bytesInOutput": 169979
+            "bytesInOutput": 177286
           },
           "node_modules/react-dom/client.js": {
-            "bytesInOutput": 253
+            "bytesInOutput": 254
           },
           "node_modules/zod/v4/core/core.js": {
             "bytesInOutput": 1208
           },
           "node_modules/zod/v4/core/util.js": {
-            "bytesInOutput": 10669
+            "bytesInOutput": 10679
           },
           "node_modules/zod/v4/core/errors.js": {
-            "bytesInOutput": 2250
+            "bytesInOutput": 2251
           },
           "node_modules/zod/v4/core/parse.js": {
-            "bytesInOutput": 1683
+            "bytesInOutput": 1684
           },
           "node_modules/zod/v4/core/regexes.js": {
-            "bytesInOutput": 5331
+            "bytesInOutput": 5332
           },
           "node_modules/zod/v4/core/checks.js": {
-            "bytesInOutput": 8489
+            "bytesInOutput": 8490
           },
           "node_modules/zod/v4/core/doc.js": {
             "bytesInOutput": 541
@@ -42678,163 +45495,163 @@
             "bytesInOutput": 48
           },
           "node_modules/zod/v4/core/schemas.js": {
-            "bytesInOutput": 32154
+            "bytesInOutput": 32156
           },
           "node_modules/zod/v4/locales/ar.js": {
-            "bytesInOutput": 5678
+            "bytesInOutput": 5681
           },
           "node_modules/zod/v4/locales/az.js": {
-            "bytesInOutput": 2918
+            "bytesInOutput": 2921
           },
           "node_modules/zod/v4/locales/be.js": {
-            "bytesInOutput": 6601
+            "bytesInOutput": 6604
           },
           "node_modules/zod/v4/locales/bg.js": {
-            "bytesInOutput": 6161
+            "bytesInOutput": 6164
           },
           "node_modules/zod/v4/locales/ca.js": {
-            "bytesInOutput": 2609
+            "bytesInOutput": 2612
           },
           "node_modules/zod/v4/locales/cs.js": {
-            "bytesInOutput": 3001
+            "bytesInOutput": 3007
           },
           "node_modules/zod/v4/locales/da.js": {
-            "bytesInOutput": 2591
+            "bytesInOutput": 2597
           },
           "node_modules/zod/v4/locales/de.js": {
-            "bytesInOutput": 2557
+            "bytesInOutput": 2563
           },
           "node_modules/zod/v4/locales/el.js": {
-            "bytesInOutput": 6500
+            "bytesInOutput": 6506
           },
           "node_modules/zod/v4/locales/en.js": {
-            "bytesInOutput": 2439
+            "bytesInOutput": 2445
           },
           "node_modules/zod/v4/locales/eo.js": {
-            "bytesInOutput": 2578
+            "bytesInOutput": 2584
           },
           "node_modules/zod/v4/locales/es.js": {
-            "bytesInOutput": 3058
+            "bytesInOutput": 3064
           },
           "node_modules/zod/v4/locales/fa.js": {
-            "bytesInOutput": 5206
+            "bytesInOutput": 5212
           },
           "node_modules/zod/v4/locales/fi.js": {
-            "bytesInOutput": 2769
-          },
-          "node_modules/zod/v4/locales/fr.js": {
-            "bytesInOutput": 2904
-          },
-          "node_modules/zod/v4/locales/fr-CA.js": {
-            "bytesInOutput": 2539
-          },
-          "node_modules/zod/v4/locales/he.js": {
-            "bytesInOutput": 9411
-          },
-          "node_modules/zod/v4/locales/hr.js": {
             "bytesInOutput": 2775
           },
+          "node_modules/zod/v4/locales/fr.js": {
+            "bytesInOutput": 2910
+          },
+          "node_modules/zod/v4/locales/fr-CA.js": {
+            "bytesInOutput": 2545
+          },
+          "node_modules/zod/v4/locales/he.js": {
+            "bytesInOutput": 9418
+          },
+          "node_modules/zod/v4/locales/hr.js": {
+            "bytesInOutput": 2781
+          },
           "node_modules/zod/v4/locales/hu.js": {
-            "bytesInOutput": 2831
+            "bytesInOutput": 2837
           },
           "node_modules/zod/v4/locales/hy.js": {
-            "bytesInOutput": 6235
+            "bytesInOutput": 6241
           },
           "node_modules/zod/v4/locales/id.js": {
-            "bytesInOutput": 2528
+            "bytesInOutput": 2534
           },
           "node_modules/zod/v4/locales/is.js": {
-            "bytesInOutput": 2684
+            "bytesInOutput": 2690
           },
           "node_modules/zod/v4/locales/it.js": {
-            "bytesInOutput": 2503
+            "bytesInOutput": 2509
           },
           "node_modules/zod/v4/locales/ja.js": {
-            "bytesInOutput": 3912
+            "bytesInOutput": 3918
           },
           "node_modules/zod/v4/locales/ka.js": {
-            "bytesInOutput": 6331
+            "bytesInOutput": 6337
           },
           "node_modules/zod/v4/locales/km.js": {
-            "bytesInOutput": 6577
+            "bytesInOutput": 6583
           },
           "node_modules/zod/v4/locales/kh.js": {
             "bytesInOutput": 47
           },
           "node_modules/zod/v4/locales/ko.js": {
-            "bytesInOutput": 3576
+            "bytesInOutput": 3582
           },
           "node_modules/zod/v4/locales/lt.js": {
-            "bytesInOutput": 4401
+            "bytesInOutput": 4407
           },
           "node_modules/zod/v4/locales/mk.js": {
-            "bytesInOutput": 5540
+            "bytesInOutput": 5546
           },
           "node_modules/zod/v4/locales/ms.js": {
-            "bytesInOutput": 2432
+            "bytesInOutput": 2438
           },
           "node_modules/zod/v4/locales/nl.js": {
-            "bytesInOutput": 2542
+            "bytesInOutput": 2548
           },
           "node_modules/zod/v4/locales/no.js": {
-            "bytesInOutput": 2477
+            "bytesInOutput": 2483
           },
           "node_modules/zod/v4/locales/ota.js": {
-            "bytesInOutput": 2688
+            "bytesInOutput": 2694
           },
           "node_modules/zod/v4/locales/ps.js": {
-            "bytesInOutput": 4556
+            "bytesInOutput": 4562
           },
           "node_modules/zod/v4/locales/pl.js": {
-            "bytesInOutput": 3189
+            "bytesInOutput": 3195
           },
           "node_modules/zod/v4/locales/pt.js": {
-            "bytesInOutput": 2545
+            "bytesInOutput": 2551
           },
           "node_modules/zod/v4/locales/ro.js": {
-            "bytesInOutput": 2884
+            "bytesInOutput": 2890
           },
           "node_modules/zod/v4/locales/ru.js": {
-            "bytesInOutput": 6893
+            "bytesInOutput": 6899
           },
           "node_modules/zod/v4/locales/sl.js": {
-            "bytesInOutput": 2562
+            "bytesInOutput": 2568
           },
           "node_modules/zod/v4/locales/sv.js": {
-            "bytesInOutput": 2640
+            "bytesInOutput": 2646
           },
           "node_modules/zod/v4/locales/ta.js": {
-            "bytesInOutput": 6706
+            "bytesInOutput": 6712
           },
           "node_modules/zod/v4/locales/th.js": {
-            "bytesInOutput": 6652
+            "bytesInOutput": 6658
           },
           "node_modules/zod/v4/locales/tr.js": {
-            "bytesInOutput": 2657
+            "bytesInOutput": 2663
           },
           "node_modules/zod/v4/locales/uk.js": {
-            "bytesInOutput": 6419
+            "bytesInOutput": 6425
           },
           "node_modules/zod/v4/locales/ua.js": {
             "bytesInOutput": 47
           },
           "node_modules/zod/v4/locales/ur.js": {
-            "bytesInOutput": 5928
+            "bytesInOutput": 5934
           },
           "node_modules/zod/v4/locales/uz.js": {
-            "bytesInOutput": 2745
+            "bytesInOutput": 2751
           },
           "node_modules/zod/v4/locales/vi.js": {
-            "bytesInOutput": 3218
+            "bytesInOutput": 3224
           },
           "node_modules/zod/v4/locales/zh-CN.js": {
-            "bytesInOutput": 3058
+            "bytesInOutput": 3064
           },
           "node_modules/zod/v4/locales/zh-TW.js": {
-            "bytesInOutput": 3158
+            "bytesInOutput": 3164
           },
           "node_modules/zod/v4/locales/yo.js": {
-            "bytesInOutput": 3363
+            "bytesInOutput": 3369
           },
           "node_modules/zod/v4/locales/index.js": {
             "bytesInOutput": 822
@@ -42843,13 +45660,13 @@
             "bytesInOutput": 769
           },
           "node_modules/zod/v4/core/api.js": {
-            "bytesInOutput": 10164
+            "bytesInOutput": 10277
           },
           "node_modules/zod/v4/core/to-json-schema.js": {
             "bytesInOutput": 5840
           },
           "node_modules/zod/v4/core/json-schema-processors.js": {
-            "bytesInOutput": 8612
+            "bytesInOutput": 8616
           },
           "node_modules/zod/v4/core/json-schema-generator.js": {
             "bytesInOutput": 920
@@ -42858,7 +45675,7 @@
             "bytesInOutput": 27
           },
           "node_modules/zod/v4/core/index.js": {
-            "bytesInOutput": 5048
+            "bytesInOutput": 5073
           },
           "node_modules/zod/v4/classic/checks.js": {
             "bytesInOutput": 484
@@ -42867,37 +45684,247 @@
             "bytesInOutput": 541
           },
           "node_modules/zod/v4/classic/errors.js": {
-            "bytesInOutput": 425
+            "bytesInOutput": 426
           },
           "node_modules/zod/v4/classic/parse.js": {
             "bytesInOutput": 182
           },
           "node_modules/zod/v4/classic/schemas.js": {
-            "bytesInOutput": 22592
+            "bytesInOutput": 22631
           },
           "node_modules/zod/v4/classic/compat.js": {
             "bytesInOutput": 425
           },
           "node_modules/zod/v4/classic/from-json-schema.js": {
-            "bytesInOutput": 7832
+            "bytesInOutput": 7916
           },
           "node_modules/zod/v4/classic/coerce.js": {
-            "bytesInOutput": 269
+            "bytesInOutput": 279
           },
           "node_modules/zod/v4/classic/external.js": {
-            "bytesInOutput": 3937
+            "bytesInOutput": 3940
           },
           "node_modules/zod/v4/classic/index.js": {
             "bytesInOutput": 34
           },
           "node_modules/zod/v4/index.js": {
-            "bytesInOutput": 3897
+            "bytesInOutput": 3903
           },
           "node_modules/react/cjs/react-jsx-runtime.production.js": {
-            "bytesInOutput": 364
+            "bytesInOutput": 368
           },
           "node_modules/react/jsx-runtime.js": {
-            "bytesInOutput": 51
+            "bytesInOutput": 52
+          },
+          "features/canvas/widget/src/frame-annotator/annotation-types.ts": {
+            "bytesInOutput": 294
+          },
+          "node_modules/konva/lib/Global.js": {
+            "bytesInOutput": 1419
+          },
+          "node_modules/konva/lib/Util.js": {
+            "bytesInOutput": 13937
+          },
+          "node_modules/konva/lib/Context.js": {
+            "bytesInOutput": 8368
+          },
+          "node_modules/konva/lib/Canvas.js": {
+            "bytesInOutput": 1948
+          },
+          "node_modules/konva/lib/DragAndDrop.js": {
+            "bytesInOutput": 1897
+          },
+          "node_modules/konva/lib/Validators.js": {
+            "bytesInOutput": 2054
+          },
+          "node_modules/konva/lib/Factory.js": {
+            "bytesInOutput": 1881
+          },
+          "node_modules/konva/lib/Node.js": {
+            "bytesInOutput": 24324
+          },
+          "node_modules/konva/lib/Container.js": {
+            "bytesInOutput": 4404
+          },
+          "node_modules/konva/lib/PointerEvents.js": {
+            "bytesInOutput": 489
+          },
+          "node_modules/konva/lib/Stage.js": {
+            "bytesInOutput": 11882
+          },
+          "node_modules/konva/lib/Shape.js": {
+            "bytesInOutput": 12372
+          },
+          "node_modules/konva/lib/Layer.js": {
+            "bytesInOutput": 5260
+          },
+          "node_modules/konva/lib/FastLayer.js": {
+            "bytesInOutput": 242
+          },
+          "node_modules/konva/lib/Group.js": {
+            "bytesInOutput": 210
+          },
+          "node_modules/konva/lib/Animation.js": {
+            "bytesInOutput": 1754
+          },
+          "node_modules/konva/lib/Tween.js": {
+            "bytesInOutput": 6547
+          },
+          "node_modules/konva/lib/_CoreInternals.js": {
+            "bytesInOutput": 278
+          },
+          "node_modules/konva/lib/shapes/Arc.js": {
+            "bytesInOutput": 1064
+          },
+          "node_modules/konva/lib/shapes/Line.js": {
+            "bytesInOutput": 2837
+          },
+          "node_modules/konva/lib/BezierFunctions.js": {
+            "bytesInOutput": 12159
+          },
+          "node_modules/konva/lib/shapes/Path.js": {
+            "bytesInOutput": 9131
+          },
+          "node_modules/konva/lib/shapes/Arrow.js": {
+            "bytesInOutput": 1514
+          },
+          "node_modules/konva/lib/shapes/Circle.js": {
+            "bytesInOutput": 491
+          },
+          "node_modules/konva/lib/shapes/Ellipse.js": {
+            "bytesInOutput": 618
+          },
+          "node_modules/konva/lib/shapes/Image.js": {
+            "bytesInOutput": 2059
+          },
+          "node_modules/konva/lib/shapes/Label.js": {
+            "bytesInOutput": 2382
+          },
+          "node_modules/konva/lib/shapes/Rect.js": {
+            "bytesInOutput": 320
+          },
+          "node_modules/konva/lib/shapes/RegularPolygon.js": {
+            "bytesInOutput": 1057
+          },
+          "node_modules/konva/lib/shapes/Ring.js": {
+            "bytesInOutput": 610
+          },
+          "node_modules/konva/lib/shapes/Sprite.js": {
+            "bytesInOutput": 1892
+          },
+          "node_modules/konva/lib/shapes/Star.js": {
+            "bytesInOutput": 719
+          },
+          "node_modules/konva/lib/shapes/Text.js": {
+            "bytesInOutput": 9345
+          },
+          "node_modules/konva/lib/shapes/TextPath.js": {
+            "bytesInOutput": 4822
+          },
+          "node_modules/konva/lib/shapes/Transformer.js": {
+            "bytesInOutput": 19596
+          },
+          "node_modules/konva/lib/shapes/Wedge.js": {
+            "bytesInOutput": 646
+          },
+          "node_modules/konva/lib/filters/Blur.js": {
+            "bytesInOutput": 3831
+          },
+          "node_modules/konva/lib/filters/Brighten.js": {
+            "bytesInOutput": 206
+          },
+          "node_modules/konva/lib/filters/Brightness.js": {
+            "bytesInOutput": 186
+          },
+          "node_modules/konva/lib/filters/Contrast.js": {
+            "bytesInOutput": 413
+          },
+          "node_modules/konva/lib/filters/Emboss.js": {
+            "bytesInOutput": 2193
+          },
+          "node_modules/konva/lib/filters/Enhance.js": {
+            "bytesInOutput": 796
+          },
+          "node_modules/konva/lib/filters/Grayscale.js": {
+            "bytesInOutput": 143
+          },
+          "node_modules/konva/lib/filters/HSL.js": {
+            "bytesInOutput": 732
+          },
+          "node_modules/konva/lib/filters/HSV.js": {
+            "bytesInOutput": 720
+          },
+          "node_modules/konva/lib/filters/Invert.js": {
+            "bytesInOutput": 130
+          },
+          "node_modules/konva/lib/filters/Kaleidoscope.js": {
+            "bytesInOutput": 1963
+          },
+          "node_modules/konva/lib/filters/Mask.js": {
+            "bytesInOutput": 2037
+          },
+          "node_modules/konva/lib/filters/Noise.js": {
+            "bytesInOutput": 259
+          },
+          "node_modules/konva/lib/filters/Pixelate.js": {
+            "bytesInOutput": 642
+          },
+          "node_modules/konva/lib/filters/Posterize.js": {
+            "bytesInOutput": 219
+          },
+          "node_modules/konva/lib/filters/RGB.js": {
+            "bytesInOutput": 487
+          },
+          "node_modules/konva/lib/filters/RGBA.js": {
+            "bytesInOutput": 571
+          },
+          "node_modules/konva/lib/filters/Sepia.js": {
+            "bytesInOutput": 239
+          },
+          "node_modules/konva/lib/filters/Solarize.js": {
+            "bytesInOutput": 184
+          },
+          "node_modules/konva/lib/filters/Threshold.js": {
+            "bytesInOutput": 195
+          },
+          "node_modules/konva/lib/_FullInternals.js": {
+            "bytesInOutput": 631
+          },
+          "node_modules/konva/lib/index.js": {
+            "bytesInOutput": 21
+          },
+          "node_modules/konva/lib/Core.js": {
+            "bytesInOutput": 35
+          },
+          "node_modules/react-reconciler/cjs/react-reconciler.production.js": {
+            "bytesInOutput": 118167
+          },
+          "node_modules/react-reconciler/index.js": {
+            "bytesInOutput": 52
+          },
+          "node_modules/react-reconciler/cjs/react-reconciler-constants.production.js": {
+            "bytesInOutput": 201
+          },
+          "node_modules/react-reconciler/constants.js": {
+            "bytesInOutput": 52
+          },
+          "node_modules/react-konva/es/makeUpdates.js": {
+            "bytesInOutput": 1890
+          },
+          "node_modules/react-konva/es/ReactKonvaHostConfig.js": {
+            "bytesInOutput": 4338
+          },
+          "node_modules/its-fine/dist/index.js": {
+            "bytesInOutput": 1306
+          },
+          "node_modules/react-konva/es/ReactKonvaCore.js": {
+            "bytesInOutput": 1983
+          },
+          "node_modules/react-konva/es/ReactKonva.js": {
+            "bytesInOutput": 39
+          },
+          "features/canvas/widget/src/frame-annotator/AnnotationStage.tsx": {
+            "bytesInOutput": 9182
           },
           "features/canvas/widget/src/main.tsx": {
             "bytesInOutput": 164
@@ -42909,34 +45936,34 @@
             "bytesInOutput": 530
           },
           "node_modules/@modelcontextprotocol/sdk/dist/esm/types.js": {
-            "bytesInOutput": 12127
+            "bytesInOutput": 12437
           },
           "node_modules/@modelcontextprotocol/sdk/dist/esm/experimental/tasks/interfaces.js": {
             "bytesInOutput": 69
           },
           "node_modules/zod-to-json-schema/dist/esm/Options.js": {
-            "bytesInOutput": 67
+            "bytesInOutput": 68
           },
           "node_modules/zod-to-json-schema/dist/esm/index.js": {
             "bytesInOutput": 0
           },
           "node_modules/zod-to-json-schema/dist/esm/parsers/string.js": {
-            "bytesInOutput": 79
+            "bytesInOutput": 80
           },
           "node_modules/@modelcontextprotocol/sdk/dist/esm/server/zod-json-schema-compat.js": {
             "bytesInOutput": 269
           },
           "node_modules/@modelcontextprotocol/sdk/dist/esm/shared/protocol.js": {
-            "bytesInOutput": 16095
+            "bytesInOutput": 16097
           },
           "node_modules/@modelcontextprotocol/ext-apps/dist/src/app.js": {
-            "bytesInOutput": 29435
+            "bytesInOutput": 29495
           },
           "node_modules/lucide-react/dist/esm/createLucideIcon.js": {
             "bytesInOutput": 211
           },
           "node_modules/lucide-react/dist/esm/shared/src/utils.js": {
-            "bytesInOutput": 378
+            "bytesInOutput": 380
           },
           "node_modules/lucide-react/dist/esm/Icon.js": {
             "bytesInOutput": 410
@@ -42944,110 +45971,209 @@
           "node_modules/lucide-react/dist/esm/defaultAttributes.js": {
             "bytesInOutput": 176
           },
-          "node_modules/lucide-react/dist/esm/icons/arrow-left.js": {
-            "bytesInOutput": 112
-          },
           "node_modules/lucide-react/dist/esm/icons/check.js": {
-            "bytesInOutput": 71
-          },
-          "node_modules/lucide-react/dist/esm/icons/eraser.js": {
-            "bytesInOutput": 229
+            "bytesInOutput": 73
           },
           "node_modules/lucide-react/dist/esm/icons/film.js": {
-            "bytesInOutput": 354
+            "bytesInOutput": 356
           },
           "node_modules/lucide-react/dist/esm/icons/folder-lock.js": {
-            "bytesInOutput": 287
-          },
-          "node_modules/lucide-react/dist/esm/icons/image-plus.js": {
-            "bytesInOutput": 310
+            "bytesInOutput": 289
           },
           "node_modules/lucide-react/dist/esm/icons/image.js": {
-            "bytesInOutput": 216
-          },
-          "node_modules/lucide-react/dist/esm/icons/map-pin.js": {
-            "bytesInOutput": 206
+            "bytesInOutput": 218
           },
           "node_modules/lucide-react/dist/esm/icons/maximize-2.js": {
-            "bytesInOutput": 185
+            "bytesInOutput": 187
           },
           "node_modules/lucide-react/dist/esm/icons/move-right.js": {
-            "bytesInOutput": 115
+            "bytesInOutput": 117
+          },
+          "node_modules/lucide-react/dist/esm/icons/pause.js": {
+            "bytesInOutput": 160
           },
           "node_modules/lucide-react/dist/esm/icons/pen-line.js": {
-            "bytesInOutput": 224
+            "bytesInOutput": 226
+          },
+          "node_modules/lucide-react/dist/esm/icons/play.js": {
+            "bytesInOutput": 139
+          },
+          "node_modules/lucide-react/dist/esm/icons/plus.js": {
+            "bytesInOutput": 102
           },
           "node_modules/lucide-react/dist/esm/icons/rectangle-horizontal.js": {
-            "bytesInOutput": 108
+            "bytesInOutput": 110
           },
           "node_modules/lucide-react/dist/esm/icons/redo-2.js": {
-            "bytesInOutput": 154
+            "bytesInOutput": 156
+          },
+          "node_modules/lucide-react/dist/esm/icons/search.js": {
+            "bytesInOutput": 123
           },
           "node_modules/lucide-react/dist/esm/icons/send.js": {
-            "bytesInOutput": 237
+            "bytesInOutput": 239
           },
           "node_modules/lucide-react/dist/esm/icons/type.js": {
-            "bytesInOutput": 167
+            "bytesInOutput": 169
           },
           "node_modules/lucide-react/dist/esm/icons/undo-2.js": {
-            "bytesInOutput": 155
+            "bytesInOutput": 157
           },
           "node_modules/lucide-react/dist/esm/icons/upload.js": {
-            "bytesInOutput": 177
+            "bytesInOutput": 179
           },
           "node_modules/lucide-react/dist/esm/icons/video.js": {
-            "bytesInOutput": 195
+            "bytesInOutput": 197
           },
           "node_modules/lucide-react/dist/esm/icons/x.js": {
-            "bytesInOutput": 101
+            "bytesInOutput": 103
           },
           "node_modules/lucide-react/dist/esm/lucide-react.js": {
             "bytesInOutput": 0
           },
           "features/canvas/widget/src/App.tsx": {
-            "bytesInOutput": 35533
+            "bytesInOutput": 34546
           },
           "node_modules/zod/index.js": {
             "bytesInOutput": 10
           },
           "features/canvas/shared/document-schema.ts": {
-            "bytesInOutput": 5035
+            "bytesInOutput": 5984
           },
           "features/canvas/shared/asset-gateway.ts": {
-            "bytesInOutput": 1359
+            "bytesInOutput": 1554
           },
           "features/canvas/shared/ui-helpers.ts": {
-            "bytesInOutput": 814
+            "bytesInOutput": 822
           },
           "features/canvas/widget/src/canvas/history.ts": {
             "bytesInOutput": 1152
           },
+          "node_modules/@lexical/react/LexicalComposerContext.prod.mjs": {
+            "bytesInOutput": 684
+          },
+          "node_modules/@lexical/react/LexicalComposerContext.mjs": {
+            "bytesInOutput": 106
+          },
+          "node_modules/lexical/Lexical.prod.mjs": {
+            "bytesInOutput": 124592
+          },
+          "node_modules/lexical/Lexical.mjs": {
+            "bytesInOutput": 4633
+          },
+          "node_modules/@lexical/react/LexicalComposer.prod.mjs": {
+            "bytesInOutput": 996
+          },
+          "node_modules/@lexical/react/LexicalComposer.mjs": {
+            "bytesInOutput": 34
+          },
+          "node_modules/@lexical/text/LexicalText.prod.mjs": {
+            "bytesInOutput": 2790
+          },
+          "node_modules/@lexical/text/LexicalText.mjs": {
+            "bytesInOutput": 235
+          },
+          "node_modules/@lexical/selection/LexicalSelection.prod.mjs": {
+            "bytesInOutput": 9336
+          },
+          "node_modules/@lexical/selection/LexicalSelection.mjs": {
+            "bytesInOutput": 634
+          },
+          "node_modules/@lexical/utils/LexicalUtils.prod.mjs": {
+            "bytesInOutput": 9907
+          },
+          "node_modules/@lexical/utils/LexicalUtils.mjs": {
+            "bytesInOutput": 1299
+          },
+          "node_modules/@lexical/react/LexicalContentEditable.prod.mjs": {
+            "bytesInOutput": 2248
+          },
+          "node_modules/@lexical/react/LexicalContentEditable.mjs": {
+            "bytesInOutput": 62
+          },
+          "node_modules/@lexical/react/LexicalErrorBoundary.prod.mjs": {
+            "bytesInOutput": 1826
+          },
+          "node_modules/@lexical/react/LexicalErrorBoundary.mjs": {
+            "bytesInOutput": 39
+          },
+          "node_modules/@lexical/history/LexicalHistory.prod.mjs": {
+            "bytesInOutput": 3023
+          },
+          "node_modules/@lexical/history/LexicalHistory.mjs": {
+            "bytesInOutput": 62
+          },
+          "node_modules/@lexical/react/LexicalHistoryPlugin.prod.mjs": {
+            "bytesInOutput": 267
+          },
+          "node_modules/@lexical/react/LexicalHistoryPlugin.mjs": {
+            "bytesInOutput": 61
+          },
+          "node_modules/@lexical/react/useLexicalEditable.prod.mjs": {
+            "bytesInOutput": 569
+          },
+          "node_modules/@lexical/react/useLexicalEditable.mjs": {
+            "bytesInOutput": 37
+          },
+          "node_modules/@lexical/dragon/LexicalDragon.prod.mjs": {
+            "bytesInOutput": 821
+          },
+          "node_modules/@lexical/dragon/LexicalDragon.mjs": {
+            "bytesInOutput": 40
+          },
+          "node_modules/@lexical/html/LexicalHtml.prod.mjs": {
+            "bytesInOutput": 2657
+          },
+          "node_modules/@lexical/html/LexicalHtml.mjs": {
+            "bytesInOutput": 67
+          },
+          "node_modules/@lexical/clipboard/LexicalClipboard.prod.mjs": {
+            "bytesInOutput": 3972
+          },
+          "node_modules/@lexical/clipboard/LexicalClipboard.mjs": {
+            "bytesInOutput": 342
+          },
+          "node_modules/@lexical/plain-text/LexicalPlainText.prod.mjs": {
+            "bytesInOutput": 2738
+          },
+          "node_modules/@lexical/plain-text/LexicalPlainText.mjs": {
+            "bytesInOutput": 36
+          },
+          "node_modules/@lexical/react/LexicalPlainTextPlugin.prod.mjs": {
+            "bytesInOutput": 1243
+          },
+          "node_modules/@lexical/react/LexicalPlainTextPlugin.mjs": {
+            "bytesInOutput": 34
+          },
           "features/canvas/widget/src/composer/Composer.tsx": {
-            "bytesInOutput": 9581
+            "bytesInOutput": 31630
           },
           "features/canvas/widget/src/mcp-arguments.ts": {
             "bytesInOutput": 482
           },
           "features/canvas/widget/src/inspector/chunked-video-client.ts": {
-            "bytesInOutput": 4150
+            "bytesInOutput": 4188
           },
           "features/canvas/widget/src/inspector/chunked-image-client.ts": {
             "bytesInOutput": 4223
           },
           "features/canvas/widget/src/inspector/video-utils.ts": {
-            "bytesInOutput": 1762
+            "bytesInOutput": 1907
           },
           "features/canvas/widget/src/launcher/ReviewLauncher.tsx": {
-            "bytesInOutput": 1545
+            "bytesInOutput": 1529
           },
           "features/canvas/widget/src/toolbar/AnnotationToolbar.tsx": {
-            "bytesInOutput": 1279
+            "bytesInOutput": 4035
           },
-          "features/canvas/widget/src/review/VideoReviewStage.tsx": {
-            "bytesInOutput": 2561
+          "features/canvas/widget/src/review/ReshootMediaStage.tsx": {
+            "bytesInOutput": 8216
           },
-          "features/canvas/widget/src/review/FixedMediaAnnotator.tsx": {
-            "bytesInOutput": 9997
+          "features/canvas/widget/src/frame-annotator/use-annotation-stack.ts": {
+            "bytesInOutput": 660
+          },
+          "features/canvas/widget/src/review/annotation-shape-to-object.ts": {
+            "bytesInOutput": 1726
           },
           "features/canvas/widget/src/random-id.ts": {
             "bytesInOutput": 371
@@ -43056,16 +46182,16 @@
             "bytesInOutput": 0
           }
         },
-        "bytes": 666744
+        "bytes": 1198770
       },
       "features/canvas/build/.tmp/widget.css": {
         "imports": [],
         "inputs": {
           "features/canvas/widget/src/styles/theme.css": {
-            "bytesInOutput": 31370
+            "bytesInOutput": 55393
           }
         },
-        "bytes": 31371
+        "bytes": 55394
       }
     }
   }

@@ -19,6 +19,7 @@ import {
   FinalizeVideoUploadInput,
   GetVideoUploadFinalizeStatusInput,
   GetStateInput,
+  ListRenoiseMaterialsInput,
   GetRevisionIntentInput,
   ReadImageChunkInput,
   ReadVideoChunkInput,
@@ -35,10 +36,13 @@ import type { SessionStore } from "../session/session-store.js";
 import type { ProjectStore } from "../storage/project-store.js";
 import type { MediaGateway } from "../media/media-gateway.js";
 import { WHITEBOARD_RESOURCE_URI } from "../resource-uri.js";
+import type { RenoiseMaterialLibrary } from "../renoise/material-library.js";
+import { trustedRenoiseMaterialPreviewUrl } from "../renoise/material-library.js";
 
 const appMeta = (visibility: Array<"model" | "app">) => ({
   ui: { resourceUri: WHITEBOARD_RESOURCE_URI, visibility },
 });
+const modelMeta = { ui: { visibility: ["model"] as const } };
 const READ_ONLY = { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false };
 const READ_LEASE = { ...READ_ONLY, idempotentHint: false };
 const APP_WRITE = { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false };
@@ -73,6 +77,7 @@ export function registerWhiteboardTools(
   sessions: SessionStore,
   store: ProjectStore,
   mediaGateway: MediaGateway,
+  materials: RenoiseMaterialLibrary,
 ) {
   // Some MCP Apps-capable desktop hosts render the app and proxy app-only tool
   // calls without advertising the optional MCP initialize extension. The
@@ -83,15 +88,30 @@ export function registerWhiteboardTools(
     guarded(callback);
 
   registerAppTool(server, "render_renoise_whiteboard_widget", {
-    title: "Open Renoise annotation board",
-    description: "Open the compact launcher for the Renoise annotation board. Call only after the user explicitly asks to open it or accepts an offer to annotate media; never invoke it automatically during normal generation. The user must approve the exact project directory before any files are accessed.",
+    title: "Open Renoise Visual Edit",
+    description: "Open Renoise Visual Edit after the user explicitly asks for it or accepts an annotation offer. For a new board, pass the exact projectDir for approval. To bring an existing active board back into view, pass its canvasSessionId instead; do not tell the user to click an earlier tool result.",
     inputSchema: RenderInput,
     _meta: appMeta(["model", "app"]),
     annotations: { ...READ_ONLY, idempotentHint: false },
-  }, appGuarded(async ({ projectDir, pageName }) => {
+  }, appGuarded(async ({ projectDir, canvasSessionId, pageName }) => {
+    if (canvasSessionId) {
+      if (projectDir || pageName) throw new WhiteboardError("INVALID_PROJECT", "Pass either canvasSessionId to reopen a board or projectDir to create one, not both");
+      const session = sessions.get(canvasSessionId);
+      const state = await store.getState(session);
+      return result({
+        ok: true,
+        canvasSessionId: session.id,
+        authorization: { state: "active", projectDir: session.projectDir },
+        assetGateway: mediaGateway.describe(session),
+        requestedDisplayMode: "fullscreen",
+        ...state,
+      }, `Reopened active Renoise annotation-board session ${session.id}.`);
+    }
+    if (!projectDir) throw new WhiteboardError("INVALID_PROJECT", "projectDir is required when opening a new annotation board");
     const session = sessions.create(projectDir, pageName);
     return result({
       ok: true,
+      canvasSessionId: session.id,
       authorization: { state: session.state, projectDir: session.requestedProjectDir },
     }, `Created a pending Renoise annotation-board session for ${session.requestedProjectDir}. The compact launcher lets the user approve and open it.`);
   }));
@@ -102,8 +122,8 @@ export function registerWhiteboardTools(
     inputSchema: AuthorizeInput,
     _meta: appMeta(["app"]),
     annotations: APP_WRITE,
-  }, appGuarded(async ({ approvedProjectDir }) => {
-    const session = await sessions.authorizePending(approvedProjectDir);
+  }, appGuarded(async ({ approvedProjectDir, canvasSessionId }) => {
+    const session = await sessions.authorizePending(approvedProjectDir, canvasSessionId);
     await store.initialize(session, session.requestedPageName);
     const state = await store.getState(session);
     return result({
@@ -160,14 +180,47 @@ export function registerWhiteboardTools(
     inputSchema: SubmitRevisionIntentInput,
     _meta: appMeta(["app"]),
     annotations: APP_WRITE,
-  }, appGuarded(async ({ canvasSessionId, expectedRevision, instruction }) => {
+  }, appGuarded(async ({ canvasSessionId, expectedRevision, instruction, outputResolution, materialIds }) => {
     const session = sessions.get(canvasSessionId);
-    const submitted = await store.submitRevisionIntent(session, { expectedRevision, instruction });
+    const resolvedMaterials = await materials.resolve(materialIds);
+    const materialReferences = resolvedMaterials.map(({ url: _url, ...reference }) => reference);
+    const submitted = await store.submitRevisionIntent(session, { expectedRevision, instruction, outputResolution, materialReferences });
     return result({
       ok: true,
       canvasSessionId,
       ...submitted,
     }, `Submitted structured annotation request ${submitted.revisionIntent.id} and cleared the active draft.`);
+  }));
+
+  registerAppTool(server, "list_renoise_whiteboard_materials", {
+    title: "Browse Renoise materials",
+    description: "List a bounded page of Renoise image materials for the whiteboard picker. App-only.",
+    inputSchema: ListRenoiseMaterialsInput,
+    _meta: appMeta(["app"]),
+    annotations: READ_ONLY,
+  }, appGuarded(async ({ canvasSessionId, search, limit, offset }) => {
+    sessions.get(canvasSessionId);
+    // The visual-edit composer can pass only still-image references to image
+    // and video generation. Enforce that boundary server-side as well as in
+    // the widget so a stale client cannot re-enable video selection.
+    const listed = await materials.list({ search, type: "image", limit, offset });
+    const imageMaterials = listed.materials.filter(({ type }) => type === "image");
+    return result({
+      ok: true,
+      canvasSessionId,
+      materials: imageMaterials.map((resolved) => {
+        const { url: _url, ...material } = resolved;
+        const previewUrl = trustedRenoiseMaterialPreviewUrl(resolved);
+        return {
+          ...material,
+          previewCapability: Boolean(previewUrl),
+          ...(previewUrl ? { previewUrl } : {}),
+        };
+      }),
+      hasMore: listed.hasMore,
+      offset,
+      limit,
+    }, `Listed ${imageMaterials.length} Renoise image material(s).`);
   }));
 
   registerAppTool(server, "save_renoise_whiteboard_view", {
@@ -235,7 +288,7 @@ export function registerWhiteboardTools(
     inputSchema: BeginVideoUploadInput,
     _meta: appMeta(["app"]),
     annotations: APP_WRITE,
-  }, appGuarded(async ({ canvasSessionId, expectedRevision, fileName, mimeType, byteLength, durationMs, createPlaybackProxy }) => {
+  }, appGuarded(async ({ canvasSessionId, expectedRevision, fileName, mimeType, byteLength, durationMs, width, height, createPlaybackProxy }) => {
     const session = sessions.get(canvasSessionId);
     return result({
       ok: true,
@@ -245,6 +298,8 @@ export function registerWhiteboardTools(
         mimeType,
         byteLength,
         durationMs,
+        width,
+        height,
         createPlaybackProxy,
       })),
     }, `Started bounded video upload for ${fileName}.`);
@@ -428,7 +483,7 @@ export function registerWhiteboardTools(
     title: "Read structured annotation request",
     description: "Read a persisted structured annotation request from the currently authorized project page. Pass an exact revisionIntentId, or omit it to recover the latest saved annotation after a session restart.",
     inputSchema: GetRevisionIntentInput,
-    _meta: appMeta(["model"]),
+    _meta: modelMeta,
     annotations: READ_ONLY,
   }, appGuarded(async ({ canvasSessionId, revisionIntentId }) => {
     const session = sessions.get(canvasSessionId);
@@ -447,6 +502,9 @@ export function registerWhiteboardTools(
     const videoSummary = interpretation.defaultOperation === "source-video-segment-edit"
       ? " Default operation is a localized SOURCE VIDEO EDIT: preserve unannotated source footage and do not reinterpret timestamp screenshots as standalone first/last-frame generation unless the user explicitly requests a new clip."
       : "";
+    const resolutionSummary = revisionIntent.outputResolution
+      ? ` Requested output resolution is ${revisionIntent.outputResolution.toUpperCase()}.`
+      : "";
     return result({
       ok: true,
       canvasSessionId,
@@ -458,15 +516,23 @@ export function registerWhiteboardTools(
       interpretation,
       assetIds: interpretation.referenceAssetIds,
       sourceVideoAssetIds: interpretation.sourceVideoAssetIds,
+      authoritativeSourceAssetIds: interpretation.authoritativeSourceAssetIds,
+      sourceMediaMetadata: interpretation.sourceMediaMetadata,
+      annotationGuideAssetIds: interpretation.annotationGuideAssetIds,
+      annotationBindings: interpretation.annotationBindings,
       preparableAssetIds: interpretation.preparableAssetIds,
-    }, `Read structured annotation request ${revisionIntent.id} with ${revisionIntent.sources.length} source(s) and ${revisionIntent.markObjectIds.length} mark(s).${videoSummary}`);
+      uploadPlan: interpretation.uploadPlan,
+      materialIds: interpretation.materialIds,
+      materialReferences: interpretation.materialReferences,
+      materialTokens: interpretation.materialTokens,
+    }, `Read structured annotation request ${revisionIntent.id} with ${revisionIntent.sources.length} source(s), ${interpretation.annotationBindings.length} annotation binding(s), ${revisionIntent.markObjectIds.length} mark(s), and ${revisionIntent.materialReferences.length} Renoise material reference(s).${resolutionSummary}${videoSummary}`);
   }));
 
   registerAppTool(server, "prepare_renoise_whiteboard_references", {
     title: "Prepare selected whiteboard references",
     description: "Materialize opaque annotated images and source-video assets from this authorized session into a short-lived read-only directory for Renoise generation.",
     inputSchema: { ...SessionInput, assetIds: z.array(z.string()).min(1).max(20) },
-    _meta: appMeta(["model"]),
+    _meta: modelMeta,
     annotations: READ_ONLY,
   }, appGuarded(async ({ canvasSessionId, assetIds }) => {
     const session = sessions.get(canvasSessionId);

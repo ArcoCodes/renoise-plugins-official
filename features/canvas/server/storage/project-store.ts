@@ -30,6 +30,7 @@ import {
   type PreviewRecord,
   type SelectionState,
   type RevisionIntent,
+  type RenoiseMaterialReference,
   type ViewState,
   type WhiteboardDocument,
 } from "../../shared/document-schema.js";
@@ -97,6 +98,8 @@ type VideoUpload = {
   mimeType: "video/mp4" | "video/webm";
   byteLength: number;
   durationMs: number;
+  width?: number;
+  height?: number;
   createPlaybackProxy: boolean;
   received: number;
   nextIndex: number;
@@ -491,10 +494,13 @@ export class ProjectStore {
     clearedDocument.page.annotations = [];
     const promptDrafts = { ...view.promptDrafts };
     delete promptDrafts[document.page.id];
+    const materialReferencePools = { ...view.materialReferencePools };
+    delete materialReferencePools[document.page.id];
     const clearedView = ViewStateSchema.parse({
       ...view,
       activeTargetId: undefined,
       promptDrafts,
+      materialReferencePools,
     });
     const clearedSelection = SelectionStateSchema.parse({
       schemaVersion: 1,
@@ -780,7 +786,12 @@ export class ProjectStore {
 
   async submitRevisionIntent(
     session: CanvasSession,
-    input: { expectedRevision: number; instruction: string },
+    input: {
+      expectedRevision: number;
+      instruction: string;
+      outputResolution?: "480p" | "720p" | "1080p";
+      materialReferences?: RenoiseMaterialReference[];
+    },
   ) {
     const { lockPath, token } = await this.acquireLock(session);
     try {
@@ -809,12 +820,30 @@ export class ProjectStore {
       if (!asset) throw new WhiteboardError("ASSET_NOT_FOUND", `Revision target ${objectId} has no trusted asset`);
       const source = object.type === "image" ? object.data.source : undefined;
       const frameSource = source && "kind" in source && source.kind === "video-frame" ? source : undefined;
+      const revisionSource = source && "relation" in source && source.relation === "revision-of" ? source : undefined;
       const sourceTimeMs = frameSource?.timeMs ?? (object.type === "video-card" ? object.data.timeMs : null);
+      const relatedSourceObject = revisionSource ? byId.get(revisionSource.objectId) : undefined;
+      const authoritativeSourceObject = relatedSourceObject?.type === "image" || relatedSourceObject?.type === "video-card"
+        ? relatedSourceObject
+        : undefined;
+      const authoritativeSourceAssetId = frameSource?.videoAssetId
+        ?? authoritativeSourceObject?.data.assetId
+        ?? assetId;
+      const authoritativeSourceAsset = document.page.assets[authoritativeSourceAssetId];
+      if (!authoritativeSourceAsset) {
+        throw new WhiteboardError("ASSET_NOT_FOUND", `Revision target ${objectId} has no authoritative source asset`);
+      }
+      const isAnnotationGuide = object.type === "image" && object.style.role === "annotation-snapshot";
       return {
         objectId,
         objectType: object.type,
         assetId,
         assetSha256: asset.sha256,
+        authoritativeSourceAssetId,
+        authoritativeSourceSha256: authoritativeSourceAsset.sha256,
+        ...(isAnnotationGuide
+          ? { annotationGuideAssetId: assetId, annotationGuideSha256: asset.sha256 }
+          : {}),
         sourceTimeMs,
         ...(frameSource
           ? { sourceVideoAssetId: frameSource.videoAssetId, sourceVideoSha256: frameSource.videoSha256 }
@@ -832,11 +861,13 @@ export class ProjectStore {
       pageId: document.page.id,
       documentRevision: document.page.revision,
       instruction: input.instruction,
+      outputResolution: input.outputResolution,
       selectedObjectIds: selection.selectedObjectIds,
       selectedAnnotationIds: selection.selectedAnnotationIds,
       targetObjectIds: [...targetIds],
       markObjectIds: [...markIds],
       sources,
+      materialReferences: input.materialReferences ?? [],
       status: "submitted",
       resultObjectIds: [],
       createdAt: new Date().toISOString(),
@@ -1126,12 +1157,21 @@ export class ProjectStore {
     mimeType: "video/mp4" | "video/webm";
     byteLength: number;
     durationMs: number;
+    width?: number;
+    height?: number;
     createPlaybackProxy?: boolean;
   }) {
     await this.cleanupExpiredVideoTransfers();
     await this.cleanupStaleUploadFiles(session);
     if (input.byteLength <= 0 || input.byteLength > maxVideoBytes()) {
       throw new WhiteboardError("INVALID_MEDIA", `Video must be between 1 byte and ${maxVideoBytes()} bytes`);
+    }
+    if ((input.width === undefined) !== (input.height === undefined)) {
+      throw new WhiteboardError("INVALID_MEDIA", "Source video width and height must be provided together");
+    }
+    if (input.width !== undefined && (!Number.isSafeInteger(input.width) || !Number.isSafeInteger(input.height)
+      || input.width <= 0 || input.height! <= 0 || input.width > 100_000 || input.height! > 100_000)) {
+      throw new WhiteboardError("INVALID_MEDIA", "Source video dimensions are invalid");
     }
     const { document } = await this.getState(session);
     if (document.page.revision !== input.expectedRevision) {
@@ -1152,6 +1192,8 @@ export class ProjectStore {
       mimeType: input.mimeType,
       byteLength: input.byteLength,
       durationMs: input.durationMs,
+      width: input.width,
+      height: input.height,
       createPlaybackProxy: input.createPlaybackProxy === true,
       received: 0,
       nextIndex: 0,
@@ -1310,12 +1352,16 @@ export class ProjectStore {
       const target = this.assetPath(session, relativePath);
       await assertSafeFile(session.projectDir!, target);
       await rename(upload.temporaryPath, target);
+      const sourceWidth = normalized?.width ?? upload.width;
+      const sourceHeight = normalized?.height ?? upload.height;
       asset = {
         id,
         relativePath,
         mimeType: upload.mimeType,
         sha256,
         byteLength: upload.byteLength,
+        ...(sourceWidth ? { width: sourceWidth } : {}),
+        ...(sourceHeight ? { height: sourceHeight } : {}),
         createdAt: new Date().toISOString(),
       };
       if (normalized) {

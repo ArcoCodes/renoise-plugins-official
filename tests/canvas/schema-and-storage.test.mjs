@@ -45,6 +45,24 @@ test("camera conversion preserves screen/world invariants", () => {
 test("video-frame intents default to source-video segment edits instead of endpoint generation", () => {
   const document = createEmptyDocument("page_video_intent");
   const createdAt = new Date().toISOString();
+  document.page.assets.asset_source_video = {
+    id: "asset_source_video",
+    relativePath: "assets/source.mp4",
+    mimeType: "video/mp4",
+    sha256: "a".repeat(64),
+    byteLength: 100,
+    createdAt,
+  };
+  document.page.assets.asset_source_poster = {
+    id: "asset_source_poster",
+    relativePath: "assets/source-poster.png",
+    mimeType: "image/png",
+    sha256: "b".repeat(64),
+    byteLength: 50,
+    width: 1280,
+    height: 720,
+    createdAt,
+  };
   document.page.objects.push({
     id: "object_source_video",
     type: "video-card",
@@ -56,6 +74,7 @@ test("video-frame intents default to source-video segment edits instead of endpo
     style: {},
     data: {
       assetId: "asset_source_video",
+      posterAssetId: "asset_source_poster",
       durationMs: 15_092,
       fileName: "source.mp4",
       timeMs: 4_627,
@@ -93,6 +112,7 @@ test("video-frame intents default to source-video segment edits instead of endpo
         sourceVideoSha256: "a".repeat(64),
       },
     ],
+    materialReferences: [{ materialId: 73, name: "Butterfly reference", type: "video", mimeType: "video/mp4" }],
     status: "submitted",
     resultObjectIds: [],
     createdAt,
@@ -104,15 +124,35 @@ test("video-frame intents default to source-video segment edits instead of endpo
   assert.equal(interpretation.annotatedFramesAreStandaloneEndpoints, false);
   assert.equal(interpretation.standaloneGenerationRequiresExplicitUserRequest, true);
   assert.deepEqual(interpretation.sourceVideoAssetIds, ["asset_source_video"]);
+  assert.deepEqual(interpretation.sourceMediaMetadata, [
+    { assetId: "asset_source_video", width: 1280, height: 720, durationSec: 15.092 },
+  ]);
   assert.deepEqual(interpretation.preparableAssetIds, ["asset_source_video", "asset_frame_first", "asset_frame_second"]);
+  assert.deepEqual(interpretation.uploadPlan, [
+    { assetId: "asset_source_video", role: "reference_video", scope: "user", purpose: "authoritative_source" },
+    { assetId: "asset_frame_first", role: "reference_image", scope: "mask", purpose: "annotation_guide" },
+    { assetId: "asset_frame_second", role: "reference_image", scope: "mask", purpose: "annotation_guide" },
+  ]);
+  assert.deepEqual(interpretation.materialIds, [73]);
+  assert.deepEqual(interpretation.materialTokens, ["@material:73"]);
+  assert.equal(interpretation.materialReferences[0].name, "Butterfly reference");
   assert.deepEqual(interpretation.videoEditContexts[0], {
     sourceVideoAssetId: "asset_source_video",
     sourceVideoSha256: "a".repeat(64),
     sourceDurationMs: 15_092,
     sourceFileName: "source.mp4",
+    sourceMediaMeta: { width: 1280, height: 720, durationSec: 15.092 },
     annotatedTimeMs: [3_004, 4_627],
-    annotationBoundsMs: { startMs: 3_004, endMs: 4_627 },
-    requiresTemporalRangeClarification: false,
+    annotationBoundsMs: null,
+    candidateBoundsMs: { startMs: 3_004, endMs: 4_627 },
+    temporalIntent: {
+      mode: "unknown",
+      explicit: false,
+      anchorTimesMs: [3_004, 4_627],
+      startMs: null,
+      endMs: null,
+    },
+    requiresTemporalRangeClarification: true,
   });
 
   const singleFrame = RevisionIntentSchema.parse({
@@ -127,7 +167,131 @@ test("video-frame intents default to source-video segment edits instead of endpo
   const singleInterpretation = describeRevisionIntent(singleFrame, document);
   assert.equal(singleInterpretation.defaultOperation, "source-video-segment-edit");
   assert.equal(singleInterpretation.videoEditContexts[0].annotationBoundsMs, null);
-  assert.equal(singleInterpretation.videoEditContexts[0].requiresTemporalRangeClarification, true);
+  assert.equal(singleInterpretation.videoEditContexts[0].candidateBoundsMs, null);
+  assert.equal(singleInterpretation.videoEditContexts[0].temporalIntent.mode, "single-anchor");
+  assert.equal(singleInterpretation.videoEditContexts[0].requiresTemporalRangeClarification, false);
+});
+
+test("image annotation bindings keep the clean source separate from the hidden guide", () => {
+  const document = createEmptyDocument("page_image_binding");
+  const createdAt = new Date().toISOString();
+  document.page.assets.asset_clean_image = {
+    id: "asset_clean_image",
+    relativePath: "assets/clean.png",
+    mimeType: "image/png",
+    sha256: "a".repeat(64),
+    byteLength: 100,
+    width: 1600,
+    height: 900,
+    createdAt,
+  };
+  document.page.objects.push(
+    {
+      id: "object_clean_image",
+      type: "image",
+      parentId: null,
+      transform: { x: 10, y: 20, width: 400, height: 200, rotation: 0 },
+      zIndex: 0,
+      locked: false,
+      hidden: false,
+      style: {},
+      data: { assetId: "asset_clean_image", alt: "source", source: { kind: "file-picker" } },
+      createdAt,
+      updatedAt: createdAt,
+    },
+    {
+      id: "snapshot_image_guide",
+      type: "image",
+      parentId: null,
+      transform: { x: 10, y: 20, width: 400, height: 200, rotation: 0 },
+      zIndex: 1,
+      locked: true,
+      hidden: false,
+      style: { role: "annotation-snapshot" },
+      data: {
+        assetId: "asset_image_guide",
+        alt: "annotated",
+        source: { relation: "revision-of", objectId: "object_clean_image" },
+      },
+      createdAt,
+      updatedAt: createdAt,
+    },
+    {
+      id: "mark_image_rect",
+      type: "rect",
+      parentId: null,
+      transform: { x: 110, y: 70, width: 200, height: 100, rotation: 0 },
+      zIndex: 2,
+      locked: true,
+      hidden: true,
+      style: { stroke: "#ff0000" },
+      data: {},
+      createdAt,
+      updatedAt: createdAt,
+    },
+  );
+  document.page.annotations.push({
+    id: "annotation_image_region",
+    targetObjectIds: ["snapshot_image_guide"],
+    markObjectIds: ["mark_image_rect"],
+    sourceAssetSha256: "b".repeat(64),
+    sourceTimeMs: null,
+    status: "open",
+    createdAt,
+  });
+  const revisionIntent = RevisionIntentSchema.parse({
+    schemaVersion: 1,
+    id: "intent_image_binding",
+    pageId: document.page.id,
+    documentRevision: 1,
+    instruction: "Replace the boxed object",
+    selectedObjectIds: ["snapshot_image_guide"],
+    selectedAnnotationIds: ["annotation_image_region"],
+    targetObjectIds: ["snapshot_image_guide"],
+    markObjectIds: ["mark_image_rect"],
+    sources: [{
+      objectId: "snapshot_image_guide",
+      objectType: "image",
+      assetId: "asset_image_guide",
+      assetSha256: "b".repeat(64),
+      authoritativeSourceAssetId: "asset_clean_image",
+      authoritativeSourceSha256: "a".repeat(64),
+      annotationGuideAssetId: "asset_image_guide",
+      annotationGuideSha256: "b".repeat(64),
+      sourceTimeMs: null,
+    }],
+    status: "submitted",
+    resultObjectIds: [],
+    createdAt,
+  });
+
+  const interpretation = describeRevisionIntent(revisionIntent, document);
+  assert.equal(interpretation.defaultOperation, "image-revision");
+  assert.deepEqual(interpretation.authoritativeSourceAssetIds, ["asset_clean_image"]);
+  assert.deepEqual(interpretation.sourceMediaMetadata, [
+    { assetId: "asset_clean_image", width: 1600, height: 900 },
+  ]);
+  assert.deepEqual(interpretation.annotationGuideAssetIds, ["asset_image_guide"]);
+  assert.deepEqual(interpretation.preparableAssetIds, ["asset_clean_image", "asset_image_guide"]);
+  assert.deepEqual(interpretation.uploadPlan, [
+    { assetId: "asset_clean_image", role: "reference_image", scope: "user", purpose: "authoritative_source" },
+    { assetId: "asset_image_guide", role: "reference_image", scope: "mask", purpose: "annotation_guide" },
+  ]);
+  assert.deepEqual(interpretation.annotationBindings, [{
+    annotationId: "annotation_image_region",
+    targetObjectId: "snapshot_image_guide",
+    sourceKind: "image",
+    authoritativeSourceAssetId: "asset_clean_image",
+    annotationGuideAssetId: "asset_image_guide",
+    sourceVideoAssetId: null,
+    sourceTimeMs: null,
+    regions: [{
+      markObjectId: "mark_image_rect",
+      shape: "rect",
+      normalizedBounds: { x: 0.25, y: 0.25, width: 0.5, height: 0.5 },
+    }],
+  }]);
+  assert.equal(interpretation.annotationGuidesAreProviderMasks, false);
 });
 
 test("session authorization, atomic CAS, opaque assets, and revision-bound selection form a closed loop", async (context) => {
@@ -228,11 +392,11 @@ test("app approval resolves the latest pending session without exposing bearer c
   const first = sessions.create(projectDir);
   const latest = sessions.create(projectDir);
 
-  const authorized = await sessions.authorizePending(projectDir);
+  const authorized = await sessions.authorizePending(projectDir, latest.id);
   assert.equal(authorized.id, latest.id);
   assert.equal(authorized.state, "active");
   assert.throws(() => sessions.get(first.id, false), /missing or expired/);
-  await assert.rejects(() => sessions.authorizePending(projectDir), /Open the annotation board/);
+  await assert.rejects(() => sessions.authorizePending(projectDir, first.id), /missing or expired|exact pending session/i);
 });
 
 test("a new authorized session reopens the manifest page with document, view, and selection intact", async (context) => {
@@ -253,6 +417,9 @@ test("a new authorized session reopens the manifest page with document, view, an
     theme: "dark",
     activeTargetId: "object_target",
     promptDrafts: { object_target: "保留目标节点上的草稿" },
+    materialReferencePools: {
+      [first.pageId]: [{ materialId: 17, name: "Reference still", type: "image", mimeType: "image/png" }],
+    },
   });
   await store.saveSelection(first, { schemaVersion: 1, pageId: first.pageId, documentRevision: saved.page.revision, selectedObjectIds: [], selectedAnnotationIds: [] });
 
@@ -267,6 +434,7 @@ test("a new authorized session reopens the manifest page with document, view, an
   assert.equal(reopened.view.theme, "dark");
   assert.equal(reopened.view.activeTargetId, "object_target");
   assert.deepEqual(reopened.view.promptDrafts, { object_target: "保留目标节点上的草稿" });
+  assert.deepEqual(reopened.view.materialReferencePools[first.pageId].map(({ materialId }) => materialId), [17]);
   assert.equal(reopened.selection.documentRevision, 1);
 });
 
@@ -306,6 +474,7 @@ test("legacy submitted residue is archived once, while a real unsent prompt is p
   await store.saveView(first, {
     ...state.view,
     promptDrafts: { [first.pageId]: "[[renoise-clip:object_legacy_snapshot]]" },
+    materialReferencePools: { [first.pageId]: [{ materialId: 9, name: "Legacy pool", type: "image", mimeType: "image/png" }] },
   });
   const legacyIntent = RevisionIntentSchema.parse({
     schemaVersion: 1,
@@ -338,6 +507,7 @@ test("legacy submitted residue is archived once, while a real unsent prompt is p
   assert.equal(reconciled.document.page.objects.length, 0);
   assert.deepEqual(reconciled.selection.selectedObjectIds, []);
   assert.deepEqual(reconciled.view.promptDrafts, {});
+  assert.deepEqual(reconciled.view.materialReferencePools, {});
   assert.equal((await store.getLatestRevisionIntent(second)).contextSnapshot?.page.objects.length, 1);
 
   const thirdState = await store.getState(second);
@@ -584,6 +754,8 @@ test("video uploads and reads are chunked, session-bound, expiring, and hash ver
     mimeType: "video/mp4",
     byteLength: tinyMp4Bytes.length,
     durationMs: 100,
+    width: 640,
+    height: 360,
   });
   const otherSession = sessions.create(projectDir);
   await sessions.authorize(otherSession.id, projectDir, otherSession.authorizationNonce);
@@ -638,6 +810,8 @@ test("video uploads and reads are chunked, session-bound, expiring, and hash ver
   releaseFinalize();
   const imported = await finalizePromise;
   assert.equal(imported.asset.mimeType, "video/mp4");
+  assert.equal(imported.asset.width, 640);
+  assert.equal(imported.asset.height, 360);
   assert.match(imported.asset.relativePath, /^assets\/asset_[a-f0-9]+\.mp4$/);
   assert.match(imported.asset.sha256, /^[a-f0-9]{64}$/);
   await assert.rejects(() => store.readAssetBytes(session, imported.asset), /chunk/);
@@ -649,6 +823,14 @@ test("video uploads and reads are chunked, session-bound, expiring, and hash ver
     byteLength: tinyMp4Bytes.length,
     durationMs: 0,
   });
+  await assert.rejects(() => store.beginVideoUpload(session, {
+    expectedRevision: 1,
+    fileName: "invalid-dimensions.mp4",
+    mimeType: "video/mp4",
+    byteLength: tinyMp4Bytes.length,
+    durationMs: 100,
+    width: 640,
+  }), /width and height must be provided together/);
   const concurrentState = store.videoUploads.get(concurrent.uploadId);
   const originalWrite = concurrentState.handle.write.bind(concurrentState.handle);
   let releaseWrite;

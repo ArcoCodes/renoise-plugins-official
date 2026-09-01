@@ -85,6 +85,7 @@ await build({
     join(canvasRoot, "server/session/session-store.ts"),
     join(canvasRoot, "server/storage/project-store.ts"),
     join(canvasRoot, "server/media/media-gateway.ts"),
+    join(canvasRoot, "server/renoise/material-library.ts"),
   ],
   outdir: testDist,
   bundle: true,

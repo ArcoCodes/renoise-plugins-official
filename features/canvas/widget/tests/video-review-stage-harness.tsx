@@ -1,7 +1,7 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import type { WhiteboardObject } from "../../shared/document-schema.js";
-import { VideoReviewStage, type VideoReviewStageHandle } from "../src/review/VideoReviewStage.js";
+import { ReshootMediaStage, type ReshootMediaStageHandle } from "../src/review/ReshootMediaStage.js";
 import { prepareVideoFile, type PreparedVideoFile } from "../src/inspector/video-utils.js";
 import "../src/styles/theme.css";
 
@@ -29,6 +29,11 @@ async function generatedWebm() {
 }
 
 const videoBlob = await generatedWebm();
+const readImageAsset = async () => "";
+const readVideoAsset = async (_assetId: string, _signal: AbortSignal, onProgress: (loaded: number, total: number) => void) => {
+  onProgress(videoBlob.size, videoBlob.size);
+  return videoBlob;
+};
 (window as typeof window & { __prepareVideoFile?: (file: File) => Promise<PreparedVideoFile> }).__prepareVideoFile = prepareVideoFile;
 const now = new Date().toISOString();
 type VideoCard = Extract<WhiteboardObject, { type: "video-card" }>;
@@ -47,25 +52,35 @@ const video: VideoCard = {
 };
 
 function Harness() {
-  const stage = useRef<VideoReviewStageHandle>(null);
+  const stage = useRef<ReshootMediaStageHandle>(null);
+  const originalVideo = useRef<HTMLVideoElement | null>(null);
+  const [tool, setTool] = useState<"rect" | null>(null);
   return (
     <main className="whiteboard-app focused-review-app light">
       <div className="review-stage">
-        <VideoReviewStage
+        <ReshootMediaStage
           ref={stage}
-          video={video}
-          readVideoAsset={async (_assetId, _signal, onProgress) => {
-            onProgress(videoBlob.size, videoBlob.size);
-            return videoBlob;
-          }}
+          target={video}
+          activeTool={tool}
+          activeColor="#FF3B30"
+          resetKey={0}
+          readImageAsset={readImageAsset}
+          readVideoAsset={readVideoAsset}
+          onStateChange={() => undefined}
         />
       </div>
       <button type="button" onClick={() => {
         const startedAt = performance.now();
-        void stage.current?.freezeCurrentFrame().then((frame) => {
-          document.body.dataset.frozenImage = frame.dataUrl;
-          document.body.dataset.frozenTime = String(frame.timeMs);
-          document.body.dataset.freezeLatency = String(performance.now() - startedAt);
+        originalVideo.current = document.querySelector("video");
+        document.body.dataset.beforePause = String(Math.round((originalVideo.current?.currentTime ?? -1) * 1_000));
+        void stage.current?.pauseAtReadyFrame().then((timeMs) => {
+          setTool("rect");
+          requestAnimationFrame(() => {
+            document.body.dataset.frozenTime = String(timeMs);
+            document.body.dataset.actualAtPause = String(Math.round((originalVideo.current?.currentTime ?? -1) * 1_000));
+            document.body.dataset.freezeLatency = String(performance.now() - startedAt);
+            document.body.dataset.sameVideoElement = String(originalVideo.current === document.querySelector("video"));
+          });
         });
       }}>Use annotation tool</button>
     </main>

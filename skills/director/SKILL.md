@@ -99,7 +99,7 @@ User brief → [Clarify if needed] → Write prompt → Confirm → Generate
 
 1. Check if the brief has enough detail. If not, ask targeted questions (see Intake above).
 2. Write a model-appropriate prompt using the selected `model-routing` profile, then apply compatible prompt-craft.md details
-3. **MUST present the full prompt to the user and wait for explicit approval before creating a paid generation task. Never skip this step.** Adjust on feedback until the user confirms.
+3. **MUST present the full prompt to the user and wait for explicit approval before creating a paid generation task. Never skip this step.** Approval must come after the user sees the exact final prompt and current cost proposal; an earlier request such as “直接生成” is not pre-approval of unseen transformed text or pricing. Adjust on feedback until the user confirms.
 4. Generate — only after user says yes
 
 ### Path 2: Multi-Clip (requested duration exceeds the live maximum) — Two Gates

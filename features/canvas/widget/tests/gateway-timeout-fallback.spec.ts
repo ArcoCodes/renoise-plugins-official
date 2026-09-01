@@ -48,12 +48,12 @@ test("a stalled loopback image decode times out visibly and falls back to projec
   }, widgetHtml);
 
   const widget = page.frameLocator("#widget");
-  await widget.getByRole("button", { name: "Approve and open annotation board" }).click();
-  await expect(widget.getByLabel("Fixed media annotation area")).toBeVisible({ timeout: 8_000 });
+  await widget.getByRole("button", { name: "Approve and open visual editor" }).click();
+  await expect(widget.getByLabel("Media annotation area")).toBeVisible({ timeout: 8_000 });
   await expect(widget.getByRole("button", { name: "Open recovery diagnostics console" })).toHaveCount(0);
   await expect.poll(() => page.evaluate(() => (
     window.__mockCalls?.filter(({ name }) => name === "begin_renoise_whiteboard_image_read").length ?? 0
   ))).toBeGreaterThan(0);
-  await expect.poll(() => widget.locator(".fixed-media-frame > img").evaluate((element: HTMLImageElement) => element.naturalWidth)).toBeGreaterThan(0);
+  await expect.poll(() => widget.locator(".reshoot-media-fit > img").evaluate((element: HTMLImageElement) => element.naturalWidth)).toBeGreaterThan(0);
   expect(gatewayAssetRequests).toBeGreaterThan(0);
 });

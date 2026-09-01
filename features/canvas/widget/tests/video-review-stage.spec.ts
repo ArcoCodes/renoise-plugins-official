@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 import { build } from "esbuild";
 import { resolve } from "node:path";
 
-test("focused video stage pauses and freezes the exact seeked frame before annotation", async ({ page }) => {
+test("focused video stage pauses in place and overlays the exact frame without switching media", async ({ page }) => {
   const bundle = await build({
     entryPoints: [resolve("features/canvas/widget/tests/video-review-stage-harness.tsx")],
     bundle: true,
@@ -44,13 +44,20 @@ test("focused video stage pauses and freezes the exact seeked frame before annot
   await page.waitForTimeout(80);
   await page.getByRole("button", { name: "Use annotation tool" }).click();
 
-  await expect.poll(() => page.locator("body").getAttribute("data-frozen-image")).toMatch(/^data:image\/png;base64,/);
+  await expect(page.getByLabel("Annotation layer")).toBeVisible();
   await expect.poll(() => video.evaluate((element: HTMLVideoElement) => element.paused)).toBe(true);
+  await expect.poll(() => page.locator("body").getAttribute("data-same-video-element")).toBe("true");
   const timing = await page.evaluate(() => ({
     frozen: Number(document.body.dataset.frozenTime),
+    beforePause: Number(document.body.dataset.beforePause),
+    actualAtPause: Number(document.body.dataset.actualAtPause),
     actual: Math.round(document.querySelector("video")!.currentTime * 1_000),
     latency: Number(document.body.dataset.freezeLatency),
+    sameVideoElement: document.body.dataset.sameVideoElement,
   }));
-  expect(Math.abs(timing.frozen - timing.actual)).toBeLessThanOrEqual(40);
+  expect(Math.abs(timing.beforePause - timing.actualAtPause)).toBeLessThanOrEqual(40);
+  expect(Math.abs(timing.frozen - timing.actualAtPause)).toBeLessThanOrEqual(40);
+  expect(Math.abs(timing.actualAtPause - timing.actual)).toBeLessThanOrEqual(40);
   expect(timing.latency).toBeLessThan(150);
+  expect(timing.sameVideoElement).toBe("true");
 });

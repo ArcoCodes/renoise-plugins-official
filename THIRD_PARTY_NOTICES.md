@@ -5,8 +5,11 @@ The Renoise annotation whiteboard bundles the following runtime libraries in its
 | Package | Version | License | Project |
 |---|---:|---|---|
 | Fabric.js | 7.4.0 | MIT | https://github.com/fabricjs/fabric.js |
-| React | 19.1.1 | MIT | https://github.com/facebook/react |
-| React DOM | 19.1.1 | MIT | https://github.com/facebook/react |
+| React | 19.2.4 | MIT | https://github.com/facebook/react |
+| React DOM | 19.2.4 | MIT | https://github.com/facebook/react |
+| Lexical (`lexical`, `@lexical/react`, `@lexical/utils`) | 0.31.2 | MIT | https://github.com/facebook/lexical |
+| Konva | 10.3.0 | MIT | https://github.com/konvajs/konva |
+| React Konva | 19.2.5 | MIT | https://github.com/konvajs/react-konva |
 | Lucide React | 0.536.0 | ISC | https://github.com/lucide-icons/lucide |
 | MCP Apps SDK | 1.7.5 | Apache-2.0 | https://github.com/modelcontextprotocol/ext-apps |
 | Model Context Protocol TypeScript SDK | 1.30.0 | MIT | https://github.com/modelcontextprotocol/typescript-sdk |
@@ -19,4 +22,4 @@ The Renoise annotation whiteboard bundles the following runtime libraries in its
 | Scheduler | 0.26.0 | MIT | https://github.com/facebook/react |
 | zod-to-json-schema | 3.25.2 | ISC | https://github.com/StefanTerdell/zod-to-json-schema |
 
-Build-only dependencies are declared in `package.json` and are not a second whiteboard runtime. Renoise does not include tldraw, `@tldraw/*`, Excalidraw, React Flow, or Konva.
+Build-only dependencies are declared in `package.json`. The annotation board includes Konva and React Konva for its focused frame-annotation overlay; it does not include tldraw, `@tldraw/*`, Excalidraw, or React Flow.
