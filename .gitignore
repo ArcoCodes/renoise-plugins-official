@@ -5,3 +5,7 @@ resources/
 .claude/settings.local.json
 # 内部设计 spec（引用主站源码/内部实现，勿提交到 public 仓）
 spec/
+features/canvas/build/.test-dist/
+features/canvas/test-results/
+features/canvas/playwright-report/
+/test-results/

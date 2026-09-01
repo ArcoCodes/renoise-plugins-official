@@ -5,14 +5,23 @@
   "type": "module",
   "description": "AI video production skills — creative direction, generation, editing, and e-commerce content",
   "scripts": {
-    "test": "node --test tests/*.test.mjs"
+    "build": "node features/canvas/build/build.mjs",
+    "typecheck": "tsc -p features/canvas/tsconfig.json --noEmit",
+    "test:build-repro": "node features/canvas/build/check-reproducible.mjs",
+    "test": "npm run build && npm run typecheck && npm run test:build-repro && node --test",
+    "test:canvas": "npm run build && node --test tests/canvas/*.test.mjs",
+    "test:browser": "npm run build && playwright test -c features/canvas/playwright.config.ts",
+    "validate:plugin": "node features/canvas/build/validate-plugin.mjs",
+    "prepack": "npm run build"
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/ArcoCodes/renoise-plugins-official.git"
   },
   "openclaw": {
-    "extensions": ["./index.mjs"]
+    "extensions": [
+      "./index.mjs"
+    ]
   },
   "files": [
     ".agents/",
@@ -22,8 +31,38 @@
     "openclaw.plugin.json",
     "index.mjs",
     "commands/",
+    "features/canvas/dist/",
     "skills/",
     "src/",
+    ".mcp.json",
+    "THIRD_PARTY_NOTICES.md",
     "README.md"
-  ]
+  ],
+  "dependencies": {
+    "@lexical/react": "0.31.2",
+    "@lexical/utils": "0.31.2",
+    "@modelcontextprotocol/ext-apps": "1.7.5",
+    "@modelcontextprotocol/sdk": "1.30.0",
+    "fabric": "7.4.0",
+    "konva": "10.3.0",
+    "lexical": "0.31.2",
+    "lucide-react": "0.536.0",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "react-konva": "19.2.5",
+    "zod": "4.4.3"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.62.0",
+    "@types/node": "24.1.0",
+    "@types/react": "19.2.14",
+    "@types/react-dom": "19.2.3",
+    "@vitejs/plugin-react": "4.7.0",
+    "esbuild": "0.25.8",
+    "typescript": "5.8.3",
+    "vite": "7.0.6"
+  },
+  "engines": {
+    "node": ">=20"
+  }
 }
