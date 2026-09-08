@@ -33,16 +33,20 @@ test('skill manifest separates portable creative methods from local execution', 
     'renoise-setup',
     'storyboard-sheet',
     'video-download',
+    'video-fission',
   ]);
   assert.equal(byId.get('director').runtime, 'portable');
   assert.equal(byId.get('model-routing').runtime, 'portable');
   assert.equal(byId.get('storyboard-sheet').runtime, 'portable');
+  assert.equal(byId.get('video-fission').runtime, 'portable');
   for (const id of ['renoise-cli', 'renoise-setup', 'video-download']) {
     assert.equal(byId.get(id).runtime, 'local-cli');
   }
   assert.ok(byId.get('director').requires.includes('tasks.create'));
   assert.ok(byId.get('director').optional.includes('media.analyze'));
   assert.ok(byId.get('storyboard-sheet').optional.includes('tasks.create'));
+  assert.ok(byId.get('video-fission').requires.includes('media.analyze'));
+  assert.ok(byId.get('video-fission').requires.includes('tasks.create'));
 });
 
 test('portable skill files contain no local execution instructions', () => {
@@ -222,6 +226,44 @@ test('setup keeps managed CLI current and still gates manual install', () => {
   assert.match(cli, /install-cli\.mjs" --ensure/);
   assert.match(installer, /--ensure/);
   assert.match(installer, /needsManagedUpdate/);
+});
+
+test('director stays a thin router with lazily loaded workflows', () => {
+  const director = readFileSync('skills/director/SKILL.md', 'utf8');
+  const narrative = readFileSync('skills/director/workflows/narrative.md', 'utf8');
+  const files = readJSON('skills/manifest.json').skills.find(({ id }) => id === 'director').files;
+  assert.ok(Buffer.byteLength(director) < 10_000, 'director entry point should stay under 10 KB');
+  assert.ok(files.includes('skills/director/workflows/narrative.md'));
+  assert.match(director, /commercial\/INDEX\.md/);
+  assert.match(director, /commercial\/scenario-a-viral\.md/);
+  assert.match(director, /workflows\/narrative\.md/);
+  assert.match(director, /storyboard-sheet/);
+  assert.match(director, /multiple controlled variants from one supplied source/i);
+  assert.match(narrative, /paid anchor images.*explicit prompt-and-cost approval/is);
+});
+
+test('video fission analyzes first and submits one controlled batch', () => {
+  const fission = readFileSync('skills/video-fission/SKILL.md', 'utf8');
+  const director = readFileSync('skills/director/SKILL.md', 'utf8');
+  assert.match(fission, /owner-authorized source video/i);
+  assert.match(fission, /Analyze before asking for a direction/i);
+  assert.match(fission, /Create no task before this confirmation/i);
+  assert.match(fission, /Default to \*\*4 outputs\*\*/);
+  assert.match(fission, /Four is not a hard cap/i);
+  assert.match(fission, /one axis by default and never more than two/i);
+  assert.match(fission, /distinct, testable hypothesis/i);
+  assert.match(fission, /H3 Max does not accept generic `reference_image` or `reference_video`/);
+  assert.match(fission, /`first_frame` and `last_frame`/);
+  assert.match(fission, /one generation path/i);
+  assert.match(fission, /do not invent another mode/i);
+  assert.match(fission, /call `create_video_fission` once/i);
+  assert.match(fission, /one \*\*Run all\*\* confirmation card/i);
+  assert.match(fission, /estimate for every variant and the total/i);
+  assert.match(fission, /browser-extracted anchor frame only after approval/i);
+  assert.match(fission, /Never replace this operation with a loop of `create_task` calls/i);
+  assert.match(fission, /confirm the spoken language/i);
+  assert.match(director, /explicit video fission or multiple controlled variants/i);
+  assert.match(director, /use (?:the )?video-fission/i);
 });
 
 test('reference-video remake keeps source attachment and approval gates', () => {

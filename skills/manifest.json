@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pluginVersion": "1.5.0",
+  "pluginVersion": "1.6.0",
   "skills": [
     {
       "id": "director",
@@ -13,6 +13,7 @@
         "skills/director/commercial/scenario-b-brand.md",
         "skills/director/commercial/scenario-c-tvc.md",
         "skills/director/commercial/scenario-d-ugc.md",
+        "skills/director/workflows/narrative.md",
         "skills/director/references/prompt-craft.md",
         "skills/director/references/visual-dev.md"
       ],
@@ -26,6 +27,24 @@
         "materials.read",
         "media.analyze",
         "media.edit"
+      ]
+    },
+    {
+      "id": "video-fission",
+      "runtime": "portable",
+      "entry": "skills/video-fission/SKILL.md",
+      "files": [
+        "skills/video-fission/SKILL.md"
+      ],
+      "requires": [
+        "models.read",
+        "media.analyze",
+        "tasks.estimate",
+        "tasks.create"
+      ],
+      "optional": [
+        "account.read",
+        "materials.read"
       ]
     },
     {

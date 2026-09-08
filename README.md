@@ -9,6 +9,7 @@ AI video production skills by Renoise — creative direction, generation, analys
 | **Create with Renoise** (`director`) | Portable creative direction for product ads, short films, e-commerce, drama, and comedy |
 | `model-routing` | Internal task-to-model router and model-specific prompting guide |
 | **Build Storyboard** (`storyboard-sheet`) | Portable script/novel adaptation into review sheets, shot lists, first frames, and video prompts |
+| `video-fission` | Portable controlled-variant experiments from one owner-authorized source video |
 | `renoise-cli` | Local-only CLI execution for capabilities, media analysis, generation, uploads, tasks, and production helpers |
 | **Setup / Account** (`renoise-setup`) | Local-only CLI installation/update, secure login, and readiness checks |
 | `video-download` | Local-only downloader utility (yt-dlp + Douyin/TikTok fallback) |
@@ -82,6 +83,11 @@ renoise settings
 | `RENOISE_API_KEY` | Optional override for all Renoise tools | CI/container or host-secret override. Interactive setup prefers the credential securely saved by `renoise auth login`. |
 
 ## Version & upgrading
+
+### 1.6.0
+
+- Added `video-fission` for one- or two-axis controlled experiments with one batch approval.
+- Slimmed `director` into a route-first entry point with lazily loaded narrative and commercial workflows.
 
 ### 1.5.0
 
