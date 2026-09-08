@@ -83,6 +83,11 @@ renoise settings
 
 ## Version & upgrading
 
+### 1.6.0
+
+- Added MiniMax H3 Max and Topaz Starlight routing and prompting guidance.
+- Corrected current MiniMax H3 quality and Grok Video 1.5 input routing.
+
 ### 1.5.0
 
 - Added Seedance 2.5 and MiniMax H3 routing, reference workflows, and model-specific prompting guidance.

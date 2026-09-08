@@ -105,10 +105,12 @@ test('model routing covers every live family without replacing capabilities', ()
     'midjourney-v7', 'mj-v8.1', 'mj-v8.2', 'gpt-image-2',
     'seedream-5-0-lite', 'seedream-5-0-pro', 'happyhorse-1.0', 'kling-3.0-omni',
     'lyria-clip', 'seed-audio-1.0', 'grok-image', 'grok-image-quality',
-    'grok-video', 'grok-video-1.5', 'gemini-omni-flash', 'hailuo-h3',
+    'grok-video', 'grok-video-1.5', 'gemini-omni-flash', 'hailuo-h3', 'hailuo-h3-max',
+    'upscale-video-topaz-starlight-2.5',
   ]) assert.ok(routing.includes(model), `${model} routing missing`);
   assert.match(routing, /Live model capabilities are authoritative/);
   assert.match(routing, /Do not auto-select/);
+  assert.doesNotMatch(routing, /2K\/4K delivery/);
 });
 
 test('prompt examples use canonical material ID tokens', () => {

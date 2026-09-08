@@ -7,7 +7,7 @@ description: >
 user-invocable: false
 metadata:
   author: renoise
-  version: 0.1.0
+  version: 0.2.0
   category: media-generation
   tags: [model-routing, prompting, image, video, audio, portable]
 ---
@@ -33,7 +33,7 @@ Live model capabilities are authoritative for availability, defaults, input role
 Classify the request before selecting:
 
 - **Kind:** image, video, or audio.
-- **Operation:** create, edit, continue, interpolate, or animate a reference.
+- **Operation:** create, edit, continue, interpolate, animate a reference, or upscale.
 - **Priority:** final quality, strict instruction following, aesthetics, identity consistency, speed, or cost.
 - **Structure:** exact text/layout, one cinematic shot, multi-shot narrative, dialogue performance, music, or a complete audio scene.
 - **References:** none, one source image, several identity/style references, source video, endpoint frames, or voice/audio references.
@@ -152,11 +152,13 @@ Use a concise visual description, not a requirements document:
 | Fast Seedance draft | `seedance-2.0-fast-byteplus` | Official speed/cost balance tier. |
 | Lowest-cost/high-volume Seedance draft | `seedance-2.0-mini-byteplus` | Cost-performance tier for iteration and selection. |
 | Short 720p generation, text rendering, or source-video edit within its narrow live contract | `gemini-omni-flash` | Strong short-form instruction following, multi-shot generation, and conversational editing. |
-| Exact first frame, last frame, frame interpolation, focused video references, 2K/4K delivery, or reference audio paired with visual references | `hailuo-h3` | Strong endpoint control and structured multimodal audiovisual direction. |
+| Exact first frame, last frame, frame interpolation, 2K delivery, focused video references, or reference audio paired with visual references | `hailuo-h3` | Highest-quality H3 tier with endpoint control and structured multimodal audiovisual direction. |
+| Fast, low-cost text-to-video or first/last-frame generation when the live lower-resolution output is sufficient and rich references are unnecessary | `hailuo-h3-max` | Speed/cost H3 tier for drafts and straightforward shots; use full H3 for its higher-quality or reference-driven work. |
 | Human action, dialogue acting, lip sync, atmospheric commercial work, or concise cinematic multi-shot scenes | `happyhorse-1.0` | Strong motion, physical plausibility, visual depth, and synchronized dialogue/Foley/ambience through the inputs Renoise exposes. |
-| Reusable subjects/products, reference-driven series, identity/voice continuity, or custom multi-shot stories | `kling-3.0-omni` | Reference-first specialist with native audio, subject consistency, and explicit storyboard control. |
-| xAI text-to-video or one-image animation with native sound | `grok-video-1.5` | Current Renoise 1.5 contract is strongest when zero or one image is sufficient. |
-| xAI video needing several image references or the older Renoise Grok contract | `grok-video` | Multi-image and lower-duration niche currently exposed by Renoise. |
+| Reusable subjects/products, reference-driven series, visual identity continuity, or custom multi-shot stories | `kling-3.0-omni` | Reference-first specialist with native audio, subject consistency, and explicit storyboard control. |
+| One-image xAI animation with native sound | `grok-video-1.5` | Image-to-video specialist; select it only when the supplied image satisfies its live input contract. |
+| xAI text-to-video, several image references, or the older Renoise Grok contract | `grok-video` | Text and multi-image niche currently exposed by Renoise. |
+| Resolution enhancement of an existing video without a creative content edit | `upscale-video-topaz-starlight-2.5` | Dedicated high-quality video upscaler; use a generation/editing model when the requested content should change. |
 
 ### Tier and version notes
 
@@ -222,6 +224,12 @@ Non-diegetic music: instrumentation, tempo, dynamics — or none.
 
 Specify camera **type + amplitude + speed** only when they matter. Keep dialogue exact, label speakers consistently, and separate in-scene sound from background score.
 
+### MiniMax H3 Max — concise fast visual plan
+
+For text-to-video, lead with the subject, action, setting, and one clear camera path. Add a short non-overlapping timeline only when the shot has several beats. For frame generation, use the H3 first-frame, last-frame, or transition rules above.
+
+Keep the brief visually focused. Do not add reference-material or audio directions unless the selected model's live capabilities advertise them; route reference-heavy or higher-quality work to full H3 or Seedance before writing the prompt.
+
 ### HappyHorse 1.0 — concise performance direction
 
 ```text
@@ -241,8 +249,8 @@ Shot 1 (duration): framing, named subject, action, camera, light, sound.
 Shot 2 (duration): reaction or continuation, camera, exact dialogue and speaker.
 ```
 
-- Define each reference's subject, product, motion, scene, or voice job before the shot plan.
-- Once appearance or voice is bound by a reference, focus the prompt on action, interaction, camera, and story progression.
+- Define each reference's subject, product, motion, or scene job before the shot plan.
+- Once appearance is bound by a reference, focus the prompt on action, interaction, camera, and story progression.
 - Keep each shot to one readable action and one camera behavior.
 - Write dialogue after the associated action; use “then” or “immediately” for timing.
 
@@ -259,6 +267,10 @@ Sound: specific dialogue/SFX/ambience; no music if unwanted.
 - For text-to-video, include the subject and setting; for image-to-video, describe the change from the starting frame.
 - Assign every live reference a clear visual or motion job.
 - Request dialogue, effects, ambience, or music explicitly when native audio matters.
+
+### Topaz Starlight — no creative prompt
+
+Upscaling is not regeneration. Prefer it for structurally sound AI-generated or modern digital footage that looks soft or artificially textured. Supply only the source video and settings required by the live capability, with no creative prompt, ratio, image, or audio inputs. If the user wants objects, motion, timing, or style changed, route to a video editing model instead.
 
 # Audio Routing
 
@@ -308,7 +320,7 @@ Music cue and ending: ...
 
 # Research Basis
 
-Reviewed 2026-08-11. Rankings are directional and decay quickly; live capabilities and task-specific tests override them.
+Reviewed 2026-09-08. Rankings are directional and decay quickly; live capabilities and task-specific tests override them.
 
 Primary guidance:
 
@@ -320,7 +332,8 @@ Primary guidance:
 - BytePlus Seedance 2.5 and 2.0 prompt guides: https://docs.byteplus.com/en/docs/ModelArk/2607689 and https://docs.byteplus.com/en/docs/ModelArk/2222480
 - HappyHorse launch and official prompting: https://www.alibabacloud.com/blog/alibaba-rolls-out-happyhorse-1-0-in-limited-beta_603068 and https://www.alibabacloud.com/help/en/model-studio/text-to-video-prompt
 - Kling 3.0 guides: https://kling.ai/quickstart/klingai-video-3-model-user-guide and https://kling.ai/quickstart/klingai-video-3-omni-model-user-guide
-- MiniMax H3: https://www.minimax.io/blog/minimax-h3, https://platform.minimax.io/docs/guides/video-generation, and https://huggingface.co/MiniMaxAI/MiniMax-H3/tree/main/docs
+- MiniMax H3 and H3 Max: https://www.minimax.io/blog/minimax-h3, https://platform.minimax.io/docs/guides/video-generation, https://platform.minimax.io/docs/api-reference/video-generation-v2-create, and https://huggingface.co/MiniMaxAI/MiniMax-H3/tree/main/docs
+- Topaz Starlight Precise 2.5: https://developer.topazlabs.com/video-models/starlight/starlight-precise-2.5
 - Gemini Omni: https://ai.google.dev/gemini-api/docs/omni
 - Lyria: https://ai.google.dev/gemini-api/docs/music-generation, https://deepmind.google/models/lyria/prompt-guide/, and https://cloud.google.com/blog/products/ai-machine-learning/ultimate-prompting-guide-for-lyria-3-pro
 - Seed Audio: https://seed.bytedance.com/en/blog/from-speech-to-audio-creation-introducing-the-seed-audio-1-0-audio-creation-model and https://docs.byteplus.com/en/docs/byteplusvoice/seedaudio-01
