@@ -16,6 +16,7 @@ const removed = [
   'skills/renoise-cli/scripts/upload.mjs',
   'skills/director/scripts',
   'skills/director/examples',
+  'skills/director/commercial/scenario-a-viral.md',
   'hooks/hooks.json',
   'hooks/session-start.sh',
 ];
@@ -34,11 +35,13 @@ test('skill manifest separates portable creative methods from local execution', 
     'storyboard-sheet',
     'video-download',
     'video-fission',
+    'video-remake',
   ]);
   assert.equal(byId.get('director').runtime, 'portable');
   assert.equal(byId.get('model-routing').runtime, 'portable');
   assert.equal(byId.get('storyboard-sheet').runtime, 'portable');
   assert.equal(byId.get('video-fission').runtime, 'portable');
+  assert.equal(byId.get('video-remake').runtime, 'portable');
   for (const id of ['renoise-cli', 'renoise-setup', 'video-download']) {
     assert.equal(byId.get(id).runtime, 'local-cli');
   }
@@ -47,6 +50,8 @@ test('skill manifest separates portable creative methods from local execution', 
   assert.ok(byId.get('storyboard-sheet').optional.includes('tasks.create'));
   assert.ok(byId.get('video-fission').requires.includes('media.analyze'));
   assert.ok(byId.get('video-fission').requires.includes('tasks.create'));
+  assert.ok(byId.get('video-remake').requires.includes('media.analyze'));
+  assert.ok(byId.get('video-remake').requires.includes('tasks.create'));
 });
 
 test('portable skill files contain no local execution instructions', () => {
@@ -120,7 +125,8 @@ test('prompt examples use canonical material ID tokens', () => {
   const cli = readFileSync('skills/renoise-cli/SKILL.md', 'utf8');
   const directorFiles = [
     promptCraft,
-    ...['INDEX.md', 'scenario-a-viral.md', 'scenario-b-brand.md', 'scenario-c-tvc.md', 'scenario-d-ugc.md']
+    readFileSync('skills/video-remake/SKILL.md', 'utf8'),
+    ...['INDEX.md', 'scenario-b-brand.md', 'scenario-c-tvc.md', 'scenario-d-ugc.md']
       .map((file) => readFileSync(`skills/director/commercial/${file}`, 'utf8')),
   ].join('\n');
   assert.match(promptCraft, /@material:101/);
@@ -171,6 +177,8 @@ test('desktop metadata exposes portable entries plus setup', () => {
   assert.match(readFileSync('skills/renoise-setup/agents/openai.yaml', 'utf8'), /allow_implicit_invocation: true/);
   const openclawSkills = readJSON('openclaw.plugin.json').skills;
   assert.ok(openclawSkills.includes('skills/renoise-cli'));
+  assert.ok(openclawSkills.includes('skills/video-fission'));
+  assert.ok(openclawSkills.includes('skills/video-remake'));
   assert.ok(!openclawSkills.includes('skills/renoise-gen'));
   assert.ok(!openclawSkills.includes('skills/gemini-gen'));
 });
@@ -235,7 +243,7 @@ test('director stays a thin router with lazily loaded workflows', () => {
   assert.ok(Buffer.byteLength(director) < 10_000, 'director entry point should stay under 10 KB');
   assert.ok(files.includes('skills/director/workflows/narrative.md'));
   assert.match(director, /commercial\/INDEX\.md/);
-  assert.match(director, /commercial\/scenario-a-viral\.md/);
+  assert.match(director, /video-remake/);
   assert.match(director, /workflows\/narrative\.md/);
   assert.match(director, /storyboard-sheet/);
   assert.match(director, /multiple controlled variants from one supplied source/i);
@@ -266,26 +274,26 @@ test('video fission analyzes first and submits one controlled batch', () => {
   assert.match(director, /use (?:the )?video-fission/i);
 });
 
-test('reference-video remake keeps source attachment and approval gates', () => {
+test('reference-video remake is a standalone portable skill with approval gates', () => {
   const director = readFileSync('skills/director/SKILL.md', 'utf8');
-  const scenario = readFileSync('skills/director/commercial/scenario-a-viral.md', 'utf8');
-  assert.match(director, /剪同款/);
-  assert.match(scenario, /media-analysis capability/i);
-  assert.match(scenario, /source video is always attached/i);
-  assert.match(scenario, /Gate 1/);
-  assert.match(scenario, /Gate 2/);
-  assert.doesNotMatch(scenario, /renoise analyze|prompt-file|remake-plan\.json/);
+  const remake = readFileSync('skills/video-remake/SKILL.md', 'utf8');
+  assert.match(director, /剪同款[\s\S]*video-remake/);
+  assert.match(remake, /^name: video-remake$/m);
+  assert.match(remake, /media-analysis capability/i);
+  assert.match(remake, /source video is always attached/i);
+  assert.match(remake, /Gate 1/);
+  assert.match(remake, /Gate 2/);
+  assert.doesNotMatch(remake, /renoise analyze|prompt-file|remake-plan\.json/);
 });
 
 test('moderation waits for an explicit host error', () => {
   const director = readFileSync('skills/director/SKILL.md', 'utf8');
   const cli = readFileSync('skills/renoise-cli/SKILL.md', 'utf8');
-  const scenario = readFileSync('skills/director/commercial/scenario-a-viral.md', 'utf8');
-  for (const skill of [director, cli]) {
+  const remake = readFileSync('skills/video-remake/SKILL.md', 'utf8');
+  for (const skill of [director, cli, remake]) {
     assert.match(skill, /Do not pre-screen/);
     assert.match(skill, /INPUT_\*/);
     assert.match(skill, /OUTPUT_\*/);
     assert.doesNotMatch(skill, /hard blocks|First check whether the prompt or materials/);
   }
-  assert.match(scenario, /Host returns `INPUT_\*` \/ `OUTPUT_\*`/);
 });

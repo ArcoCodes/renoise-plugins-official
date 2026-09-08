@@ -2,7 +2,7 @@
 
 **Trigger**: Brand film >5s, or any video that needs multiple shots — lifestyle, outdoor, fashion, sports, aspirational campaigns, or product films with narrative structure. Scenario C naturally contains Scenario B-style product close-ups as segments within a larger piece.
 
-**Not Scenario C if**: the user wants a presenter speaking to camera → use Scenario D. The user has a reference video to replicate → use Scenario A.
+**Not Scenario C if**: the user wants a presenter speaking to camera → use Scenario D. The user has a reference video to replicate → use the standalone `video-remake` skill.
 
 ---
 

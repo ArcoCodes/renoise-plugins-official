@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pluginVersion": "1.6.0",
+  "pluginVersion": "1.7.0",
   "skills": [
     {
       "id": "director",
@@ -9,7 +9,6 @@
       "files": [
         "skills/director/SKILL.md",
         "skills/director/commercial/INDEX.md",
-        "skills/director/commercial/scenario-a-viral.md",
         "skills/director/commercial/scenario-b-brand.md",
         "skills/director/commercial/scenario-c-tvc.md",
         "skills/director/commercial/scenario-d-ugc.md",
@@ -27,6 +26,24 @@
         "materials.read",
         "media.analyze",
         "media.edit"
+      ]
+    },
+    {
+      "id": "video-remake",
+      "runtime": "portable",
+      "entry": "skills/video-remake/SKILL.md",
+      "files": [
+        "skills/video-remake/SKILL.md"
+      ],
+      "requires": [
+        "models.read",
+        "media.analyze",
+        "tasks.estimate",
+        "tasks.create"
+      ],
+      "optional": [
+        "account.read",
+        "materials.read"
       ]
     },
     {

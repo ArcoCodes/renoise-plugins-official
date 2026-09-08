@@ -2,7 +2,7 @@
   "id": "renoise",
   "name": "Renoise",
   "description": "AI video production skills — creative direction, generation, editing, and e-commerce content",
-  "version": "1.6.0",
+  "version": "1.7.0",
   "configSchema": {
     "type": "object",
     "additionalProperties": false,
@@ -14,6 +14,7 @@
     "skills/renoise-setup",
     "skills/storyboard-sheet",
     "skills/video-fission",
+    "skills/video-remake",
     "skills/video-download"
   ]
 }

@@ -10,6 +10,7 @@ AI video production skills by Renoise — creative direction, generation, analys
 | `model-routing` | Internal task-to-model router and model-specific prompting guide |
 | **Build Storyboard** (`storyboard-sheet`) | Portable script/novel adaptation into review sheets, shot lists, first frames, and video prompts |
 | `video-fission` | Portable controlled-variant experiments from one owner-authorized source video |
+| `video-remake` | Portable reference-video recreation with controlled character, product, brand, prop, or scene replacement |
 | `renoise-cli` | Local-only CLI execution for capabilities, media analysis, generation, uploads, tasks, and production helpers |
 | **Setup / Account** (`renoise-setup`) | Local-only CLI installation/update, secure login, and readiness checks |
 | `video-download` | Local-only downloader utility (yt-dlp + Douyin/TikTok fallback) |
@@ -83,6 +84,10 @@ renoise settings
 | `RENOISE_API_KEY` | Optional override for all Renoise tools | CI/container or host-secret override. Interactive setup prefers the credential securely saved by `renoise auth login`. |
 
 ## Version & upgrading
+
+### 1.7.0
+
+- Split reference-video recreation (`复刻视频` / `剪同款`) into the standalone portable `video-remake` skill.
 
 ### 1.6.0
 

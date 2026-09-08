@@ -6,19 +6,16 @@ Use this index for e-commerce, advertising, and brand work. Read only the matche
 
 Ask in order and stop at the first match:
 
-1. Presenter speaking on camera (`口播`, `带货`, `测评`, `主播出镜`) → **D**
-2. Reference video to replicate → **A**
+1. Reference video to replicate → stop and use `video-remake`
+2. Presenter speaking on camera (`口播`, `带货`, `测评`, `主播出镜`) → **D**
 3. Brand film longer than 5s or explicitly multi-shot → **C**
 4. Otherwise, single-shot product showcase up to 5s → **B**
 
 | Scenario | Read |
 |---|---|
-| A — Reference Video Remake / 剪同款 | `commercial/scenario-a-viral.md` |
 | B — Product Showcase | `commercial/scenario-b-brand.md` |
 | C — Brand Film / TVC | `commercial/scenario-c-tvc.md` |
 | D — UGC / Live Presenter | `commercial/scenario-d-ugc.md` |
-
-Scenario A may be entered directly from Director. Its dedicated gates override the common phases below.
 
 ## Six-Dimension Formula
 
@@ -41,7 +38,7 @@ Subject + Selling-Point Action + Scene & Tone + Camera Language + Audio + Post-P
 
 1. Load the matched scenario.
 2. Ask only for missing essentials: product references, visible selling points, target audience/platform, duration, ratio, and presenter/spoken language when applicable.
-3. Analyze each host-authorized image or video through the host's media-analysis capability; Scenario A requests a reusable replacement template.
+3. Analyze each host-authorized image or video through the host's media-analysis capability.
 4. Tag each reference as subject anchor, scene calibration, camera reference, or beat-sync control.
 5. Select and inspect live models using `model-routing`. Use only advertised parameters, roles, combinations, and limits.
 
@@ -105,7 +102,7 @@ Available balance: live value
 ---
 ```
 
-Scenario C uses its storyboard preview; Scenario A uses its two-gate remake preview.
+Scenario C uses its storyboard preview.
 
 ## Phase 4 — Generate and Return
 

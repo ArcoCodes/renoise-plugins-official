@@ -4,13 +4,15 @@ description: >
   User-facing creative director and production orchestrator for generated video.
   Use for product ads, UGC, brand films, drama, comedy, short films, adaptations,
   montages, MV concepts, and AI remakes such as "make a video", "generate video",
-  "TikTok product video", "recreate this clip", "做个视频", "短剧", "广告片",
-  "带货视频", "口播视频", "复刻视频", or "剪同款". Also use when a script or
-  shot plan is requested as part of producing the actual video. For planning-only
+  "TikTok product video", "做个视频", "短剧", "广告片", "带货视频", or
+  "口播视频". Also use when a script or shot plan is requested as part of
+  producing the actual video. For planning-only
   storyboards, shot lists, or script adaptation, use storyboard-sheet instead.
   Do NOT use for explicit video fission or multiple controlled variants from one
-  supplied source video; use video-fission. Source-free variant ideation stays here.
-  Do NOT use for downloading or traditional editing of existing footage.
+  supplied source video; use video-fission. Do NOT use for recreating, remixing,
+  复刻, or 剪同款 from one supplied reference video; use video-remake. Source-free
+  variant ideation stays here. Do NOT use for downloading or traditional editing
+  of existing footage.
 metadata:
   author: renoise
   version: 0.7.0
@@ -30,12 +32,12 @@ Choose the first matching route before reading more files:
 |---|---|
 | Multiple controlled variants from one supplied source / video fission | Stop and use `video-fission` |
 | Presenter / 口播 / 带货 / 测评 | Read `commercial/INDEX.md`, then Scenario D |
-| Reference-video remake / 复刻 / 剪同款 | Read `commercial/scenario-a-viral.md` |
+| Reference-video remake / 复刻 / 剪同款 | Stop and use `video-remake` |
 | Product ad, brand film, TVC | Read `commercial/INDEX.md`, then only its matched scenario |
 | Narrative, drama, comedy, short film, montage, MV, adaptation | Read `workflows/narrative.md` |
 | Planning-only storyboard or shot list | Stop and use `storyboard-sheet`; return here only for generated media |
 
-Do not load every workflow "just in case." Scenario A has its own remake gates and never uses the generic narrative flow.
+Do not load every workflow "just in case." Reference-video remakes never use the generic narrative or commercial flow.
 
 Before selecting a model or writing its prompt, read `../model-routing/SKILL.md`. Route by task fit, preserve a user-named model, and use the live default only when no available specialist clearly fits.
 
@@ -66,7 +68,7 @@ No workflow or rich brief waives this gate.
 
 - **Single paid clip:** present the full prompt, model parameters, materials, live estimate, and balance; wait for explicit approval.
 - **Multi-shot narrative:** follow Gate 1 Story, then Gate 2 Consistency Manifest. Spend no video-generation credits until both are confirmed; paid anchor images inside Gate 2 need their own prompt-and-cost approval first.
-- **Reference remake:** follow Scenario A's slot-plan gate and final-generation gate.
+- **Reference remake:** route to `video-remake`; it owns the slot-plan and final-generation gates.
 - Record every returned task ID immediately. After interruption or timeout, resume that task; never blindly repeat paid creation.
 
 ### Continuity

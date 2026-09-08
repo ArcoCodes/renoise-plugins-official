@@ -1,8 +1,26 @@
-# Scenario A — Reference Video Remake / 剪同款
+---
+name: video-remake
+description: >
+  Recreate or remix one supplied reference video with replacement characters,
+  products, branding, props, or scenes. Use when the user asks to replicate a
+  video, remake a clip, 复刻视频, 剪同款, 换脸, or make a version of a supplied
+  video with controlled replacements. The source video must remain attached.
+metadata:
+  author: renoise
+  version: 0.1.0
+  category: video-production
+  tags: [video, remake, replication, replacement, portable]
+---
 
-**Trigger**: The user provides a reference video and asks to recreate, remix, 复刻, or 剪同款 with their own character, product, brand, or scene.
+# Reference Video Remake / 复刻视频 / 剪同款
 
-This is a two-gate workflow. The current host owns authorized media analysis, materials, live capabilities, costs, approvals, and tasks. This reference owns slot matching, creative decisions, and resumable plan state kept in the conversation.
+This is a two-gate workflow. The current host owns authorized media analysis, materials, live capabilities, costs, approvals, and tasks. This skill owns slot matching, creative decisions, and resumable plan state kept in the conversation.
+
+## Runtime Boundary
+
+Use only capabilities and references exposed by the current host. Do not invoke local executables, request filesystem paths, or emulate missing analysis/material/task operations. Before selecting a model or writing prompts, read `../model-routing/SKILL.md` and inspect live capabilities.
+
+Use the user's language for analysis, plans, approvals, and results. If retained or replacement content contains dialogue, voiceover, or narration, confirm the spoken language before final prompts and keep every spoken line verbatim in that language.
 
 ## Non-Negotiable Source Policy
 
@@ -131,6 +149,8 @@ Submit through the host's approval-controlled generation capability and record t
 Return the result URL, task ID, source/slot mapping, and warnings. For revisions, keep approved slot materials and change only the identified prompt dimension unless the user asks to replace an asset.
 
 ## Failure Rules
+
+Do not pre-screen the source, replacement materials, or prompts. Continue normally unless the host returns an explicit content-review error.
 
 | Failure | Action |
 |---|---|
