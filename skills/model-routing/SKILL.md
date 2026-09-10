@@ -7,7 +7,7 @@ description: >
 user-invocable: false
 metadata:
   author: renoise
-  version: 0.1.0
+  version: 0.1.1
   category: media-generation
   tags: [model-routing, prompting, image, video, audio, portable]
 ---
@@ -152,7 +152,8 @@ Use a concise visual description, not a requirements document:
 | Fast Seedance draft | `seedance-2.0-fast-byteplus` | Official speed/cost balance tier. |
 | Lowest-cost/high-volume Seedance draft | `seedance-2.0-mini-byteplus` | Cost-performance tier for iteration and selection. |
 | Short 720p generation, text rendering, or source-video edit within its narrow live contract | `gemini-omni-flash` | Strong short-form instruction following, multi-shot generation, and conversational editing. |
-| Exact first frame, last frame, frame interpolation, focused video references, 2K/4K delivery, or reference audio paired with visual references | `hailuo-h3` | Strong endpoint control and structured multimodal audiovisual direction. |
+| Exact first frame, last frame, frame interpolation, focused video references, 2K delivery, or reference audio paired with visual references | `hailuo-h3` | Strong endpoint control and structured multimodal audiovisual direction. |
+| Fastest, lowest-cost H3-family text-to-video or first/last-frame generation | `h3-max-turbo` | Rapid low-cost iteration when the live contract needs no generic image, video, or audio references; use full H3 instead when references or 2K are required. |
 | Human action, dialogue acting, lip sync, atmospheric commercial work, or concise cinematic multi-shot scenes | `happyhorse-1.0` | Strong motion, physical plausibility, visual depth, and synchronized dialogue/Foley/ambience through the inputs Renoise exposes. |
 | Reusable subjects/products, reference-driven series, identity/voice continuity, or custom multi-shot stories | `kling-3.0-omni` | Reference-first specialist with native audio, subject consistency, and explicit storyboard control. |
 | xAI text-to-video or one-image animation with native sound | `grok-video-1.5` | Current Renoise 1.5 contract is strongest when zero or one image is sufficient. |
@@ -161,6 +162,7 @@ Use a concise visual description, not a requirements document:
 ### Tier and version notes
 
 - Seedance Full, Fast, and Mini are respectively the quality, speed/cost-balance, and cost-performance tiers; live estimates decide the actual trade-off.
+- Within the H3 family, use H3 for 2K or multimodal references, H3 Max for faster official-channel first/last-frame work, and H3 Max Turbo for the fastest and cheapest text/first/last-frame iteration. Never infer reference-to-video support for Max or Turbo when the live roles do not expose it.
 - Grok's public upstream capabilities may move faster than Renoise's contract. Route from live roles and limits rather than assuming an upstream feature is connected.
 - Model preference leaderboards are task-, resolution-, and audio-filter-specific; use them as volatile evidence, not a single aggregate ranking.
 
@@ -199,9 +201,11 @@ Constraints: no subtitles/logo/watermark unless requested.
 - For editing: identify the source, say **change only X**, and list what remains unchanged.
 - Make one edit per turn when possible; use follow-up refinement rather than replacing the entire prompt.
 
-### MiniMax H3 — mode-specific audiovisual plan
+### MiniMax H3 family — mode-specific audiovisual plan
 
-Choose one live mode and prompt accordingly:
+Choose one live mode and prompt accordingly. H3 Max and H3 Max Turbo follow the same first/last-frame prompting pattern when those modes are live, but generic reference mode belongs only to models whose live roles explicitly expose it:
+
+- **Text-to-video:** state the subject, action over time, camera movement, setting, lighting, and sound intent directly.
 
 - **First frame:** describe only the motion, camera path, action development, and sound after the supplied opening state.
 - **Last frame:** describe the plausible path that converges on the supplied ending.
@@ -320,7 +324,7 @@ Primary guidance:
 - BytePlus Seedance 2.5 and 2.0 prompt guides: https://docs.byteplus.com/en/docs/ModelArk/2607689 and https://docs.byteplus.com/en/docs/ModelArk/2222480
 - HappyHorse launch and official prompting: https://www.alibabacloud.com/blog/alibaba-rolls-out-happyhorse-1-0-in-limited-beta_603068 and https://www.alibabacloud.com/help/en/model-studio/text-to-video-prompt
 - Kling 3.0 guides: https://kling.ai/quickstart/klingai-video-3-model-user-guide and https://kling.ai/quickstart/klingai-video-3-omni-model-user-guide
-- MiniMax H3: https://www.minimax.io/blog/minimax-h3, https://platform.minimax.io/docs/guides/video-generation, and https://huggingface.co/MiniMaxAI/MiniMax-H3/tree/main/docs
+- MiniMax H3 family: https://www.minimax.io/blog/minimax-h3, https://platform.minimax.io/docs/guides/video-generation, https://huggingface.co/MiniMaxAI/MiniMax-H3/tree/main/docs, and https://blog.fal.ai/introducing-h3-max-by-fal/
 - Gemini Omni: https://ai.google.dev/gemini-api/docs/omni
 - Lyria: https://ai.google.dev/gemini-api/docs/music-generation, https://deepmind.google/models/lyria/prompt-guide/, and https://cloud.google.com/blog/products/ai-machine-learning/ultimate-prompting-guide-for-lyria-3-pro
 - Seed Audio: https://seed.bytedance.com/en/blog/from-speech-to-audio-creation-introducing-the-seed-audio-1-0-audio-creation-model and https://docs.byteplus.com/en/docs/byteplusvoice/seedaudio-01
