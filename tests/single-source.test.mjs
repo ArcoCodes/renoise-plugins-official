@@ -106,18 +106,19 @@ test('local renoise-cli remains the only CLI execution skill', () => {
   }
 });
 
-test('model routing covers every live family without replacing capabilities', () => {
+test('model routing keeps only useful specialists without replacing capabilities', () => {
   const routing = readFileSync('skills/model-routing/SKILL.md', 'utf8');
   for (const model of [
     'seedance-2.5-byteplus', 'seedance-2.0-byteplus', 'seedance-2.0-fast-byteplus', 'seedance-2.0-mini-byteplus',
     'nano-banana-2', 'nano-banana-2-lite', 'nano-banana-pro',
-    'midjourney-v7', 'mj-v8.1', 'mj-v8.2', 'gpt-image-2',
-    'seedream-5-0-lite', 'seedream-5-0-pro', 'happyhorse-1.0', 'kling-3.0-omni',
+    'mj-v8.2', 'gpt-image-2', 'seedream-5-0-lite', 'seedream-5-0-pro',
     'lyria-clip', 'seed-audio-1.0', 'grok-image', 'grok-image-quality',
     'grok-video', 'grok-video-1.5', 'gemini-omni-flash', 'hailuo-h3', 'h3-max-turbo',
   ]) assert.ok(routing.includes(model), `${model} routing missing`);
+  for (const obsolete of ['midjourney-v7', 'mj-v8.1', 'happyhorse-1.0', 'kling-3.0-omni']) {
+    assert.ok(!routing.includes(obsolete), `${obsolete} should not be routed`);
+  }
   assert.match(routing, /Live model capabilities are authoritative/);
-  assert.match(routing, /Do not auto-select/);
 });
 
 test('prompt examples use canonical material ID tokens', () => {

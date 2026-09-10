@@ -1,13 +1,15 @@
 ---
 name: model-routing
 description: >
-  Internal Renoise model router and model-specific prompting guide. Selects the
-  best live image, video, or audio model for a task, then adapts the prompt to
-  that model. Use before estimating or generating Renoise media.
+  Choose the best Renoise image, video, or audio model and write prompts for it.
+  Always use before any Renoise generation estimate or task, and when the user
+  asks for the best model, model comparison, model routing, which model to use,
+  or “用哪个模型 / 模型选择”. Use alongside the active generation workflow;
+  this Skill does not execute tasks.
 user-invocable: false
 metadata:
   author: renoise
-  version: 0.1.1
+  version: 0.2.0
   category: media-generation
   tags: [model-routing, prompting, image, video, audio, portable]
 ---
@@ -27,6 +29,8 @@ Live model capabilities are authoritative for availability, defaults, input role
 5. Inspect the selected model's live guidance before writing the final prompt.
 6. Let the selected model's profile override generic prompt-craft advice when prompt structure, density, or reference wording conflicts.
 7. Never pass a role or parameter merely because this guide mentions a public model capability; the Renoise deployment may expose a narrower contract.
+
+Live availability alone is not a routing recommendation. Omit models that are fully dominated or lack a clear task advantage; an explicitly named model still follows rule 1.
 
 ## Routing Questions
 
@@ -52,14 +56,8 @@ Do not call a model “best” without naming the task it is best for.
 | Balanced Google workflow, extreme aspect ratios, several references, multilingual localization, or conversational iteration | `nano-banana-2` | Google-family workhorse balancing quality, latency, text, reference reasoning, and broad formats. |
 | Maximum Google-family world knowledge, brand consistency, localization, or reasoning-heavy composition | `nano-banana-pro` | Specialist for intricate professional assets and precise spatial relationships. |
 | Best aesthetic exploration, stylized art direction, editorial mood, or concept art | `mj-v8.2` | Current Midjourney default and strongest current aesthetic prior. |
-| Faster Midjourney iteration, small-detail retention, or a familiar V7-like look | `mj-v8.1` | Distinct speed/detail specialist when that version is live; V8.2 remains the normal aesthetic choice. |
-| Knowledge/reasoning-heavy visualization, many references, or 2K–4K Seedream work | `seedream-5-0-lite` | Strong intent inference and relational editing; Pro has the higher realism, structural-stability, and aesthetic ceiling. |
+| Seedream output above 2K or more than ten image references | `seedream-5-0-lite` | Its 3K–4K output and larger reference allowance are the remaining clear reasons to prefer it over Pro. |
 | xAI image request | `grok-image` for lower-cost iteration; `grok-image-quality` when higher quality justifies the added cost | Both support direct natural-language generation and editing through the live Renoise contract. |
-
-### Do not auto-select
-
-- `midjourney-v7`: keep for explicit requests, validated V7 compatibility, or its known treatment of bodies, objects, and references.
-- Older model versions remain valid specialists; version number alone is not a routing reason.
 
 ## Image Prompting Styles
 
@@ -154,10 +152,8 @@ Use a concise visual description, not a requirements document:
 | Short 720p generation, text rendering, or source-video edit within its narrow live contract | `gemini-omni-flash` | Strong short-form instruction following, multi-shot generation, and conversational editing. |
 | Exact first frame, last frame, frame interpolation, focused video references, 2K delivery, or reference audio paired with visual references | `hailuo-h3` | Strong endpoint control and structured multimodal audiovisual direction. |
 | Fastest, lowest-cost H3-family text-to-video or first/last-frame generation | `h3-max-turbo` | Rapid low-cost iteration when the live contract needs no generic image, video, or audio references; use full H3 instead when references or 2K are required. |
-| Human action, dialogue acting, lip sync, atmospheric commercial work, or concise cinematic multi-shot scenes | `happyhorse-1.0` | Strong motion, physical plausibility, visual depth, and synchronized dialogue/Foley/ambience through the inputs Renoise exposes. |
-| Reusable subjects/products, reference-driven series, identity/voice continuity, or custom multi-shot stories | `kling-3.0-omni` | Reference-first specialist with native audio, subject consistency, and explicit storyboard control. |
-| xAI text-to-video or one-image animation with native sound | `grok-video-1.5` | Current Renoise 1.5 contract is strongest when zero or one image is sufficient. |
-| xAI video needing several image references or the older Renoise Grok contract | `grok-video` | Multi-image and lower-duration niche currently exposed by Renoise. |
+| xAI one-image animation with native sound | `grok-video-1.5` | Current Renoise 1.5 contract requires exactly one input image. |
+| xAI text-to-video or video needing several image references | `grok-video` | The base contract retains text-only and multi-image modes that 1.5 does not expose. |
 
 ### Tier and version notes
 
@@ -226,30 +222,6 @@ Non-diegetic music: instrumentation, tempo, dynamics — or none.
 
 Specify camera **type + amplitude + speed** only when they matter. Keep dialogue exact, label speakers consistently, and separate in-scene sound from background score.
 
-### HappyHorse 1.0 — concise performance direction
-
-```text
-[subject] [specific action] in [setting], [lighting], [one camera cue].
-Dialogue in [language]: "..."
-Sound: foreground action, midground Foley, background ambience; no music if unwanted.
-```
-
-- Start with the entity, scene, and motion; add framing/lens, lighting, camera movement, style, and synchronized sound when they matter.
-- For image-to-video, emphasize motion and camera development rather than re-describing the still.
-- Use explicit shot structure for multiple beats and detailed cinematic direction when the scene benefits from it.
-
-### Kling 3.0 Omni — explicit storyboard
-
-```text
-Shot 1 (duration): framing, named subject, action, camera, light, sound.
-Shot 2 (duration): reaction or continuation, camera, exact dialogue and speaker.
-```
-
-- Define each reference's subject, product, motion, scene, or voice job before the shot plan.
-- Once appearance or voice is bound by a reference, focus the prompt on action, interaction, camera, and story progression.
-- Keep each shot to one readable action and one camera behavior.
-- Write dialogue after the associated action; use “then” or “immediately” for timing.
-
 ### Grok Imagine Video — animate the change
 
 For image-to-video, do not re-describe the static source:
@@ -312,7 +284,7 @@ Music cue and ending: ...
 
 # Research Basis
 
-Reviewed 2026-08-11. Rankings are directional and decay quickly; live capabilities and task-specific tests override them.
+Reviewed 2026-09-10. Rankings are directional and decay quickly; live capabilities and task-specific tests override them.
 
 Primary guidance:
 
@@ -322,8 +294,6 @@ Primary guidance:
 - ByteDance Seedream: https://seed.bytedance.com/en/blog/deeper-thinking-more-accurate-generation-introducing-seedream-5-0-lite and https://seed.bytedance.com/en/blog/beyond-generation-it-understands-design-introducing-seedream-5-0-pro
 - xAI Imagine image/video: https://docs.x.ai/developers/model-capabilities/imagine and https://docs.x.ai/developers/model-capabilities/video/generation
 - BytePlus Seedance 2.5 and 2.0 prompt guides: https://docs.byteplus.com/en/docs/ModelArk/2607689 and https://docs.byteplus.com/en/docs/ModelArk/2222480
-- HappyHorse launch and official prompting: https://www.alibabacloud.com/blog/alibaba-rolls-out-happyhorse-1-0-in-limited-beta_603068 and https://www.alibabacloud.com/help/en/model-studio/text-to-video-prompt
-- Kling 3.0 guides: https://kling.ai/quickstart/klingai-video-3-model-user-guide and https://kling.ai/quickstart/klingai-video-3-omni-model-user-guide
 - MiniMax H3 family: https://www.minimax.io/blog/minimax-h3, https://platform.minimax.io/docs/guides/video-generation, https://huggingface.co/MiniMaxAI/MiniMax-H3/tree/main/docs, and https://blog.fal.ai/introducing-h3-max-by-fal/
 - Gemini Omni: https://ai.google.dev/gemini-api/docs/omni
 - Lyria: https://ai.google.dev/gemini-api/docs/music-generation, https://deepmind.google/models/lyria/prompt-guide/, and https://cloud.google.com/blog/products/ai-machine-learning/ultimate-prompting-guide-for-lyria-3-pro
