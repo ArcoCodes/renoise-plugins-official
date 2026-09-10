@@ -16,7 +16,7 @@ allowed-tools: Bash, Read, Write, Glob
 user-invocable: false
 metadata:
   author: renoise
-  version: 0.8.0
+  version: 0.8.1
   category: video-production
   tags: [general, video-generation, image-generation, material-pool]
 ---
@@ -133,7 +133,7 @@ Before spending credits:
 2. Multiply `estimatedCredit` by the planned number of generations.
 3. Add character-sheet, upscale, audio, and retry costs when applicable.
 4. Compare with `renoise account status --json`.
-5. Tell the user the estimate and wait for approval when the director workflow requires it.
+5. Tell the user the per-task and total estimate, then wait for one approval immediately before executing the disclosed paid batch. Do not ask for an earlier duplicate approval.
 
 Never quote static prices.
 

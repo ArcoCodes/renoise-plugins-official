@@ -63,6 +63,7 @@ test('portable skill files contain no local execution instructions', () => {
     /\$\{(?:CLAUDE_SKILL_DIR|CLAUDE_PLUGIN_ROOT)\}/,
     /command -v|Get-Command|prompt-file|Managed Agent Runtime/,
     /`renoise_[a-z]/,
+    /\bcreate_(?:task|video_fission)\b|spending card|\bRun all\b/i,
   ];
 
   for (const skill of manifest.skills.filter((entry) => entry.runtime === 'portable')) {
@@ -249,16 +250,16 @@ test('director stays a thin router with lazily loaded workflows', () => {
   assert.match(director, /workflows\/narrative\.md/);
   assert.match(director, /storyboard-sheet/);
   assert.match(director, /multiple controlled variants from one supplied source/i);
-  assert.match(narrative, /paid anchor images.*explicit prompt-and-cost approval/is);
+  assert.match(narrative, /paid anchor images.*active host workflow/is);
 });
 
-test('video fission analyzes first and submits one controlled batch', () => {
+test('video fission analyzes first and hands off one portable logical batch', () => {
   const fission = readFileSync('skills/video-fission/SKILL.md', 'utf8');
   const director = readFileSync('skills/director/SKILL.md', 'utf8');
   assert.match(fission, /owner-authorized source video/i);
-  assert.match(fission, /Analyze before asking for a direction/i);
-  assert.match(fission, /Create no task before this confirmation/i);
-  assert.match(fission, /Default to \*\*4 outputs\*\*/);
+  assert.match(fission, /Analyze before resolving the direction/i);
+  assert.match(fission, /initial request already names a usable, safe experimental axis[\s\S]*without restating it for text confirmation/i);
+  assert.match(fission, /Use \*\*4 outputs\*\* when no count is supplied[\s\S]*do not ask merely to confirm that default/i);
   assert.match(fission, /Four is not a hard cap/i);
   assert.match(fission, /one axis by default and never more than two/i);
   assert.match(fission, /distinct, testable hypothesis/i);
@@ -267,25 +268,28 @@ test('video fission analyzes first and submits one controlled batch', () => {
   assert.match(fission, /Do not extract or upload a frame/);
   assert.match(fission, /one generation path/i);
   assert.match(fission, /do not invent another mode/i);
-  assert.match(fission, /call `create_video_fission` once/i);
-  assert.match(fission, /one \*\*Run all\*\* confirmation card/i);
-  assert.match(fission, /estimate for every variant and the total/i);
+  assert.match(fission, /Hand Off One Logical Batch/i);
+  assert.match(fission, /native batch primitive when the host exposes one/i);
+  assert.match(fission, /actual parameters needed for per-variant and total estimation/i);
   assert.match(fission, /submit the source video directly as every task's `reference_video`/i);
-  assert.match(fission, /Never replace this operation with a loop of `create_task` calls/i);
-  assert.match(fission, /confirm the spoken language/i);
+  assert.match(fission, /host's approval, concurrency, idempotency, and task-tracking rules/i);
+  assert.match(fission, /spoken language; clarify it only when ambiguous/i);
+  assert.match(fission, /Do not invent tool names or execution interfaces/i);
   assert.match(director, /explicit video fission or multiple controlled variants/i);
   assert.match(director, /use (?:the )?video-fission/i);
 });
 
-test('reference-video remake is a standalone portable skill with approval gates', () => {
+test('reference-video remake delegates execution details to the active host', () => {
   const director = readFileSync('skills/director/SKILL.md', 'utf8');
   const remake = readFileSync('skills/video-remake/SKILL.md', 'utf8');
   assert.match(director, /剪同款[\s\S]*video-remake/);
   assert.match(remake, /^name: video-remake$/m);
   assert.match(remake, /media-analysis capability/i);
   assert.match(remake, /source video is always attached/i);
-  assert.match(remake, /Gate 1/);
-  assert.match(remake, /Gate 2/);
+  assert.match(remake, /Slot Plan and Cost/);
+  assert.match(remake, /Final Prompt, Assets, and Video Cost/);
+  assert.match(remake, /active host execution workflow/);
+  assert.match(remake, /do not assume a particular tool, command, card, or approval interface/i);
   assert.doesNotMatch(remake, /renoise analyze|prompt-file|remake-plan\.json/);
 });
 

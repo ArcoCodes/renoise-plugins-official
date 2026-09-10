@@ -23,13 +23,12 @@ Select and inspect the video model before deciding whether this is one clip or m
 Use when the requested duration fits one advertised model duration.
 
 1. Write one model-appropriate, high-density prompt using `model-routing` and `prompt-craft.md`.
-2. Present the complete prompt, references, model parameters, live estimate, and balance in the user's language.
-3. Wait for explicit approval.
-4. Submit once through the host's approval-controlled generation capability and record the returned task ID.
+2. Hand the complete prompt, references, and model parameters to the active host execution workflow.
+3. Record any task identifier returned by the host.
 
 ## Multi-Clip: Two Gates
 
-Spend no video-generation credits until the user confirms both gates in order. Paid anchor images are the only exception and require explicit prompt-and-cost approval during Gate 2:
+Resolve both creative gates in order before handing video generation to the host. Paid anchor images may execute during Gate 2 through the active host workflow:
 
 ```text
 brief → Gate 1 Story → approval → Gate 2 anchor plan/cost → anchor approval → final manifest/prompts → approval → generate video → QC → assemble
@@ -53,8 +52,8 @@ Rules:
 
 After the story is approved:
 
-1. Present every needed character/location anchor prompt, selected image model, and live cost; wait for explicit approval before paid anchor generation.
-2. Generate only approved anchors and let the user approve or replace each result.
+1. Hand every needed character/location anchor prompt and selected image model to the active host execution workflow.
+2. Generate only accepted anchors and let the user approve or replace each result.
 3. Draft all segment prompts and present the final manifest below in one editable block; wait for approval before any video task.
 
 | Item | Lock |
@@ -89,7 +88,7 @@ Prompt construction:
 
 Reinspect live model capabilities immediately before submission. Reuse stable materials through advertised roles; use a tail frame only through an advertised image/frame role, and reuse completed video only through a compatible video-reference capability.
 
-Sequential dependencies run serially; independent segments may run in parallel. Submit only through the host's approval-controlled capability, record every task ID, and resume those IDs after interruption.
+Run read-only preparation in parallel when independent. Hand generation to the active host workflow, which owns submission concurrency, approvals, idempotency, task identifiers, and interruption recovery.
 
 ## QC and Assembly
 
@@ -101,9 +100,9 @@ Before final assembly, compare every segment and cut against the confirmed manif
 - spoken language is correct;
 - no failed physical action or unusable frame.
 
-Report the result and regenerate only failed segments after confirmation. Assemble only when the host exposes media editing; otherwise return ordered clips plus the transition plan.
+Report the result and hand only failed segments back to the host for regeneration. Assemble only when the host exposes media editing; otherwise return ordered clips plus the transition plan.
 
-If soundtrack or enhancement is requested, choose a live model by task fit and guidance, estimate it, obtain approval, and use only advertised inputs and outputs.
+If soundtrack or enhancement is requested, choose a live model by task fit and guidance, then hand only advertised inputs and outputs to the active host workflow.
 
 ## Creative Recovery
 

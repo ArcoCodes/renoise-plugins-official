@@ -15,7 +15,7 @@ Do not maintain a model matrix in this Skill.
 
 ## Character Design Sheet
 
-A character appearing in more than one segment needs one approved visual anchor. Generate it once through the host's approval-controlled generation flow, show it to the user, register it as a reusable material, and reuse the same material ID through an image-reference role supported by the selected video model.
+A character appearing in more than one segment needs one approved visual anchor. Generate it once through the active host execution workflow, show it to the user, register it as a reusable material, and reuse the same material ID through an image-reference role supported by the selected video model.
 
 Prompt template:
 
@@ -36,9 +36,8 @@ Consistent appearance across every panel. No labels or background elements.
 Before generating:
 
 - inspect the selected image model;
-- present prompt, parameters, and estimate;
-- wait for approval;
-- record the returned task ID;
+- hand the prompt and parameters to the active host execution workflow;
+- record any task identifier returned by the host;
 - show the result for approval;
 - register the approved result once;
 - inspect the selected video model before assigning its role.

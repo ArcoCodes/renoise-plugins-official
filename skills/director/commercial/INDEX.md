@@ -53,7 +53,7 @@ Scenario D performs its documented reference registration before prompt writing.
 
 ## Phase 2 — Construct the Prompt
 
-Draft the approval preview in the user's language. A non-dialogue final generation prompt may be translated to concise professional English after approval. Any spoken line stays verbatim in the confirmed spoken language; dialogue-dense prompts stay entirely in that language.
+Draft the generation arguments in the user's language. A non-dialogue final generation prompt may be translated to concise professional English before submission. Any spoken line stays verbatim in the resolved spoken language; dialogue-dense prompts stay entirely in that language.
 
 Required:
 
@@ -80,9 +80,9 @@ Never compress a multi-step physical process into one sentence. Give each demons
 2. One fingertip gently taps the center; it is not spread yet.
 3. Slow outward circles spread it halfway; the unblended edge stays visible.
 
-## Phase 3 — Approval Preview
+## Phase 3 — Execution Handoff
 
-Present the entire preview in the user's language and wait for explicit approval:
+Hand the complete arguments below to the active host execution workflow. Do not assume a particular tool, command, card, or approval interface:
 
 ```text
 --- Prompt Preview ---
@@ -108,7 +108,7 @@ Scenario C uses its storyboard preview.
 
 - Reinspect the selected model immediately before submission.
 - Translate only non-speaking prompts when useful; never translate confirmed spoken lines.
-- Submit through the host's approval-controlled capability and record every returned task ID.
+- Execute through the active host workflow and record every returned task identifier.
 - Reuse shared materials for multi-segment work and choose continuity only from advertised roles.
 - Return result links, task IDs, cover images when available, generation time, and warnings.
 - On revision, preserve approved references/results and adjust only the rejected dimension or segment.

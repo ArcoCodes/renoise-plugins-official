@@ -7,20 +7,20 @@ description: >
   video with controlled replacements. The source video must remain attached.
 metadata:
   author: renoise
-  version: 0.1.0
+  version: 0.1.1
   category: video-production
   tags: [video, remake, replication, replacement, portable]
 ---
 
 # Reference Video Remake / 复刻视频 / 剪同款
 
-This is a two-gate workflow. The current host owns authorized media analysis, materials, live capabilities, costs, approvals, and tasks. This skill owns slot matching, creative decisions, and resumable plan state kept in the conversation.
+This workflow resolves replacement slots before final generation. The current host owns authorized media analysis, materials, live capabilities, costs, spending approvals, and tasks. This skill owns slot matching, creative decisions, and resumable plan state kept in the conversation.
 
 ## Runtime Boundary
 
 Use only capabilities and references exposed by the current host. Do not invoke local executables, request filesystem paths, or emulate missing analysis/material/task operations. Before selecting a model or writing prompts, read `../model-routing/SKILL.md` and inspect live capabilities.
 
-Use the user's language for analysis, plans, approvals, and results. If retained or replacement content contains dialogue, voiceover, or narration, confirm the spoken language before final prompts and keep every spoken line verbatim in that language.
+Use the user's language for analysis, plans, approvals, and results. If retained or replacement content contains dialogue, voiceover, or narration, use the explicitly requested or safely inferable spoken language; clarify only when ambiguous, and keep every spoken line verbatim in that language.
 
 ## Non-Negotiable Source Policy
 
@@ -85,11 +85,11 @@ Use this priority:
 
 1. User-provided host-authorized material that clearly matches the slot.
 2. Existing owner-scoped Renoise material confirmed by the user.
-3. Generate a replacement image from the slot prompt through the host's approval-controlled generation flow.
+3. Generate a replacement image from the slot prompt through the active host execution workflow.
 
 Never let filename similarity alone choose a character or product. Show the proposed mapping with source, description, and intended role.
 
-### Gate 1 — Plan and Slot Cost
+### Slot Plan and Cost
 
 Present in the user's language:
 
@@ -100,15 +100,14 @@ Present in the user's language:
 - live estimated cost for missing slot images;
 - the fact that the source video will be attached to final generation.
 
-Wait for explicit approval before generating a missing slot.
+If a proposed slot mapping is ambiguous, ask the user to resolve that mapping. Otherwise, hand each requested missing slot and its complete parameters to the active host execution workflow.
 
-For every approved generated slot:
+For every generated slot:
 
-1. Estimate with actual parameters.
-2. Submit through the host approval flow.
-3. Record the returned task ID immediately.
-4. Poll/resume that ID; never repeat create after a wait interruption.
-5. Register the approved result as a reusable material only once.
+1. Follow the host's execution, estimate, and approval policy.
+2. Record any task identifier returned by the host immediately.
+3. Resume that task after a wait interruption; never repeat paid execution blindly.
+4. Register the approved result as a reusable material only once.
 
 For user-provided references, register the authorized item once. Record the returned material ID and full server filename. Prompt mentions must use that complete filename, including extension.
 
@@ -130,7 +129,7 @@ The final prompt must contain no unresolved placeholder.
 
 Request a live estimate with actual duration, resolution, output controls, and full material set; also read the live balance.
 
-### Gate 2 — Final Prompt, Assets, and Video Cost
+### Final Prompt, Assets, and Video Cost
 
 Present in the user's language:
 
@@ -140,11 +139,11 @@ Present in the user's language:
 - generation parameters;
 - final estimated cost and account balance.
 
-Wait for explicit approval before creating the video task.
+Hand these complete arguments to the active host execution workflow; do not assume a particular tool, command, card, or approval interface.
 
 ## Phase 4 — Generate and Resume Safely
 
-Submit through the host's approval-controlled generation capability and record the returned task ID immediately. Poll/resume that same ID after interruption or timeout; never repeat paid create blindly.
+Execute through the active host workflow and record any returned task identifier immediately. Resume that same task after interruption or timeout; never repeat paid execution blindly.
 
 Return the result URL, task ID, source/slot mapping, and warnings. For revisions, keep approved slot materials and change only the identified prompt dimension unless the user asks to replace an asset.
 

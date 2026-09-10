@@ -4,10 +4,10 @@ description: >
   Create controlled variants from one owner-authorized source video. Use when
   the user explicitly asks for video fission, multiple video variants,
   controlled variations, or several hypotheses from the same clip. Analyze the
-  source first, then confirm what should vary before proposing any generation.
+  source first, then resolve what should vary before proposing any generation.
 metadata:
   author: renoise
-  version: 0.2.0
+  version: 0.2.1
   category: video-production
   tags: [video, fission, variants, experimentation, portable]
 ---
@@ -24,10 +24,10 @@ Live model capabilities are authoritative for availability, roles, role combinat
 
 ## Hard Gates
 
-1. **Analyze before asking for a direction.** Once the source is available, use the host's video-analysis capability before asking what to vary. If analysis is unavailable or fails, stop. Analysis creates no generation task.
-2. **Confirm the fission direction.** After showing the analysis, ask which one experimental axis to vary; allow a second axis only when the user explicitly needs it. Even if the initial request names a direction, restate it after analysis and get confirmation. Create no task before this confirmation.
-3. **Confirm the count.** Default to **4 outputs** when no count is supplied. Four is not a hard cap: accept another reasonable count of at least two, constrained only by live service limits, the total estimate, and the user's budget.
-4. **Use one batch operation.** Submit the approved experiment exactly once through `create_video_fission`. Do not fan it out into multiple `create_task` calls.
+1. **Analyze before resolving the direction.** Once the source is available, use the host's video-analysis capability before finalizing what to vary. If analysis is unavailable or fails, stop. Analysis creates no generation task.
+2. **Clarify only when blocked.** If the initial request already names a usable, safe experimental axis, use it after analysis without restating it for text confirmation. Ask one focused question only when the axis is absent, unsafe, or ambiguous; allow a second axis only when the user explicitly needs it.
+3. **Default the count.** Use **4 outputs** when no count is supplied; do not ask merely to confirm that default. Four is not a hard cap: accept another reasonable count of at least two, constrained only by live service limits, the total estimate, and the user's budget.
+4. **Use one logical batch.** Hand the complete disclosed experiment to the active host execution workflow. Use a native batch primitive when the host exposes one; otherwise follow its documented ordered execution path. Do not invent tool names or execution interfaces.
 
 ## 1. Analyze the Source
 
@@ -37,13 +37,11 @@ Report the analysis in the user's language, including:
 - dimensions that appear fixed and plausible dimensions to vary;
 - uncertain or inferred details as warnings.
 
-Do not ask the user to choose a direction until this report exists.
-
-Then ask one focused question:
+Do not resolve an unstated direction until this report exists. If the request already supplies a usable axis, disclose how the analysis maps to it and proceed. Otherwise ask one focused question:
 
 > Which direction should the variants explore? I recommend one axis from this clip's analysis; we can use at most two. The default is 4 outputs, or name another reasonable count.
 
-Offer only source-relevant directions, such as action/motion, camera treatment, pacing, atmosphere/lighting, performance, or transformation. Do not preselect a direction for the user.
+Offer only source-relevant directions, such as action/motion, camera treatment, pacing, atmosphere/lighting, performance, or transformation. Do not preselect an absent direction for the user.
 
 ## 2. Use the Source Video Directly
 
@@ -67,27 +65,27 @@ Rules:
 
 - Use one axis by default and never more than two.
 - Give every variant a genuinely distinct, testable hypothesis; do not use cosmetic synonyms.
-- Lock all unselected dimensions across every variant, including model, source video, subject identity, composition, duration, ratio, resolution, audio mode, dialogue, and output controls unless one is the confirmed axis.
-- Keep the same prompt skeleton and change only the clauses that implement the confirmed axis values.
+- Lock all unselected dimensions across every variant, including model, source video, subject identity, composition, duration, ratio, resolution, audio mode, dialogue, and output controls unless one is the selected axis.
+- Keep the same prompt skeleton and change only the clauses that implement the selected axis values.
 - If two axes are used, choose intentional combinations; do not create an unrequested Cartesian product.
 - Derive every parameter and material role from the selected model's live capability.
 
 ## Dialogue and Language
 
-Use the user's language for analysis, questions, matrices, confirmation text, and results. Prompts are English by default only when they contain no speech.
+Use the user's language for analysis, questions, matrices, plan text, and results. Prompts are English by default only when they contain no speech.
 
-If any variant contains dialogue, voiceover, or narration, confirm the spoken language before writing final prompts. Keep every spoken line verbatim in that confirmed language; never translate it. For dialogue-dense variants, keep the whole prompt in the spoken language. Unless dialogue is the confirmed axis, lock its text, speaker, delivery, and spoken language across all variants.
+If any variant contains dialogue, voiceover, or narration, use the explicitly requested or safely inferable spoken language; clarify it only when ambiguous. Keep every spoken line verbatim in that language; never translate it. For dialogue-dense variants, keep the whole prompt in the spoken language. Unless dialogue is the selected axis, lock its text, speaker, delivery, and spoken language across all variants.
 
-## 4. Submit Once
+## 4. Hand Off One Logical Batch
 
-After the direction, count, hypotheses, prompts, and any spoken language are confirmed, call `create_video_fission` once with the complete variant plan. Pass the source aspect ratio, or the closest ratio supported by H3 Max. If the authorized source came from a Canvas node, preserve that exact node ID in the operation so every output can project with a source edge.
+After the direction, count, hypotheses, prompts, and any spoken language are resolved, hand the complete variant plan to the active host execution workflow. Pass the source aspect ratio, or the closest ratio supported by H3 Max. Preserve any source provenance handle exposed by the host so outputs remain linked to their source where supported.
 
-The host operation must:
+The execution handoff must:
 
-- emit one **Run all** confirmation card, not one card per variant;
-- show a live estimate for every variant and the total;
+- keep the whole experiment reviewable as one disclosed plan;
+- provide the actual parameters needed for per-variant and total estimation;
 - submit the source video directly as every task's `reference_video`;
-- create no tasks if the user declines;
-- return and track the resulting task IDs without repeating paid creation.
+- follow the host's approval, concurrency, idempotency, and task-tracking rules;
+- preserve variant order and never repeat paid execution after interruption.
 
-Never replace this operation with a loop of `create_task` calls. For revisions, ask which confirmed axis value or failed variant to change, preserve approved outputs, and invoke a new fission run only after the user confirms the revised experiment.
+For revisions, ask which axis value or failed variant to change only when the request is ambiguous, preserve accepted outputs, and hand only the revised experiment back to the host.
