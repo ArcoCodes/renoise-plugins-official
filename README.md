@@ -85,6 +85,11 @@ renoise settings
 
 ## Version & upgrading
 
+### 1.8.0
+
+- Refreshed model routing, removed obsolete recommendations, and added H3 Max, H3 Max Turbo, and Topaz Starlight guidance.
+- Improved automatic discovery of the internal model-routing skill.
+
 ### 1.7.0
 
 - Split reference-video recreation (`复刻视频` / `剪同款`) into the standalone portable `video-remake` skill.
