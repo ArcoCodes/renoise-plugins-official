@@ -37,7 +37,7 @@ Live availability alone is not a routing recommendation. Omit models that are fu
 Classify the request before selecting:
 
 - **Kind:** image, video, or audio.
-- **Operation:** create, edit, continue, interpolate, or animate a reference.
+- **Operation:** create, edit, continue, interpolate, animate a reference, or upscale.
 - **Priority:** final quality, strict instruction following, aesthetics, identity consistency, speed, or cost.
 - **Structure:** exact text/layout, one cinematic shot, multi-shot narrative, dialogue performance, music, or a complete audio scene.
 - **References:** none, one source image, several identity/style references, source video, endpoint frames, or voice/audio references.
@@ -151,9 +151,11 @@ Use a concise visual description, not a requirements document:
 | Lowest-cost/high-volume Seedance draft | `seedance-2.0-mini-byteplus` | Cost-performance tier for iteration and selection. |
 | Short 720p generation, text rendering, or source-video edit within its narrow live contract | `gemini-omni-flash` | Strong short-form instruction following, multi-shot generation, and conversational editing. |
 | Exact first frame, last frame, frame interpolation, focused video references, 2K delivery, or reference audio paired with visual references | `hailuo-h3` | Strong endpoint control and structured multimodal audiovisual direction. |
+| Fast H3-family text-to-video or first/last-frame generation where 768p is enough but quality matters more than minimum cost | `hailuo-h3-max` | Quality/speed middle tier between full H3 and Turbo; current arena results remain strong. |
 | Fastest, lowest-cost H3-family text-to-video or first/last-frame generation | `h3-max-turbo` | Rapid low-cost iteration when the live contract needs no generic image, video, or audio references; use full H3 instead when references or 2K are required. |
 | xAI one-image animation with native sound | `grok-video-1.5` | Current Renoise 1.5 contract requires exactly one input image. |
 | xAI text-to-video or video needing several image references | `grok-video` | The base contract retains text-only and multi-image modes that 1.5 does not expose. |
+| Upscale an existing video without changing its content | `upscale-video-topaz-starlight-2.5` | Dedicated restoration/upscaling model; use a generation or editing model when objects, motion, timing, or style should change. |
 
 ### Tier and version notes
 
@@ -236,6 +238,10 @@ Sound: specific dialogue/SFX/ambience; no music if unwanted.
 - Assign every live reference a clear visual or motion job.
 - Request dialogue, effects, ambience, or music explicitly when native audio matters.
 
+### Topaz Starlight — no creative prompt
+
+Upscaling is not regeneration. Supply only the source video and settings required by the live capability; do not add a creative prompt or unrelated media inputs. If the user wants content changed, route to a video editing model instead.
+
 # Audio Routing
 
 | Task | Prefer | Why |
@@ -295,6 +301,7 @@ Primary guidance:
 - xAI Imagine image/video: https://docs.x.ai/developers/model-capabilities/imagine and https://docs.x.ai/developers/model-capabilities/video/generation
 - BytePlus Seedance 2.5 and 2.0 prompt guides: https://docs.byteplus.com/en/docs/ModelArk/2607689 and https://docs.byteplus.com/en/docs/ModelArk/2222480
 - MiniMax H3 family: https://www.minimax.io/blog/minimax-h3, https://platform.minimax.io/docs/guides/video-generation, https://huggingface.co/MiniMaxAI/MiniMax-H3/tree/main/docs, and https://blog.fal.ai/introducing-h3-max-by-fal/
+- Topaz Starlight Precise 2.5: https://developer.topazlabs.com/video-models/starlight/starlight-precise-2.5
 - Gemini Omni: https://ai.google.dev/gemini-api/docs/omni
 - Lyria: https://ai.google.dev/gemini-api/docs/music-generation, https://deepmind.google/models/lyria/prompt-guide/, and https://cloud.google.com/blog/products/ai-machine-learning/ultimate-prompting-guide-for-lyria-3-pro
 - Seed Audio: https://seed.bytedance.com/en/blog/from-speech-to-audio-creation-introducing-the-seed-audio-1-0-audio-creation-model and https://docs.byteplus.com/en/docs/byteplusvoice/seedaudio-01

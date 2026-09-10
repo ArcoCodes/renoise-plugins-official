@@ -113,7 +113,8 @@ test('model routing keeps only useful specialists without replacing capabilities
     'nano-banana-2', 'nano-banana-2-lite', 'nano-banana-pro',
     'mj-v8.2', 'gpt-image-2', 'seedream-5-0-lite', 'seedream-5-0-pro',
     'lyria-clip', 'seed-audio-1.0', 'grok-image', 'grok-image-quality',
-    'grok-video', 'grok-video-1.5', 'gemini-omni-flash', 'hailuo-h3', 'h3-max-turbo',
+    'grok-video', 'grok-video-1.5', 'gemini-omni-flash', 'hailuo-h3', 'hailuo-h3-max', 'h3-max-turbo',
+    'upscale-video-topaz-starlight-2.5',
   ]) assert.ok(routing.includes(model), `${model} routing missing`);
   for (const obsolete of ['midjourney-v7', 'mj-v8.1', 'happyhorse-1.0', 'kling-3.0-omni']) {
     assert.ok(!routing.includes(obsolete), `${obsolete} should not be routed`);
