@@ -6,7 +6,7 @@ description: >
   plans. Supports episode-level review sheets and shot-by-shot planning.
 metadata:
   author: renoise
-  version: 0.4.0
+  version: 0.4.1
   category: video-production
   tags: [storyboard, short-drama, adaptation, image-generation, video-generation, portable]
 ---
@@ -15,7 +15,7 @@ metadata:
 
 Turn source text into usable visual planning for short drama and AI video generation. Do not paste raw novel/script text into image prompts; first adapt it into visual beats.
 
-Use only capabilities exposed by the current host. Planning works without generation capability. If the user asks to generate outputs, query live capabilities and use the host's approval-controlled generation flow. If generation is unavailable, return the complete plan and prompts in the conversation; never guess commands or require host filesystem access.
+Use only capabilities exposed by the current host. Planning works without generation capability. If the user asks to generate outputs, query live capabilities and hand the complete plan to the active host execution workflow. If generation is unavailable, return the complete plan and prompts in the conversation; never guess commands or require host filesystem access.
 
 ```text
 source → adaptation bible → episode beats → shot list/sheet plan → references → prompts → optional generation → QA → targeted rerun
@@ -119,9 +119,8 @@ Before optional generation, read `../model-routing/SKILL.md`, then:
 1. Query live image-model capabilities.
 2. Preserve a user-selected model; otherwise choose the best available specialist for the shot/sheet task and use the advertised default only as fallback.
 3. Apply that model's prompting profile and use only advertised ratio, resolution, duration, material roles, and limits.
-4. Present the prompt, references, parameters, and estimate.
-5. Wait for explicit approval.
-6. Record the returned task ID before waiting or polling.
+4. Hand the complete prompt, references, and parameters to the active host execution workflow.
+5. Record any task identifier returned by the host before waiting or polling.
 
 ## 4. Output Templates
 

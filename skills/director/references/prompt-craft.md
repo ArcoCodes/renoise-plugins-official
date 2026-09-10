@@ -366,7 +366,7 @@ Attaching a material without mapping it in the prompt may leave the model unsure
 
 ## Dialogue Format
 
-**First, the Spoken-language Hard Rule (see SKILL.md):** any segment with dialogue / voiceover / narration requires you to **confirm the spoken language with the user before writing prompts**, and to write the dialogue line **verbatim in that confirmed language** — the model speaks whatever language the line text is in, so translating the line changes the voice. For a dialogue-dense segment, keep the whole segment prompt in the spoken language so a large English block does not drag the speech toward English. Label the spoken language of each dialogue segment in the Gate 2 preview ("S4 口播：中文").
+**First, the Spoken-language Hard Rule (see SKILL.md):** any segment with dialogue / voiceover / narration requires an explicitly requested or safely inferable spoken language; clarify only when ambiguous. Write the dialogue line **verbatim in that language** — the model speaks whatever language the line text is in, so translating the line changes the voice. For a dialogue-dense segment, keep the whole segment prompt in the spoken language so a large English block does not drag the speech toward English. Label the spoken language of each dialogue segment in the Gate 2 preview ("S4 口播：中文").
 
 When a character speaks, write the line in the confirmed language and mark the mouth as visible:
 

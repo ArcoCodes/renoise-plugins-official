@@ -13,7 +13,7 @@
 | **Subject** | Person + product exist together as storytelling elements — neither dominates; anchor both with `@` references |
 | **Selling-Point Action** | Replace feature callouts with cinematic micro-moments: product interacting with environment (boot crushing wet grass, jacket catching wind), body language conveying effort or freedom |
 | **Scene & Tone** | Rich, specific environments — anchor with the scene's `@material:{id}` token; describe light quality (golden morning haze, blue-hour ridge glow), atmosphere, and how the environment feels physically |
-| **Camera Language** | Follow the user's shot ideas if specified. If unspecified, propose a shot plan and wait for confirmation before writing prompts. |
+| **Camera Language** | Follow the user's shot ideas if specified. If unspecified, use and disclose a coherent shot plan before writing prompts. |
 | **Audio** | No dialogue — music-driven. Write a **unified audio direction** spanning the entire video, with per-shot accents. |
 | **Post-Production** | Person consistency across all shots; end frame reserved for slogan/logo (fade to black + centered text); no jump cuts |
 
@@ -32,7 +32,7 @@ Generate as **one single task**. Write all visual stages into one prompt plus a 
 
 **How to determine the shot plan:**
 - User has clear shots → use them directly and polish
-- Brief is vague → propose a shot plan and wait for user confirmation before writing the prompt
+- Brief is vague → use the default arc below, adapt it to the brief, and disclose the shot plan before writing the prompt
 
 **Default arc when unspecified** (adjust freely):
 ```
