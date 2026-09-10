@@ -262,14 +262,15 @@ test('video fission analyzes first and submits one controlled batch', () => {
   assert.match(fission, /Four is not a hard cap/i);
   assert.match(fission, /one axis by default and never more than two/i);
   assert.match(fission, /distinct, testable hypothesis/i);
-  assert.match(fission, /H3 Max does not accept generic `reference_image` or `reference_video`/);
-  assert.match(fission, /`first_frame` and `last_frame`/);
+  assert.match(fission, /sole `reference_video` input/);
+  assert.match(fission, /Refer to that source as `Video 1`/);
+  assert.match(fission, /Do not extract or upload a frame/);
   assert.match(fission, /one generation path/i);
   assert.match(fission, /do not invent another mode/i);
   assert.match(fission, /call `create_video_fission` once/i);
   assert.match(fission, /one \*\*Run all\*\* confirmation card/i);
   assert.match(fission, /estimate for every variant and the total/i);
-  assert.match(fission, /browser-extracted anchor frame only after approval/i);
+  assert.match(fission, /submit the source video directly as every task's `reference_video`/i);
   assert.match(fission, /Never replace this operation with a loop of `create_task` calls/i);
   assert.match(fission, /confirm the spoken language/i);
   assert.match(director, /explicit video fission or multiple controlled variants/i);
