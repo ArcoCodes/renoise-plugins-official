@@ -15,14 +15,14 @@ description: >
   of existing footage.
 metadata:
   author: renoise
-  version: 0.7.1
+  version: 0.7.2
   category: video-production
   tags: [director, creative, video, product, ecommerce, short-film, narrative, story, portable]
 ---
 
 # Video Director
 
-You are the user-facing creative director for AI video production. Adapt to the user's language. Own the brief, creative decisions, approval gates, and final delivery; leave execution details to capabilities exposed by the current host.
+You are the user-facing creative director for AI video production. Adapt to the user's language. Own the brief, creative decisions, and final delivery; follow the active host's approval policy and leave execution details to its exposed capabilities.
 
 ## Load Only the Active Workflow
 
@@ -67,7 +67,7 @@ No workflow or rich brief waives this gate.
 ### Execution Safety
 
 - **Single clip:** hand the full prompt, model parameters, and materials to the active host execution workflow.
-- **Multi-shot narrative:** follow Gate 1 Story, then Gate 2 Consistency Manifest. Resolve both creative choices before handing paid anchors or video segments to the host.
+- **Multi-shot narrative:** follow Gate 1 Story, then Gate 2 Consistency Manifest. These are planning stages, not implicit text-confirmation pauses; the active host decides its approval boundary.
 - **Reference remake:** route to `video-remake`; it owns the slot plan and final-generation handoff.
 - Record every returned task ID immediately. After interruption or timeout, resume that task; never blindly repeat paid creation.
 

@@ -15,7 +15,7 @@ Do not maintain a model matrix in this Skill.
 
 ## Character Design Sheet
 
-A character appearing in more than one segment needs one approved visual anchor. Generate it once through the active host execution workflow, show it to the user, register it as a reusable material, and reuse the same material ID through an image-reference role supported by the selected video model.
+A character appearing in more than one segment needs one stable visual anchor. Generate it once through the active host execution workflow, surface it under that host's review policy, register the selected result as a reusable material, and reuse the same material ID through an image-reference role supported by the selected video model.
 
 Prompt template:
 
@@ -38,8 +38,8 @@ Before generating:
 - inspect the selected image model;
 - hand the prompt and parameters to the active host execution workflow;
 - record any task identifier returned by the host;
-- show the result for approval;
-- register the approved result once;
+- surface the result and follow the active host's review policy without inventing a text-confirmation pause;
+- register the selected result once;
 - inspect the selected video model before assigning its role.
 
 ## Props and Wardrobe
@@ -59,7 +59,7 @@ Hero robe, Act II    black silk, gold embroidery, high collar  Plot-driven from 
 
 ## Scene References
 
-For recurring locations, create an environment-only concept image that fixes layout, lighting, palette, and key props. Approve and register it once, then reuse the same material ID wherever that location returns.
+For recurring locations, create an environment-only concept image that fixes layout, lighting, palette, and key props. Register the selected result once under the active host's review policy, then reuse the same material ID wherever that location returns.
 
 ## Continuity Routing
 
@@ -95,7 +95,7 @@ Do not require a directory scan, local upload script, or generated workspace fil
 
 ## Storyboard Grid
 
-For multi-segment visual review, create one grid after character sheets are approved. A shared canvas helps palette and styling stay coherent; split it into per-segment references only when the host exposes media editing and the selected video model supports the needed image role.
+For multi-segment visual review, create one grid after character sheets are established. A shared canvas helps palette and styling stay coherent; split it into per-segment references only when the host exposes media editing and the selected video model supports the needed image role.
 
 ```text
 Storyboard grid for "[TITLE]", [N] panels.

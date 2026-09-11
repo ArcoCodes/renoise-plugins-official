@@ -239,9 +239,11 @@ test('setup keeps managed CLI current and still gates manual install', () => {
   assert.match(installer, /needsManagedUpdate/);
 });
 
-test('director stays a thin router with lazily loaded workflows', () => {
+test('director stays a thin router with host-controlled approval boundaries', () => {
   const director = readFileSync('skills/director/SKILL.md', 'utf8');
   const narrative = readFileSync('skills/director/workflows/narrative.md', 'utf8');
+  const visualDev = readFileSync('skills/director/references/visual-dev.md', 'utf8');
+  const promptCraft = readFileSync('skills/director/references/prompt-craft.md', 'utf8');
   const files = readJSON('skills/manifest.json').skills.find(({ id }) => id === 'director').files;
   assert.ok(Buffer.byteLength(director) < 10_000, 'director entry point should stay under 10 KB');
   assert.ok(files.includes('skills/director/workflows/narrative.md'));
@@ -250,7 +252,12 @@ test('director stays a thin router with lazily loaded workflows', () => {
   assert.match(director, /workflows\/narrative\.md/);
   assert.match(director, /storyboard-sheet/);
   assert.match(director, /multiple controlled variants from one supplied source/i);
+  assert.match(director, /planning stages, not implicit text-confirmation pauses/i);
+  assert.match(narrative, /do not create extra text-confirmation pauses/i);
   assert.match(narrative, /paid anchor images.*active host workflow/is);
+  assert.match(visualDev, /without inventing a text-confirmation pause/i);
+  assert.match(promptCraft, /active host's review policy/i);
+  assert.doesNotMatch([director, narrative, visualDev, promptCraft].join('\n'), /wait for (?:explicit )?(?:approval|confirmation)/i);
 });
 
 test('video fission analyzes first and hands off one portable logical batch', () => {

@@ -28,10 +28,10 @@ Use when the requested duration fits one advertised model duration.
 
 ## Multi-Clip: Two Gates
 
-Resolve both creative gates in order before handing video generation to the host. Paid anchor images may execute during Gate 2 through the active host workflow:
+Resolve both creative gates in order before handing video generation to the host. They structure the plan but do not create extra text-confirmation pauses: the active host owns every approval boundary. Paid anchor images may execute during Gate 2 through that workflow:
 
 ```text
-brief → Gate 1 Story → approval → Gate 2 anchor plan/cost → anchor approval → final manifest/prompts → approval → generate video → QC → assemble
+brief → Gate 1 Story → Gate 2 anchor plan/cost → final manifest/prompts → host execution boundary → generate video → QC → assemble
 ```
 
 ### Gate 1 — Story
@@ -46,15 +46,15 @@ Rules:
 - Connect scenes with consequence (**THEREFORE**) or complication (**BUT**), not a sequence of **AND THEN** events. At least 30% of transitions should complicate the story.
 - Do not target the same viewer emotion in adjacent scenes.
 - For adaptations, keep visual, emotional, self-contained scenes; cut exposition-heavy material and externalize internal thought through action.
-- Wait for approval before creating character sheets, scene references, or video.
+- Hand the resolved story into Gate 2 under the active host's approval policy; do not invent a separate text confirmation.
 
 ### Gate 2 — Consistency Manifest
 
-After the story is approved:
+After the story is resolved:
 
 1. Hand every needed character/location anchor prompt and selected image model to the active host execution workflow.
-2. Generate only accepted anchors and let the user approve or replace each result.
-3. Draft all segment prompts and present the final manifest below in one editable block; wait for approval before any video task.
+2. Surface generated anchors and follow the host's selection or replacement policy without inventing another confirmation step.
+3. Draft all segment prompts and present the final manifest below in one editable block, then hand it to the active host workflow; pause only when that host's policy requires it.
 
 | Item | Lock |
 |---|---|
