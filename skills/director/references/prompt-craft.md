@@ -184,7 +184,7 @@ The Style Bible is a locked line item of the director skill's **Gate 2 Consisten
 
 ### Transition Table (design cuts before you generate)
 
-For a multi-shot piece, plan the **cut points** explicitly and get them confirmed as part of Gate 2. For every boundary record three things:
+For a multi-shot piece, plan the **cut points** explicitly and resolve them as part of Gate 2 under the active host's review policy. For every boundary record three things:
 
 | Cut | Prev segment OUT-frame | Next segment IN-frame | Linking technique |
 |-----|------------------------|-----------------------|-------------------|
