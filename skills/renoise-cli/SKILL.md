@@ -16,7 +16,7 @@ allowed-tools: Bash, Read, Write, Glob
 user-invocable: false
 metadata:
   author: renoise
-  version: 0.8.0
+  version: 0.8.1
   category: video-production
   tags: [general, video-generation, image-generation, material-pool]
 ---
@@ -143,7 +143,7 @@ Before spending credits:
 3. Multiply `estimatedCredit` by the planned number of generations and add character-sheet, upscale, audio, and retry costs when applicable.
 4. Compare with `renoise account status --json`.
 5. Present the complete final prompt in a fenced block plus the selected model, media type, resolution, duration/ratio, ordered material IDs and roles, generation count, estimated credits, and current balance.
-6. End the turn and wait for the user's explicit approval of that displayed proposal. This gate applies to every paid generation path, including annotation-board submissions; it is never waived by an earlier “直接生成” instruction or by approval of a source directory, upload, storyboard, or annotation intent.
+6. Wait for one explicit approval immediately before executing the disclosed paid batch. This gate applies to every paid generation path, including annotation-board submissions; it is never waived by an earlier “直接生成” instruction or by approval of a source directory, upload, storyboard, or annotation intent. Do not ask for an earlier duplicate approval.
 7. After approval, create with the exact approved prompt and arguments. If any prompt text, model, parameter, material mapping, generation count, or estimate changes, show the revised proposal and obtain approval again.
 
 Never quote static prices.

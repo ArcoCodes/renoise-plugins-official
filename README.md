@@ -9,6 +9,8 @@ AI video production skills by Renoise — creative direction, generation, analys
 | **Create with Renoise** (`director`) | Portable creative direction for product ads, short films, e-commerce, drama, and comedy |
 | `model-routing` | Internal task-to-model router and model-specific prompting guide |
 | **Build Storyboard** (`storyboard-sheet`) | Portable script/novel adaptation into review sheets, shot lists, first frames, and video prompts |
+| `video-fission` | Portable controlled-variant experiments from one owner-authorized source video |
+| `video-remake` | Portable reference-video recreation with controlled character, product, brand, prop, or scene replacement |
 | `renoise-cli` | Local-only CLI execution for capabilities, media analysis, generation, uploads, tasks, and production helpers |
 | **Setup / Account** (`renoise-setup`) | Local-only CLI installation/update, secure login, and readiness checks |
 | **Renoise Annotation Board** (`canvas`) | Local image/frame annotation board for snapshots and structured revision handoff |
@@ -101,6 +103,20 @@ Plugin maintainers can run `npm run validate:plugin` to execute the official plu
 | `RENOISE_WHITEBOARD_MAX_VIDEO_BYTES` | Optional whiteboard limit | Maximum imported MP4/WebM byte size. Defaults to 262144000 (250 MB); accepted range is 1 MB–2 GB. |
 
 ## Version & upgrading
+
+### 1.8.0
+
+- Refreshed model routing, removed obsolete recommendations, and added H3 Max, H3 Max Turbo, and Topaz Starlight guidance.
+- Improved automatic discovery of the internal model-routing skill.
+
+### 1.7.0
+
+- Split reference-video recreation (`复刻视频` / `剪同款`) into the standalone portable `video-remake` skill.
+
+### 1.6.0
+
+- Added `video-fission` for one- or two-axis controlled experiments with one batch approval.
+- Slimmed `director` into a route-first entry point with lazily loaded narrative and commercial workflows.
 
 ### 1.5.0
 
