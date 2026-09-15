@@ -7,7 +7,7 @@ description: >
   source first, then resolve what should vary before proposing any generation.
 metadata:
   author: renoise
-  version: 0.2.1
+  version: 0.2.2
   category: video-production
   tags: [video, fission, variants, experimentation, portable]
 ---
@@ -48,10 +48,10 @@ Offer only source-relevant directions, such as action/motion, camera treatment, 
 This workflow has one generation path:
 
 1. Select MiniMax H3 Max (`hailuo-h3-max`) only if the live capability advertises `reference_video`.
-2. Use the exact owner-authorized source as every variant's sole `reference_video` input.
+2. Use the exact owner-authorized source analyzed in Step 1 as every variant's sole `reference_video` input. If the source reference changes, analyze the replacement before continuing.
 3. Refer to that source as `Video 1` in every generation prompt.
 
-Do not extract or upload a frame, and do not replace the source with a `first_frame`. Respect the live capability's reference-video duration and count limits. If H3 Max reference-video generation is not live or the source is outside those limits, stop and explain that this workflow is currently unavailable; do not invent another mode or silently route to another model.
+Do not extract or upload a frame, and do not replace the source with a `first_frame`. Before handing off paid execution, compare the analyzed source with the live capability's reference-video duration and count limits. If the source exceeds a duration limit, report its measured duration and the live limit when available, ask the user to shorten it below that limit with an editor available to them, then require the shortened source to be referenced and analyzed again. If H3 Max reference-video generation is not live or another source limit is violated, stop and explain the incompatibility. Do not assume a particular host editor, invent another mode, or silently route to another model.
 
 ## 3. Design the Experiment
 
