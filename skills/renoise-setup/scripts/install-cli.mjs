@@ -104,9 +104,11 @@ function extract(archive, destination, platform) {
   }
 }
 
-export function hasRequiredCommands(createHelp, waitHelp, authHelp, loginHelp, analyzeHelp) {
+export function hasRequiredCommands(createHelp, costHelp, waitHelp, authHelp, loginHelp, analyzeHelp) {
   return createHelp.includes('renoise task create')
     && createHelp.includes('--prompt-file')
+    && costHelp.includes('renoise task cost')
+    && costHelp.includes('--edit')
     && waitHelp.includes('renoise task wait')
     && authHelp.includes('renoise auth exec')
     && loginHelp.includes('--web')
@@ -126,11 +128,12 @@ export function compareVersions(left, right) {
 function verify(target) {
   execFileSync(target, ['version'], { stdio: 'pipe' });
   const createHelp = execFileSync(target, ['help', 'task', 'create'], { encoding: 'utf8' });
+  const costHelp = execFileSync(target, ['help', 'task', 'cost'], { encoding: 'utf8' });
   const waitHelp = execFileSync(target, ['help', 'task', 'wait'], { encoding: 'utf8' });
   const authHelp = execFileSync(target, ['help', 'auth', 'exec'], { encoding: 'utf8' });
   const loginHelp = execFileSync(target, ['help', 'auth', 'login'], { encoding: 'utf8' });
   const analyzeHelp = execFileSync(target, ['help', 'analyze'], { encoding: 'utf8' });
-  if (!hasRequiredCommands(createHelp, waitHelp, authHelp, loginHelp, analyzeHelp)) throw new Error('Release is incompatible: agent-safe tasks, media analysis, auth exec, and browser login are required');
+  if (!hasRequiredCommands(createHelp, costHelp, waitHelp, authHelp, loginHelp, analyzeHelp)) throw new Error('Release is incompatible: agent-safe tasks, edit cost estimation, media analysis, auth exec, and browser login are required');
 }
 
 function findOnPath(binary) {
@@ -149,6 +152,7 @@ function inspectInstalled(info) {
   try {
     const versionOutput = execFileSync(path, ['version'], { encoding: 'utf8' }).trim();
     const createHelp = execFileSync(path, ['help', 'task', 'create'], { encoding: 'utf8' });
+    const costHelp = execFileSync(path, ['help', 'task', 'cost'], { encoding: 'utf8' });
     const waitHelp = execFileSync(path, ['help', 'task', 'wait'], { encoding: 'utf8' });
     const authHelp = execFileSync(path, ['help', 'auth', 'exec'], { encoding: 'utf8' });
     const loginHelp = execFileSync(path, ['help', 'auth', 'login'], { encoding: 'utf8' });
@@ -157,7 +161,7 @@ function inspectInstalled(info) {
       path,
       version: versionOutput.match(/\b(v?\d+\.\d+\.\d+)\b/)?.[1]?.replace(/^v/, '') || 'unknown',
       versionOutput,
-      compatible: hasRequiredCommands(createHelp, waitHelp, authHelp, loginHelp, analyzeHelp),
+      compatible: hasRequiredCommands(createHelp, costHelp, waitHelp, authHelp, loginHelp, analyzeHelp),
     };
   } catch {
     return { path, version: 'unknown', versionOutput: 'unreadable', compatible: false };
@@ -220,6 +224,7 @@ function managedInstall(info) {
     const path = resolve(info.target);
     const versionOutput = execFileSync(path, ['version'], { encoding: 'utf8' }).trim();
     const createHelp = execFileSync(path, ['help', 'task', 'create'], { encoding: 'utf8' });
+    const costHelp = execFileSync(path, ['help', 'task', 'cost'], { encoding: 'utf8' });
     const waitHelp = execFileSync(path, ['help', 'task', 'wait'], { encoding: 'utf8' });
     const authHelp = execFileSync(path, ['help', 'auth', 'exec'], { encoding: 'utf8' });
     const loginHelp = execFileSync(path, ['help', 'auth', 'login'], { encoding: 'utf8' });
@@ -228,7 +233,7 @@ function managedInstall(info) {
       path,
       version: versionOutput.match(/\b(v?\d+\.\d+\.\d+)\b/)?.[1]?.replace(/^v/, '') || 'unknown',
       versionOutput,
-      compatible: hasRequiredCommands(createHelp, waitHelp, authHelp, loginHelp, analyzeHelp),
+      compatible: hasRequiredCommands(createHelp, costHelp, waitHelp, authHelp, loginHelp, analyzeHelp),
     };
   } catch {
     return { path: resolve(info.target), version: 'unknown', versionOutput: 'unreadable', compatible: false };
