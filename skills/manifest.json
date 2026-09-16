@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pluginVersion": "1.8.4",
+  "pluginVersion": "1.9.0",
   "skills": [
     {
       "id": "director",
@@ -106,6 +106,15 @@
         "bash",
         "filesystem",
         "browser"
+      ]
+    },
+    {
+      "id": "canvas",
+      "runtime": "local-mcp-app",
+      "entry": "skills/canvas/SKILL.md",
+      "requires": [
+        "filesystem",
+        "mcp-apps"
       ]
     },
     {

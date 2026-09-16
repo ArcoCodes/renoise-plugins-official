@@ -1,0 +1,4 @@
+interface:
+  display_name: "Renoise Whiteboard"
+  short_description: "Mark image and video-frame revisions on the Renoise annotation board"
+  default_prompt: "Open the Renoise annotation board so I can mark this media for revision."
