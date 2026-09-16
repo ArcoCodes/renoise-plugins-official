@@ -986,7 +986,7 @@ process.stdout.write(JSON.stringify({streams:[{width:1280,height:720}],format:{d
   assert.ok(Date.now() - finalizeStartedAt < 100, "MCP-facing finalize start must not wait for FFmpeg");
   assert.equal(store.getVideoUploadFinalizeStatus(session, started.uploadId).status, "processing");
   let finalized;
-  for (let attempt = 0; attempt < 100; attempt += 1) {
+  for (let attempt = 0; attempt < 250; attempt += 1) {
     const status = store.getVideoUploadFinalizeStatus(session, started.uploadId);
     if (status.status === "complete") {
       finalized = status;

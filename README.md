@@ -104,6 +104,11 @@ Plugin maintainers can run `npm run validate:plugin` to execute the official plu
 
 ## Version & upgrading
 
+### 1.9.0
+
+- Added Renoise Visual Edit for structured image and video-frame annotation in Codex Desktop.
+- Added project-local media persistence, Renoise material references, and source-aware revision handoff.
+
 ### 1.8.0
 
 - Refreshed model routing, removed obsolete recommendations, and added H3 Max, H3 Max Turbo, and Topaz Starlight guidance.
