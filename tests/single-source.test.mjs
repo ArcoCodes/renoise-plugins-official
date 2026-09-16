@@ -315,11 +315,16 @@ test('video fission analyzes first and hands off one portable logical batch', ()
   assert.match(fission, /Four is not a hard cap/i);
   assert.match(fission, /one axis by default and never more than two/i);
   assert.match(fission, /distinct, testable hypothesis/i);
-  assert.match(fission, /sole `reference_video` input/);
+  assert.match(fission, /source analyzed in Step 1 as every variant's sole `reference_video` input/);
+  assert.match(fission, /source reference changes, analyze the replacement before continuing/);
   assert.match(fission, /Refer to that source as `Video 1`/);
   assert.match(fission, /Do not extract or upload a frame/);
+  assert.match(fission, /report its measured duration and the live limit/);
+  assert.match(fission, /shorten it below that limit with an editor available to them/);
+  assert.match(fission, /shortened source to be referenced and analyzed again/);
+  assert.doesNotMatch(fission, /Canvas|14\.8/i, 'portable guidance must not assume Renoise host UI or an arbitrary margin');
   assert.match(fission, /one generation path/i);
-  assert.match(fission, /do not invent another mode/i);
+  assert.match(fission, /invent another mode/i);
   assert.match(fission, /Hand Off One Logical Batch/i);
   assert.match(fission, /native batch primitive when the host exposes one/i);
   assert.match(fission, /actual parameters needed for per-variant and total estimation/i);
