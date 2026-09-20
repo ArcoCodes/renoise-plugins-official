@@ -104,6 +104,10 @@ Plugin maintainers can run `npm run validate:plugin` to execute the official plu
 
 ## Version & upgrading
 
+### 1.9.1
+
+- Routed GPT Image requests to GPT Image 2.5 and stopped automatically selecting older model generations.
+
 ### 1.9.0
 
 - Added Renoise Visual Edit for structured image and video-frame annotation in Codex Desktop.

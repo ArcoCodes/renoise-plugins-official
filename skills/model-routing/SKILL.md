@@ -9,7 +9,7 @@ description: >
 user-invocable: false
 metadata:
   author: renoise
-  version: 0.2.0
+  version: 0.3.0
   category: media-generation
   tags: [model-routing, prompting, image, video, audio, portable]
 ---
@@ -24,13 +24,14 @@ Live model capabilities are authoritative for availability, defaults, input role
 
 1. Preserve a model explicitly named by the user.
 2. Filter candidates by the live capabilities required by the task.
-3. Choose the best specialist below.
-4. Use the live `isDefault` model only when no specialist clearly fits or candidates tie.
-5. Inspect the selected model's live guidance before writing the final prompt.
-6. Let the selected model's profile override generic prompt-craft advice when prompt structure, density, or reference wording conflicts.
-7. Never pass a role or parameter merely because this guide mentions a public model capability; the Renoise deployment may expose a narrower contract.
+3. Route only to the newest live generation of a model family; older generations remain available only when the user explicitly names one.
+4. Choose the best specialist below.
+5. Use the live `isDefault` model only when no specialist clearly fits or candidates tie.
+6. Inspect the selected model's live guidance before writing the final prompt.
+7. Let the selected model's profile override generic prompt-craft advice when prompt structure, density, or reference wording conflicts.
+8. Never pass a role or parameter merely because this guide mentions a public model capability; the Renoise deployment may expose a narrower contract.
 
-Live availability alone is not a routing recommendation. Omit models that are fully dominated or lack a clear task advantage; an explicitly named model still follows rule 1.
+Live availability alone is not a routing recommendation. Omit older generations, fully dominated models, and models without a clear task advantage; an explicitly named model still follows rule 1.
 
 ## Routing Questions
 
@@ -50,7 +51,7 @@ Do not call a model “best” without naming the task it is best for.
 
 | Task | Prefer | Why |
 |---|---|---|
-| Exact text, UI, diagrams, ads, packaging, compositing, identity-sensitive edits, or peak final quality | `gpt-image-2` | Strong instruction following, photorealism, typography/layout preservation, localization, and complex editing; favor it when fewer retries matter more than latency or cost. |
+| Exact text, UI, diagrams, ads, packaging, compositing, identity-sensitive image-to-image work, or peak final quality | `gpt-image-2.5-sunburst` | Newest OpenAI image generation; strong instruction following, photorealism, typography/layout preservation, localization, and complex composition. Use `gpt-image-2.5-flare` only when the user explicitly requests that variant. |
 | General high-quality photorealistic or commercial image | live image default, currently `seedream-5-0-pro` | Strong realism, dense information design, multilingual typography, multi-image compositing, and controlled local edits at the deployment's normal quality/cost balance. |
 | High-throughput variants, prototyping, interactive generation, or cost-sensitive production | `nano-banana-2-lite` | Low-latency scale tier for clear, shallow workflows; use another tier when the task depends on many references or sequential editing. |
 | Balanced Google workflow, extreme aspect ratios, several references, multilingual localization, or conversational iteration | `nano-banana-2` | Google-family workhorse balancing quality, latency, text, reference reasoning, and broad formats. |
@@ -61,7 +62,7 @@ Do not call a model “best” without naming the task it is best for.
 
 ## Image Prompting Styles
 
-### GPT Image 2 — production brief
+### GPT Image 2.5 — production brief
 
 For complex production briefs, use labeled, ordered instructions:
 
@@ -77,10 +78,11 @@ CHANGE ONLY: ...
 AVOID: ...
 ```
 
+- Route a generic GPT Image 2.5 request to Sunburst; use Flare only when explicitly requested.
 - Put literal in-image text in quotes and specify hierarchy and placement.
-- For edits, say **change only X; preserve everything else**.
+- For image-to-image transformations, say **change only X; preserve everything else**.
 - Identify every reference by its job: source, identity, product, layout, or style.
-- Prefer one-change iterative edits over rewriting the whole brief.
+- Prefer one-change iterations over rewriting the whole brief; do not promise mask inpainting.
 
 ### Nano Banana family — conversational creative direction
 
@@ -145,28 +147,23 @@ Use a concise visual description, not a requirements document:
 
 | Task | Prefer | Why |
 |---|---|---|
-| Explicit Seedance 2.5 request, continuous 16–30 second sequence, rich mixed references, source-video edit, or forward/backward extension | `seedance-2.5-byteplus` | Long-form and reference-heavy specialist with precise edit/extension workflows. |
-| General multimodal video, complex physical motion, recurring references, product/character continuity, or image-to-video with synchronized audio | `seedance-2.0-byteplus` | Live generalist with strong image/video/audio role assignment, motion, continuity, and native sound. |
-| Fast Seedance draft | `seedance-2.0-fast-byteplus` | Official speed/cost balance tier. |
-| Lowest-cost/high-volume Seedance draft | `seedance-2.0-mini-byteplus` | Cost-performance tier for iteration and selection. |
+| General multimodal video, continuous 16–30 second sequences, rich mixed references, source-video edits, or forward/backward extension | `seedance-2.5-byteplus` | Newest Seedance generation and the long-form, reference-heavy specialist with precise edit/extension workflows. |
 | Short 720p generation, text rendering, or source-video edit within its narrow live contract | `gemini-omni-flash` | Strong short-form instruction following, multi-shot generation, and conversational editing. |
 | Exact first frame, last frame, frame interpolation, focused video references, 2K delivery, or reference audio paired with visual references | `hailuo-h3` | Strong endpoint control and structured multimodal audiovisual direction. |
 | Fast H3-family text-to-video or first/last-frame generation where 768p is enough but quality matters more than minimum cost | `hailuo-h3-max` | Quality/speed middle tier between full H3 and Turbo; current arena results remain strong. |
 | Fastest, lowest-cost H3-family text-to-video or first/last-frame generation | `h3-max-turbo` | Rapid low-cost iteration when the live contract needs no generic image, video, or audio references; use full H3 instead when references or 2K are required. |
-| xAI one-image animation with native sound | `grok-video-1.5` | Current Renoise 1.5 contract requires exactly one input image. |
-| xAI text-to-video or video needing several image references | `grok-video` | The base contract retains text-only and multi-image modes that 1.5 does not expose. |
+| xAI one-image animation with native sound | `grok-video-1.5` | Newest Grok video generation; the current Renoise contract requires exactly one input image. |
 | Upscale an existing video without changing its content | `upscale-video-topaz-starlight-2.5` | Dedicated restoration/upscaling model; use a generation or editing model when objects, motion, timing, or style should change. |
 
 ### Tier and version notes
 
-- Seedance Full, Fast, and Mini are respectively the quality, speed/cost-balance, and cost-performance tiers; live estimates decide the actual trade-off.
 - Within the H3 family, use H3 for 2K or multimodal references, H3 Max for faster official-channel first/last-frame work, and H3 Max Turbo for the fastest and cheapest text/first/last-frame iteration. Never infer reference-to-video support for Max or Turbo when the live roles do not expose it.
 - Grok's public upstream capabilities may move faster than Renoise's contract. Route from live roles and limits rather than assuming an upstream feature is connected.
 - Model preference leaderboards are task-, resolution-, and audio-filter-specific; use them as volatile evidence, not a single aggregate ranking.
 
 ## Video Prompting Styles
 
-### Seedance family — multimodal director brief
+### Seedance 2.5 — multimodal director brief
 
 Assign each reference an explicit job, then write shots:
 
@@ -186,8 +183,7 @@ Constraints: no subtitles/logo/watermark unless requested.
 - Give each beat a clear camera behavior; avoid simultaneous conflicting moves.
 - Describe body part, speed, force, and physical consequence for actions.
 - Externalize emotion through visible behavior and direct dialogue/audio explicitly.
-- Use the same prompt structure for Fast/Mini while keeping draft requests easy to compare.
-- For Seedance 2.5, begin with the intended result, map every reference to its purpose, then use non-overlapping timestamp ranges or numbered shots with continuity notes.
+- Begin with the intended result, map every reference to its purpose, then use non-overlapping timestamp ranges or numbered shots with continuity notes.
 - For a source-video edit, name the source, the intended change, its time range when relevant, and what remains unchanged.
 - For extension, state forward or backward direction and describe the visual, motion, and audio continuity across the source boundary.
 
@@ -234,8 +230,8 @@ Sound: specific dialogue/SFX/ambience; no music if unwanted.
 ```
 
 - Use one primary action or a short causal sequence and front-load the important motion.
-- For text-to-video, include the subject and setting; for image-to-video, describe the change from the starting frame.
-- Assign every live reference a clear visual or motion job.
+- Attach exactly one input image and describe the change from that starting frame.
+- Give the attached image a clear visual or motion job.
 - Request dialogue, effects, ambience, or music explicitly when native audio matters.
 
 ### Topaz Starlight — no creative prompt
@@ -294,7 +290,7 @@ Reviewed 2026-09-10. Rankings are directional and decay quickly; live capabiliti
 
 Primary guidance:
 
-- OpenAI GPT Image: https://developers.openai.com/api/docs/models/gpt-image-2, https://developers.openai.com/api/docs/guides/image-generation, and https://developers.openai.com/cookbook/examples/multimodal/image-gen-models-prompting-guide
+- OpenAI GPT Image: https://developers.openai.com/api/docs/models/gpt-image-2.5, https://developers.openai.com/api/docs/guides/image-generation, and https://developers.openai.com/cookbook/examples/multimodal/image-gen-models-prompting-guide
 - Google Gemini image: https://ai.google.dev/gemini-api/docs/image-generation and https://cloud.google.com/blog/products/ai-machine-learning/ultimate-prompting-guide-for-nano-banana
 - Midjourney prompting/version docs: https://docs.midjourney.com/hc/en-us/articles/32023408776205-Prompt-Basics, https://docs.midjourney.com/hc/en-us/articles/32199405667853-Version, and https://updates.midjourney.com/version-8-2/
 - ByteDance Seedream: https://seed.bytedance.com/en/blog/deeper-thinking-more-accurate-generation-introducing-seedream-5-0-lite and https://seed.bytedance.com/en/blog/beyond-generation-it-understands-design-introducing-seedream-5-0-pro
