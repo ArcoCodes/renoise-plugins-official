@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
 import test from 'node:test';
 import { compareVersions, expectedChecksum, hasRequiredCommands, planFromManifest, platformInfo, selectArchive } from '../skills/renoise-setup/scripts/install-cli.mjs';
@@ -55,6 +56,36 @@ test('skill manifest separates portable creative methods from local execution', 
   assert.ok(byId.get('video-fission').requires.includes('tasks.create'));
   assert.ok(byId.get('video-remake').requires.includes('media.analyze'));
   assert.ok(byId.get('video-remake').requires.includes('tasks.create'));
+});
+
+test('standalone skills package is dependency-free and reproducible', () => {
+  const pkg = readJSON('skills/package.json');
+  const manifest = readJSON('skills/manifest.json');
+  assert.equal(pkg.name, '@renoise/skills');
+  assert.equal(pkg.private, true);
+  assert.equal(pkg.dependencies, undefined);
+  assert.equal(pkg.devDependencies, undefined);
+  assert.equal(pkg.scripts, undefined);
+
+  const pack = () => JSON.parse(execFileSync('npm', ['pack', '--dry-run', '--json'], {
+    cwd: 'skills',
+    encoding: 'utf8',
+  }))[0];
+  const first = pack();
+  const second = pack();
+  assert.deepEqual(first.files, second.files);
+  assert.equal(first.size, second.size);
+
+  const packedFiles = new Set(first.files.map(({ path }) => path));
+  assert.ok(packedFiles.has('manifest.json'));
+  for (const skill of manifest.skills) {
+    for (const file of new Set([skill.entry, ...(skill.files ?? [])])) {
+      assert.match(file, /^skills\//);
+      const packageFile = file.slice('skills/'.length);
+      assert.ok(packedFiles.has(packageFile), `${packageFile} missing from @renoise/skills`);
+    }
+  }
+  assert.ok([...packedFiles].every(file => !/^(?:features|src)\//.test(file)));
 });
 
 test('portable skill files contain no local execution instructions', () => {
@@ -163,6 +194,8 @@ test('model routing keeps only useful specialists without replacing capabilities
     'gpt-image-2', 'grok-video', 'midjourney-v7', 'mj-v8.1', 'happyhorse-1.0', 'kling-3.0-omni',
   ]) assert.ok(!routing.includes(`\`${obsolete}\``), `${obsolete} should not be routed`);
   assert.match(routing, /Route only to the newest live generation/);
+  assert.match(routing, /generic GPT Image 2\.5 request to Flare/);
+  assert.match(routing, /fal's post-trained H3 Max/);
   assert.match(routing, /Live model capabilities are authoritative/);
 });
 

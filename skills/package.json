@@ -1,0 +1,31 @@
+{
+  "name": "@renoise/skills",
+  "version": "0.0.0",
+  "private": true,
+  "license": "Apache-2.0",
+  "description": "Standalone Renoise media-production skills",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ArcoCodes/renoise-plugins-official.git",
+    "directory": "skills"
+  },
+  "files": [
+    "canvas/",
+    "director/",
+    "model-routing/",
+    "renoise-cli/",
+    "renoise-setup/",
+    "storyboard-sheet/",
+    "video-download/",
+    "video-fission/",
+    "video-remake/",
+    "manifest.json"
+  ],
+  "exports": {
+    "./manifest.json": "./manifest.json",
+    "./*": "./*"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

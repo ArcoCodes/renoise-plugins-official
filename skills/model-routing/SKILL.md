@@ -51,7 +51,8 @@ Do not call a model “best” without naming the task it is best for.
 
 | Task | Prefer | Why |
 |---|---|---|
-| Exact text, UI, diagrams, ads, packaging, compositing, identity-sensitive image-to-image work, or peak final quality | `gpt-image-2.5-sunburst` | Newest OpenAI image generation; strong instruction following, photorealism, typography/layout preservation, localization, and complex composition. Use `gpt-image-2.5-flare` only when the user explicitly requests that variant. |
+| Exact text, UI, diagrams, ads, packaging, compositing, identity-sensitive image-to-image work, multi-turn precision edits, or peak final quality | `gpt-image-2.5-sunburst` | OpenAI's most capable 2.5 tier; favor it when preservation and precision matter more than generation time. |
+| Fast OpenAI image generation, everyday creator content, or high-volume GPT Image iteration | `gpt-image-2.5-flare` | OpenAI's default 2.5 tier for most apps, with lower latency and strong general quality. Route a generic GPT Image 2.5 request here unless it clearly needs Sunburst's precision. |
 | General high-quality photorealistic or commercial image | live image default, currently `seedream-5-0-pro` | Strong realism, dense information design, multilingual typography, multi-image compositing, and controlled local edits at the deployment's normal quality/cost balance. |
 | High-throughput variants, prototyping, interactive generation, or cost-sensitive production | `nano-banana-2-lite` | Low-latency scale tier for clear, shallow workflows; use another tier when the task depends on many references or sequential editing. |
 | Balanced Google workflow, extreme aspect ratios, several references, multilingual localization, or conversational iteration | `nano-banana-2` | Google-family workhorse balancing quality, latency, text, reference reasoning, and broad formats. |
@@ -78,7 +79,7 @@ CHANGE ONLY: ...
 AVOID: ...
 ```
 
-- Route a generic GPT Image 2.5 request to Sunburst; use Flare only when explicitly requested.
+- Route a generic GPT Image 2.5 request to Flare; use Sunburst for peak-quality or precision-preserving edit work.
 - Put literal in-image text in quotes and specify hierarchy and placement.
 - For image-to-image transformations, say **change only X; preserve everything else**.
 - Identify every reference by its job: source, identity, product, layout, or style.
@@ -149,15 +150,15 @@ Use a concise visual description, not a requirements document:
 |---|---|---|
 | General multimodal video, continuous 16–30 second sequences, rich mixed references, source-video edits, or forward/backward extension | `seedance-2.5-byteplus` | Newest Seedance generation and the long-form, reference-heavy specialist with precise edit/extension workflows. |
 | Short 720p generation, text rendering, or source-video edit within its narrow live contract | `gemini-omni-flash` | Strong short-form instruction following, multi-shot generation, and conversational editing. |
-| Exact first frame, last frame, frame interpolation, focused video references, 2K delivery, or reference audio paired with visual references | `hailuo-h3` | Strong endpoint control and structured multimodal audiovisual direction. |
-| Fast H3-family text-to-video or first/last-frame generation where 768p is enough but quality matters more than minimum cost | `hailuo-h3-max` | Quality/speed middle tier between full H3 and Turbo; current arena results remain strong. |
-| Fastest, lowest-cost H3-family text-to-video or first/last-frame generation | `h3-max-turbo` | Rapid low-cost iteration when the live contract needs no generic image, video, or audio references; use full H3 instead when references or 2K are required. |
+| 2K H3-family delivery | `hailuo-h3` | Strong endpoint control and structured multimodal audiovisual direction at the family's highest live resolution. |
+| Fast high-quality H3-family generation at 480p/768p, including first/last-frame or reference-to-video work when live roles allow it | `hailuo-h3-max` | fal's post-trained H3 balances strong adherence and aesthetics with much higher throughput; prefer base H3 when 2K is required. |
+| Fastest, lowest-cost H3-family text-to-video or first/last-frame generation | `h3-max-turbo` | Rapid low-cost iteration when the live contract needs no generic image, video, or audio references; use H3 Max or H3 for references, and H3 for 2K. |
 | xAI one-image animation with native sound | `grok-video-1.5` | Newest Grok video generation; the current Renoise contract requires exactly one input image. |
 | Upscale an existing video without changing its content | `upscale-video-topaz-starlight-2.5` | Dedicated restoration/upscaling model; use a generation or editing model when objects, motion, timing, or style should change. |
 
 ### Tier and version notes
 
-- Within the H3 family, use H3 for 2K or multimodal references, H3 Max for faster official-channel first/last-frame work, and H3 Max Turbo for the fastest and cheapest text/first/last-frame iteration. Never infer reference-to-video support for Max or Turbo when the live roles do not expose it.
+- Within the H3 family, use MiniMax H3 for 2K, fal's post-trained H3 Max for fast high-quality generation and live reference modes at up to 768p, and fal's distilled H3 Max Turbo for the fastest and cheapest text/first/last-frame iteration. Never infer reference-to-video support for Max or Turbo when the live roles do not expose it.
 - Grok's public upstream capabilities may move faster than Renoise's contract. Route from live roles and limits rather than assuming an upstream feature is connected.
 - Model preference leaderboards are task-, resolution-, and audio-filter-specific; use them as volatile evidence, not a single aggregate ranking.
 
@@ -286,11 +287,11 @@ Music cue and ending: ...
 
 # Research Basis
 
-Reviewed 2026-09-10. Rankings are directional and decay quickly; live capabilities and task-specific tests override them.
+Reviewed 2026-09-21. Rankings are directional and decay quickly; live capabilities and task-specific tests override them.
 
 Primary guidance:
 
-- OpenAI GPT Image: https://developers.openai.com/api/docs/models/gpt-image-2.5, https://developers.openai.com/api/docs/guides/image-generation, and https://developers.openai.com/cookbook/examples/multimodal/image-gen-models-prompting-guide
+- OpenAI GPT Image: https://openai.com/index/introducing-chatgpt-images-2-5/, https://developers.openai.com/api/docs/models/gpt-image-2.5-flare, https://developers.openai.com/api/docs/models/gpt-image-2.5-sunburst, https://developers.openai.com/api/docs/guides/image-generation, and https://developers.openai.com/cookbook/examples/multimodal/image-gen-models-prompting-guide
 - Google Gemini image: https://ai.google.dev/gemini-api/docs/image-generation and https://cloud.google.com/blog/products/ai-machine-learning/ultimate-prompting-guide-for-nano-banana
 - Midjourney prompting/version docs: https://docs.midjourney.com/hc/en-us/articles/32023408776205-Prompt-Basics, https://docs.midjourney.com/hc/en-us/articles/32199405667853-Version, and https://updates.midjourney.com/version-8-2/
 - ByteDance Seedream: https://seed.bytedance.com/en/blog/deeper-thinking-more-accurate-generation-introducing-seedream-5-0-lite and https://seed.bytedance.com/en/blog/beyond-generation-it-understands-design-introducing-seedream-5-0-pro
