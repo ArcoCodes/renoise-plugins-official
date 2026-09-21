@@ -23,3 +23,4 @@ jobs:
       - run: node --check skills/renoise-setup/scripts/install-cli.mjs
       - run: bash -n skills/renoise-cli/scripts/batch-generate.sh
       - run: npm pack --dry-run
+      - run: cd skills && npm pack --dry-run

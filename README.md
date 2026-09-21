@@ -70,7 +70,19 @@ Manual downloads are listed in `https://download.renoise.ai/cli/latest.json`; ve
 
 Plugin updates remain owned by each host's plugin manager. CLI recovery happens on use but never replaces a binary without approval, so the two release tracks do not silently modify each other. There is no per-session setup notification. `renoise auth login --web` opens account authorization in the browser and stores the shared credential securely without terminal key entry; `RENOISE_API_KEY` remains the override for CI and containers. The local-only `renoise-cli` Skill queries live capabilities. Creative Skills keep researched routing and prompting profiles, but never duplicate availability, defaults, roles, limits, or other hard capability data; unknown models safely fall back to their live guidance and default status.
 
-`skills/manifest.json` classifies Skills by runtime. Hosted Renoise Agent loads only portable `director`, `model-routing`, and `storyboard-sheet` source files whose required capabilities are available; it never loads `renoise-cli`, `renoise-setup`, `canvas`, `video-download`, executable helpers, or local examples. Hosted execution uses its typed capabilities directly and does not run the native CLI or local MCP App.
+`skills/manifest.json` classifies Skills by runtime. Hosted Renoise Agent loads only portable source files whose required capabilities are available; it never loads local CLI or MCP App entries. Hosted execution uses its typed capabilities directly and does not run the native CLI or local MCP App.
+
+### Standalone Skills package
+
+The canonical `skills/` tree is also a dependency-free `@renoise/skills` package, so hosted runtimes can update official Skills without installing Canvas, React, or the plugin runtime. With pnpm, pin a reviewed commit and its package subdirectory:
+
+```json
+{
+  "@renoise/skills": "github:ArcoCodes/renoise-plugins-official#<commit>&path:/skills"
+}
+```
+
+The existing `@renoise/plugin/skills/...` files remain available for plugin hosts; both packages use this same source tree. Manifest paths retain their `skills/` prefix for plugin compatibility, so subdirectory-package consumers remove exactly that one prefix when resolving files.
 
 Interactive account and CLI defaults are available through:
 
