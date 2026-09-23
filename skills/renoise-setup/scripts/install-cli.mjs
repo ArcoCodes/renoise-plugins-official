@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 
 import { createHash } from 'node:crypto';
-import { chmodSync, copyFileSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs';
+import { chmodSync, copyFileSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, realpathSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import { homedir, platform as hostPlatform, arch as hostArch, tmpdir } from 'node:os';
 import { delimiter, join, resolve } from 'node:path';
 import { execFileSync } from 'node:child_process';
-import { pathToFileURL } from 'node:url';
+import { fileURLToPath } from 'node:url';
 
 const RELEASE_INDEX = 'https://download.renoise.ai/cli/latest.json';
 const DOWNLOAD_ROOT = 'https://download.renoise.ai/cli';
@@ -295,7 +295,7 @@ async function main() {
   printBinaryHints(plan.info);
 }
 
-if (process.argv[1] && pathToFileURL(process.argv[1]).href === import.meta.url) {
+if (process.argv[1] && realpathSync(process.argv[1]) === realpathSync(fileURLToPath(import.meta.url))) {
   main().catch((error) => {
     console.error(`Renoise CLI install failed: ${error.message}`);
     process.exitCode = 1;

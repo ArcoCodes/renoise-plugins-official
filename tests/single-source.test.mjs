@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
-import { execFileSync } from 'node:child_process';
-import { existsSync, readFileSync } from 'node:fs';
+import { execFileSync, spawnSync } from 'node:child_process';
+import { existsSync, mkdtempSync, readFileSync, rmSync, symlinkSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join, resolve } from 'node:path';
 import test from 'node:test';
 import { compareVersions, expectedChecksum, hasRequiredCommands, planFromManifest, platformInfo, selectArchive } from '../skills/renoise-setup/scripts/install-cli.mjs';
 
@@ -300,6 +302,19 @@ test('installer selects and verifies macOS, Windows, and Linux archives', () => 
   assert.equal(hasRequiredCommands(createHelp, costHelp, waitHelp, 'Usage: renoise auth exec', 'Flags:\n      --web', 'Usage: renoise analyze'), false);
   assert.ok(compareVersions('0.3.0', '0.2.0') > 0);
   assert.equal(compareVersions('0.2.0', '0.2.0'), 0);
+});
+
+test('installer runs when invoked through a symlink', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'renoise-install-cli-'));
+  try {
+    const link = join(dir, 'install-cli.mjs');
+    symlinkSync(resolve('skills/renoise-setup/scripts/install-cli.mjs'), link);
+    const result = spawnSync(process.execPath, [link, '--bogus'], { encoding: 'utf8' });
+    assert.equal(result.status, 1);
+    assert.match(result.stderr, /Usage: install-cli\.mjs/);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
 });
 
 test('setup keeps managed CLI current and still gates manual install', () => {
