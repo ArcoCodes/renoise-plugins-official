@@ -81,7 +81,7 @@ renoise analyze <local-media-path> --target image|video --language <user-languag
 renoise analyze <local-media-path> --mode template --target video --language <user-language> --json
 ```
 
-Use the structured `analysis`, `prompt`, `slots`, and `warnings` fields. Preserve source dialogue verbatim and label inferred motion or cross-media details as warnings. If analysis is unavailable, malformed, blocked, or truncated, treat it as failed; do not fabricate a result or fall back to copied model code.
+Use the structured `analysis`, `prompt`, `slots`, and `warnings` fields. Preserve source dialogue verbatim and label inferred motion or cross-media details as warnings. CLI v0.7.5 sends local videos through 60 MiB inline so Colorist can offload media above its configured threshold to GCS; larger videos still use the older temporary upload path and may fail. CLI analysis does not independently probe exact video duration as Hosted Agent does: verify local duration before enforcing source limits or estimating automatic-duration edits. If analysis is unavailable, malformed, blocked, or truncated, treat it as failed; do not fabricate a result or fall back to copied model code.
 
 Analysis never proves that generation will pass moderation, never creates a paid generation task, and must not silently upload the source to the material library.
 

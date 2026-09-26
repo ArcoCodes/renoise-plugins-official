@@ -116,6 +116,10 @@ Plugin maintainers can run `npm run validate:plugin` to execute the official plu
 
 ## Version & upgrading
 
+### 1.9.2
+
+- Updated local analysis guidance for CLI v0.7.5: 15–60 MiB videos use Colorist's inline-media offload path. Videos above 60 MiB still use the legacy temporary upload path; this release does not change generation approval behavior.
+
 ### 1.9.1
 
 - Routed GPT Image requests to GPT Image 2.5 and stopped automatically selecting older model generations.
