@@ -184,7 +184,7 @@ test('model routing keeps only useful specialists without replacing capabilities
   for (const model of [
     'seedance-2.5-byteplus',
     'nano-banana-2', 'nano-banana-2-lite', 'nano-banana-pro',
-    'mj-v8.2', 'gpt-image-2.5-sunburst', 'gpt-image-2.5-flare', 'seedream-5-0-lite', 'seedream-5-0-pro',
+    'mj-v8.2', 'gpt-image-2.5-sunburst', 'gpt-image-2.5-flare', 'seedream-5-0-lite',
     'lyria-clip', 'seed-audio-1.0', 'grok-image', 'grok-image-quality',
     'grok-video-1.5', 'gemini-omni-flash', 'hailuo-h3', 'hailuo-h3-max', 'h3-max-turbo',
     'upscale-video-topaz-starlight-2.5',
@@ -194,8 +194,11 @@ test('model routing keeps only useful specialists without replacing capabilities
     'gpt-image-2', 'grok-video', 'midjourney-v7', 'mj-v8.1', 'happyhorse-1.0', 'kling-3.0-omni',
   ]) assert.ok(!routing.includes(`\`${obsolete}\``), `${obsolete} should not be routed`);
   assert.match(routing, /Route only to the newest live generation/);
-  assert.match(routing, /generic GPT Image 2\.5 request to Flare/);
-  assert.match(routing, /fal's post-trained H3 Max/);
+  assert.match(routing, /generic GPT Image 2\.5 request to Sunburst/);
+  assert.match(routing, /use Flare when explicitly requested/i);
+  assert.match(routing, /H3 Max[\s\S]*live image\/video\/audio reference roles/);
+  assert.match(routing, /source video needs `reference_video`; `first_frame` alone is not equivalent/);
+  assert.match(routing, /H3 Max Turbo supports text and first\/last-frame modes, not generic references/);
   assert.match(routing, /Live model capabilities are authoritative/);
 });
 

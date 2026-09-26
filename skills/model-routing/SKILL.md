@@ -9,7 +9,7 @@ description: >
 user-invocable: false
 metadata:
   author: renoise
-  version: 0.3.0
+  version: 0.3.1
   category: media-generation
   tags: [model-routing, prompting, image, video, audio, portable]
 ---
@@ -51,14 +51,13 @@ Do not call a model “best” without naming the task it is best for.
 
 | Task | Prefer | Why |
 |---|---|---|
-| Exact text, UI, diagrams, ads, packaging, compositing, identity-sensitive image-to-image work, multi-turn precision edits, or peak final quality | `gpt-image-2.5-sunburst` | OpenAI's most capable 2.5 tier; favor it when preservation and precision matter more than generation time. |
-| Fast OpenAI image generation, everyday creator content, or high-volume GPT Image iteration | `gpt-image-2.5-flare` | OpenAI's default 2.5 tier for most apps, with lower latency and strong general quality. Route a generic GPT Image 2.5 request here unless it clearly needs Sunburst's precision. |
-| General high-quality photorealistic or commercial image | live image default, currently `seedream-5-0-pro` | Strong realism, dense information design, multilingual typography, multi-image compositing, and controlled local edits at the deployment's normal quality/cost balance. |
-| High-throughput variants, prototyping, interactive generation, or cost-sensitive production | `nano-banana-2-lite` | Low-latency scale tier for clear, shallow workflows; use another tier when the task depends on many references or sequential editing. |
+| Exact text, UI, diagrams, ads, packaging, compositing, identity-sensitive image-to-image work, or peak final quality | `gpt-image-2.5-sunburst` | Route a generic GPT Image 2.5 request here; use `gpt-image-2.5-flare` when explicitly requested. Image references guide transformations, but neither variant exposes mask inpainting. |
+| General high-quality photorealistic or commercial image | live image default | Start with the deployment's current default when no specialist better fits; do not infer local-edit or typography guarantees from the model family. |
+| Fast, inexpensive drafts and simple variants | `nano-banana-2-lite` | Lightweight Google-family tier when its live output resolution is enough; it may still accept several references. |
 | Balanced Google workflow, extreme aspect ratios, several references, multilingual localization, or conversational iteration | `nano-banana-2` | Google-family workhorse balancing quality, latency, text, reference reasoning, and broad formats. |
 | Maximum Google-family world knowledge, brand consistency, localization, or reasoning-heavy composition | `nano-banana-pro` | Specialist for intricate professional assets and precise spatial relationships. |
-| Best aesthetic exploration, stylized art direction, editorial mood, or concept art | `mj-v8.2` | Current Midjourney default and strongest current aesthetic prior. |
-| Seedream output above 2K or more than ten image references | `seedream-5-0-lite` | Its 3K–4K output and larger reference allowance are the remaining clear reasons to prefer it over Pro. |
+| Aesthetic exploration, stylized art direction, editorial mood, or concept art | `mj-v8.2` | Current Midjourney generation and strong aesthetic prior. |
+| Seedream output resolution or image-reference count beyond what the live Pro contract accepts | `seedream-5-0-lite` | Choose Lite when its advertised limits fit and Pro's do not; otherwise use the live default for general Seedream work. |
 | xAI image request | `grok-image` for lower-cost iteration; `grok-image-quality` when higher quality justifies the added cost | Both support direct natural-language generation and editing through the live Renoise contract. |
 
 ## Image Prompting Styles
@@ -79,7 +78,7 @@ CHANGE ONLY: ...
 AVOID: ...
 ```
 
-- Route a generic GPT Image 2.5 request to Flare; use Sunburst for peak-quality or precision-preserving edit work.
+- Route a generic GPT Image 2.5 request to Sunburst; use Flare when explicitly requested. Neither live contract supports mask inpainting.
 - Put literal in-image text in quotes and specify hierarchy and placement.
 - For image-to-image transformations, say **change only X; preserve everything else**.
 - Identify every reference by its job: source, identity, product, layout, or style.
@@ -150,15 +149,15 @@ Use a concise visual description, not a requirements document:
 |---|---|---|
 | General multimodal video, continuous 16–30 second sequences, rich mixed references, source-video edits, or forward/backward extension | `seedance-2.5-byteplus` | Newest Seedance generation and the long-form, reference-heavy specialist with precise edit/extension workflows. |
 | Short 720p generation, text rendering, or source-video edit within its narrow live contract | `gemini-omni-flash` | Strong short-form instruction following, multi-shot generation, and conversational editing. |
-| 2K H3-family delivery | `hailuo-h3` | Strong endpoint control and structured multimodal audiovisual direction at the family's highest live resolution. |
-| Fast high-quality H3-family generation at 480p/768p, including first/last-frame or reference-to-video work when live roles allow it | `hailuo-h3-max` | fal's post-trained H3 balances strong adherence and aesthetics with much higher throughput; prefer base H3 when 2K is required. |
-| Fastest, lowest-cost H3-family text-to-video or first/last-frame generation | `h3-max-turbo` | Rapid low-cost iteration when the live contract needs no generic image, video, or audio references; use H3 Max or H3 for references, and H3 for 2K. |
+| H3-family 2K delivery, high-fidelity endpoint control, or focused multimodal references | `hailuo-h3` | Full-quality tier with image/video/audio references; choose it when Max's live contract cannot meet the task. |
+| Fast H3-family text-to-video, first/last-frame, or reference-to-video with image/video/audio sources | `hailuo-h3-max` | Faster multimodal tier when its live quality and resolution fit; suitable for source-video variants without discarding the source. |
+| Fastest, lowest-cost H3-family text-to-video or first/last-frame generation without generic references | `h3-max-turbo` | Turbo supports text and endpoint frames, not reference image/video/audio inputs; use H3 Max or H3 for references. |
 | xAI one-image animation with native sound | `grok-video-1.5` | Newest Grok video generation; the current Renoise contract requires exactly one input image. |
 | Upscale an existing video without changing its content | `upscale-video-topaz-starlight-2.5` | Dedicated restoration/upscaling model; use a generation or editing model when objects, motion, timing, or style should change. |
 
 ### Tier and version notes
 
-- Within the H3 family, use MiniMax H3 for 2K, fal's post-trained H3 Max for fast high-quality generation and live reference modes at up to 768p, and fal's distilled H3 Max Turbo for the fastest and cheapest text/first/last-frame iteration. Never infer reference-to-video support for Max or Turbo when the live roles do not expose it.
+- Within the H3 family, use full H3 when its higher-quality output or 2K matters; choose H3 Max when speed/cost matters and its live image/video/audio reference roles, combinations, and output quality fit. Turbo is the text/first/last-frame budget tier, not a generic reference mode. A source video needs `reference_video`; `first_frame` alone is not equivalent.
 - Grok's public upstream capabilities may move faster than Renoise's contract. Route from live roles and limits rather than assuming an upstream feature is connected.
 - Model preference leaderboards are task-, resolution-, and audio-filter-specific; use them as volatile evidence, not a single aggregate ranking.
 
@@ -198,14 +197,14 @@ Constraints: no subtitles/logo/watermark unless requested.
 
 ### MiniMax H3 family — mode-specific audiovisual plan
 
-Choose one live mode and prompt accordingly. H3 Max and H3 Max Turbo follow the same first/last-frame prompting pattern when those modes are live, but generic reference mode belongs only to models whose live roles explicitly expose it:
+Choose one mode that the selected model exposes. Full H3 and H3 Max can use generic reference mode when their live roles allow the specific image/video/audio mix; H3 Max Turbo supports text and first/last-frame modes, not generic references. Frame and reference roles are separate modes — do not combine them unless the selected model's live guidance explicitly permits it:
 
 - **Text-to-video:** state the subject, action over time, camera movement, setting, lighting, and sound intent directly.
 
 - **First frame:** describe only the motion, camera path, action development, and sound after the supplied opening state.
 - **Last frame:** describe the plausible path that converges on the supplied ending.
 - **First + last:** describe the continuous transition between states; avoid re-describing the two stills. Prefer one coherent shot unless a cut is essential.
-- **Reference mode:** assign each image, video, and audio an explicit identity, motion, style, voice, action, or sound job.
+- **Reference mode (H3 / H3 Max when live):** assign each image, video, and audio an explicit identity, motion, style, voice, action, or sound job. Attach the authorized source video directly when its motion/timing matters, and check the selected model's live duration and role-combination limits.
 
 For complex reference work use:
 
@@ -287,7 +286,7 @@ Music cue and ending: ...
 
 # Research Basis
 
-Reviewed 2026-09-21. Rankings are directional and decay quickly; live capabilities and task-specific tests override them.
+Reviewed 2026-09-26 against live Renoise model contracts. Rankings are directional and decay quickly; live capabilities and task-specific tests override them.
 
 Primary guidance:
 

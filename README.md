@@ -116,6 +116,10 @@ Plugin maintainers can run `npm run validate:plugin` to execute the official plu
 
 ## Version & upgrading
 
+### 1.9.3
+
+- Aligned model routing with live contracts: H3 Max can use image/video/audio references, Turbo cannot; generic GPT Image 2.5 routes to Sunburst, and image defaults and Seedream limits are resolved live.
+
 ### 1.9.2
 
 - Updated local analysis guidance for CLI v0.7.5: 15–60 MiB videos use Colorist's inline-media offload path. Videos above 60 MiB still use the legacy temporary upload path; this release does not change generation approval behavior.
