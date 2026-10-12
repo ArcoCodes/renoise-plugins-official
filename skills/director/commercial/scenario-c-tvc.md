@@ -59,7 +59,7 @@ Generate as **one single task**. Write all visual stages into one prompt plus a 
 
 Split into segments whose durations are advertised by the selected model's live capabilities; each segment follows the same Mode A format.
 
-After all segments are approved, assemble them only when the current host exposes a dedicated media-edit capability. Otherwise return the ordered clips, cut plan, and unified audio direction without guessing a local command.
+After all segments are approved, assemble them when media editing is available (see director's Runtime Boundary). Otherwise return the ordered clips, cut plan, and unified audio direction.
 
 Before assembly, ask whether the user has an approved BGM asset. If a segment fails, regenerate only that segment and preserve the approved outputs.
 
@@ -86,7 +86,7 @@ Present all shots together so the user sees the complete video in one view:
 
 --- Generation Parameters ---
 Model: [live-capability selection] | Ratio: [advertised value] | Total estimated cost: request a live estimate per segment and sum
-Note: Each shot is a separate segment; assembly requires a dedicated host media-edit capability.
+Note: Each shot is a separate segment; assembly requires media editing.
 ---
 ```
 
