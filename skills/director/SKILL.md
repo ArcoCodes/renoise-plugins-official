@@ -15,7 +15,7 @@ description: >
   of existing footage.
 metadata:
   author: renoise
-  version: 0.7.2
+  version: 0.7.3
   category: video-production
   tags: [director, creative, video, product, ecommerce, short-film, narrative, story, portable]
 ---
@@ -43,7 +43,9 @@ Before selecting a model or writing its prompt, read `../model-routing/SKILL.md`
 
 ## Runtime Boundary
 
-Use only Renoise capabilities exposed by the current host. Do not guess commands, invoke local executables, require filesystem paths, or emulate a missing capability. Local CLI hosts use the separate `renoise-cli` Skill for execution details. Keep plans and prompts in the conversation unless the host exposes export. Approval and idempotency remain host-controlled.
+Use only Renoise capabilities exposed by the current host. Do not guess Renoise commands or emulate a missing Renoise capability. Local CLI hosts use the separate `renoise-cli` Skill for execution details. Keep plans and prompts in the conversation unless the host exposes export. Approval and idempotency remain host-controlled.
+
+**Your own code is part of the palette.** When the host gives you a shell (Claude Code, Codex, a desktop agent), media editing is available: combine Renoise generation with anything you can build in code (ffmpeg, Python, HTML or canvas rendered to frames, synthesized music and sound) for cutting, compositing, motion graphics, typography, grading, scoring and mixing. Generate what code cannot make; make in code what generation does poorly. Choose freely and creatively. You cannot watch or listen to the result, so check it through stills, contact sheets and audio measurements, and ask the user to review. Hosts without a shell (hosted agents, chat-only connectors) have no local execution.
 
 ## Shared Hard Rules
 
