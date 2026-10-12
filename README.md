@@ -116,6 +116,10 @@ Plugin maintainers can run `npm run validate:plugin` to execute the official plu
 
 ## Version & upgrading
 
+### 1.9.4
+
+- Hosts with a shell (Claude Code, Codex, desktop agents) can now combine Renoise generation with their own code for editing, compositing, motion graphics, music and mixing. The director and video-remake Skills no longer forbid local executables; hosts without a shell are unchanged.
+
 ### 1.9.3
 
 - Aligned model routing with live contracts: H3 Max can use image/video/audio references, Turbo cannot; generic GPT Image 2.5 routes to Sunburst, and image defaults and Seedream limits are resolved live.

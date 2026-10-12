@@ -7,7 +7,7 @@ description: >
   video with controlled replacements. The source video must remain attached.
 metadata:
   author: renoise
-  version: 0.1.1
+  version: 0.1.2
   category: video-production
   tags: [video, remake, replication, replacement, portable]
 ---
