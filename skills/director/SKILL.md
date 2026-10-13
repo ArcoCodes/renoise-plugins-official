@@ -15,7 +15,7 @@ description: >
   of existing footage.
 metadata:
   author: renoise
-  version: 0.7.3
+  version: 0.7.4
   category: video-production
   tags: [director, creative, video, product, ecommerce, short-film, narrative, story, portable]
 ---

@@ -116,6 +116,10 @@ Plugin maintainers can run `npm run validate:plugin` to execute the official plu
 
 ## Version & upgrading
 
+### 1.9.5
+
+- A cloud sandbox tool the host exposes (such as a `sandbox_exec` MCP tool) counts as a shell, so chat-only hosts with one also edit with code. Video remakes may measure the source in a shell (cuts, beats, loudness, frames) to complement the required media analysis.
+
 ### 1.9.4
 
 - Hosts with a shell (Claude Code, Codex, desktop agents) can now combine Renoise generation with their own code for editing, compositing, motion graphics, music and mixing. The director and video-remake Skills no longer forbid local executables; hosts without a shell are unchanged.
