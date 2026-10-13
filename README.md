@@ -119,6 +119,7 @@ Plugin maintainers can run `npm run validate:plugin` to execute the official plu
 ### 1.9.6
 
 - Music routes to Lyria 3 Pro (`lyria-pro`), which composes complete songs of up to about 3 minutes and replaces Lyria 3 Clip. The composer brief now states a target length (approximate; there is no duration parameter) and labels song sections.
+- Model routing refreshed against the live lineup: Nano Banana 2 Lite and Nano Banana Pro are no longer routed (fast drafts go to `grok-image`; peak-quality and brand work stays on GPT Image 2.5 Sunburst), and Wan 3.0 / Wan 3.0 Prime are routed for budget multimodal video with a single-shot prompt style.
 
 ### 1.9.5
 

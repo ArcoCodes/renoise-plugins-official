@@ -53,9 +53,8 @@ Do not call a model “best” without naming the task it is best for.
 |---|---|---|
 | Exact text, UI, diagrams, ads, packaging, compositing, identity-sensitive image-to-image work, or peak final quality | `gpt-image-2.5-sunburst` | Route a generic GPT Image 2.5 request here; use `gpt-image-2.5-flare` when explicitly requested. Image references guide transformations, but neither variant exposes mask inpainting. |
 | General high-quality photorealistic or commercial image | live image default | Start with the deployment's current default when no specialist better fits; do not infer local-edit or typography guarantees from the model family. |
-| Fast, inexpensive drafts and simple variants | `nano-banana-2-lite` | Lightweight Google-family tier when its live output resolution is enough; it may still accept several references. |
-| Balanced Google workflow, extreme aspect ratios, several references, multilingual localization, or conversational iteration | `nano-banana-2` | Google-family workhorse balancing quality, latency, text, reference reasoning, and broad formats. |
-| Maximum Google-family world knowledge, brand consistency, localization, or reasoning-heavy composition | `nano-banana-pro` | Specialist for intricate professional assets and precise spatial relationships. |
+| Fast, inexpensive drafts and simple variants | `grok-image` | Lowest-cost live image tier for quick iteration; move the chosen direction to a specialist for the final. |
+| Extreme aspect ratios (1:4 to 8:1), Google-family work, several references, multilingual localization, or conversational iteration | `nano-banana-2` | The Google-family model in the live lineup, balancing quality, latency, text, reference reasoning, and broad formats. |
 | Aesthetic exploration, stylized art direction, editorial mood, or concept art | `mj-v8.2` | Current Midjourney generation and strong aesthetic prior. |
 | Seedream output resolution or image-reference count beyond what the live Pro contract accepts | `seedream-5-0-lite` | Choose Lite when its advertised limits fit and Pro's do not; otherwise use the live default for general Seedream work. |
 | xAI image request | `grok-image` for lower-cost iteration; `grok-image-quality` when higher quality justifies the added cost | Both support direct natural-language generation and editing through the live Renoise contract. |
@@ -84,7 +83,7 @@ AVOID: ...
 - Identify every reference by its job: source, identity, product, layout, or style.
 - Prefer one-change iterations over rewriting the whole brief; do not promise mask inpainting.
 
-### Nano Banana family — conversational creative direction
+### Nano Banana 2 — conversational creative direction
 
 ```text
 [Subject] + [action] + [location] + [composition] + [style]
@@ -98,9 +97,7 @@ Keep unchanged: ...
 - For references, state each source's job, the relationship among them, and the new scenario.
 - For edits, separate the requested change from what remains unchanged; repeat preservation requirements on later turns.
 - Quote exact visible copy and specify its hierarchy, placement, visual character, and localization target.
-- Nano Banana 2: relate multiple references explicitly and iterate conversationally.
-- Lite: keep one clear composition and few dependencies rather than relying on long multi-turn edits.
-- Pro: state brand invariants, localization requirements, and complex spatial relationships precisely.
+- Relate multiple references explicitly and iterate conversationally.
 
 ### Seedream 5 — design brief
 
@@ -148,6 +145,8 @@ Use a concise visual description, not a requirements document:
 | Task | Prefer | Why |
 |---|---|---|
 | General multimodal video, continuous 16–30 second sequences, rich mixed references, source-video edits, or forward/backward extension | `seedance-2.5-byteplus` | Newest Seedance generation and the long-form, reference-heavy specialist with precise edit/extension workflows. |
+| Budget multimodal video: brief shots up to 30 seconds and 1080p with a few image/video/audio references, text-to-video, or first(/last)-frame generation, when Seedance 2.5's long-form, edit, or extension strengths are not needed | `wan3.0-video` | About a third of Seedance 2.5's per-second price with broad reference support; it cannot edit, extend, or continue a source video, and frame and reference modes do not mix. |
+| Same as Wan 3.0 when turnaround matters more than cost | `wan3.0-video-prime` | Identical capabilities, faster on longer and higher-resolution jobs, and about 1.5× Wan 3.0's per-second price; prefer plain Wan 3.0 otherwise. |
 | Short 720p generation, text rendering, or source-video edit within its narrow live contract | `gemini-omni-flash` | Strong short-form instruction following, multi-shot generation, and conversational editing. |
 | H3-family 2K delivery, high-fidelity endpoint control, or focused multimodal references | `hailuo-h3` | Full-quality tier with image/video/audio references; choose it when Max's live contract cannot meet the task. |
 | Fast H3-family text-to-video, first/last-frame, or reference-to-video with image/video/audio sources | `hailuo-h3-max` | Faster multimodal tier when its live quality and resolution fit; suitable for source-video variants without discarding the source. |
@@ -186,6 +185,19 @@ Constraints: no subtitles/logo/watermark unless requested.
 - Begin with the intended result, map every reference to its purpose, then use non-overlapping timestamp ranges or numbered shots with continuity notes.
 - For a source-video edit, name the source, the intended change, its time range when relevant, and what remains unchanged.
 - For extension, state forward or backward direction and describe the visual, motion, and audio continuity across the source boundary.
+
+### Wan 3.0 — single-shot brief
+
+```text
+[subject and action], [setting], [one camera move], [lighting/style].
+References: @material:<ID> identity / @material:<ID> motion / @material:<ID> sound.
+Audio: dialogue, effects, or ambience — or no audio.
+```
+
+- Keep each job to one brief shot or a short causal sequence; route multi-beat narratives, edits, and extensions to Seedance 2.5.
+- Write `@material:<ID>` mentions; the live contract rewrites them into Wan's numbered image/video/audio labels.
+- Choose frame mode (first frame, optionally with a last frame) or reference mode, never both; a last frame alone is rejected.
+- Never ask Wan to edit, extend, continue, remove, or replace content in an existing video.
 
 ### Gemini Omni Flash — conversational generation/editing
 
@@ -297,6 +309,7 @@ Primary guidance:
 - Midjourney prompting/version docs: https://docs.midjourney.com/hc/en-us/articles/32023408776205-Prompt-Basics, https://docs.midjourney.com/hc/en-us/articles/32199405667853-Version, and https://updates.midjourney.com/version-8-2/
 - ByteDance Seedream: https://seed.bytedance.com/en/blog/deeper-thinking-more-accurate-generation-introducing-seedream-5-0-lite and https://seed.bytedance.com/en/blog/beyond-generation-it-understands-design-introducing-seedream-5-0-pro
 - xAI Imagine image/video: https://docs.x.ai/developers/model-capabilities/imagine and https://docs.x.ai/developers/model-capabilities/video/generation
+- Wan 3.0 / Wan 3.0 Prime: live Renoise model guidance and per-second credit pricing (2026-10-13).
 - BytePlus Seedance 2.5 and 2.0 prompt guides: https://docs.byteplus.com/en/docs/ModelArk/2607689 and https://docs.byteplus.com/en/docs/ModelArk/2222480
 - MiniMax H3 family: https://www.minimax.io/blog/minimax-h3, https://platform.minimax.io/docs/guides/video-generation, https://huggingface.co/MiniMaxAI/MiniMax-H3/tree/main/docs, and https://blog.fal.ai/introducing-h3-max-by-fal/
 - Topaz Starlight Precise 2.5: https://developer.topazlabs.com/video-models/starlight/starlight-precise-2.5
