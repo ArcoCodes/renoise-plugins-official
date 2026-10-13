@@ -39,6 +39,8 @@ The final prompt must state that the source video supplies timing, camera motion
 
 Use the host's media-analysis capability in template/video mode on the authorized source. If that capability is unavailable, stop; do not request a local command or fall back to copied model code.
 
+That analysis watches and listens, so it carries content, dialogue, music and mood. When you also have a shell, inspect the source yourself to complement it: measure exact cut points, beats, durations and loudness, and look closely at frames of transitions, typography and grading. Use both; the analysis remains the required first step.
+
 The result should contain:
 
 - factual analysis: summary, timeline, composition, style, subjects, and audio;
