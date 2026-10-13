@@ -9,7 +9,7 @@ description: >
 user-invocable: false
 metadata:
   author: renoise
-  version: 0.3.1
+  version: 0.3.2
   category: media-generation
   tags: [model-routing, prompting, image, video, audio, portable]
 ---
@@ -242,12 +242,12 @@ Upscaling is not regeneration. Supply only the source video and settings require
 
 | Task | Prefer | Why |
 |---|---|---|
-| Short song excerpt, instrumental, loop, preview, score cue, or music bed | `lyria-clip` | Dedicated 30-second music model for rapid iteration, social assets, and background cues. |
+| Song, instrumental, score cue, jingle, or music bed — anything where music is the deliverable | `lyria-pro` | Composes a complete structured song (verses, chorus, bridge, optional vocals and lyrics) up to about 3 minutes; replaces Lyria 3 Clip. |
 | Dialogue, expressive narration, podcast, dubbing/re-voicing, SFX/ambience, or a complete sound scene | `seed-audio-1.0` | Unified speech, dialogue, effects, and ambience generation; live default audio model. |
 
-Neither broadly replaces the other: Lyria composes short music clips; Seed Audio handles speech-led and complete sound scenes.
+Neither broadly replaces the other: Lyria composes music; Seed Audio handles speech-led and complete sound scenes.
 
-## Lyria 3 Clip — composer brief
+## Lyria 3 Pro — composer brief
 
 ```text
 Genre/style: ...
@@ -256,13 +256,15 @@ Instrumentation: ...
 Tempo/rhythm: ... BPM
 Vocals: instrumental OR voice type, delivery, and language
 Lyrics/theme: exact lyrics or subject
-Structure over ~30 seconds: intro → development → ending
+Target length: ~N seconds (approximate)
+Structure: [Intro] → [Verse] → [Chorus] → [Bridge] → [Outro]
 Production: mix character, era, space, dynamics
 ```
 
 - Explicitly say **instrumental** when vocals are unwanted.
 - Name instruments, tempo, vocal range/texture, backing vocals, and language.
-- Keep custom lyrics concise for 30 seconds; `Lyrics:`, `[Verse]`, and `[Chorus]` can clarify structure.
+- There is no duration parameter: state the target length in the prompt and treat it as approximate; match lyric volume to that length.
+- Label sections with `[Intro]`, `[Verse]`, `[Chorus]`, `[Bridge]`, and `[Outro]`; put exact lyrics under the section they belong to.
 - Use timestamps only for meaningful structural changes; musical alignment follows bars rather than sample-accurate timing.
 - Describe genre, era, instrumentation, and production traits instead of requesting a named artist imitation.
 - Use an optional guide image only when the live material roles expose it.
@@ -286,7 +288,7 @@ Music cue and ending: ...
 
 # Research Basis
 
-Reviewed 2026-09-26 against live Renoise model contracts. Rankings are directional and decay quickly; live capabilities and task-specific tests override them.
+Reviewed 2026-10-13 against live Renoise model contracts. Rankings are directional and decay quickly; live capabilities and task-specific tests override them.
 
 Primary guidance:
 

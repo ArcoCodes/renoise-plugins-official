@@ -185,13 +185,13 @@ test('model routing keeps only useful specialists without replacing capabilities
     'seedance-2.5-byteplus',
     'nano-banana-2', 'nano-banana-2-lite', 'nano-banana-pro',
     'mj-v8.2', 'gpt-image-2.5-sunburst', 'gpt-image-2.5-flare', 'seedream-5-0-lite',
-    'lyria-clip', 'seed-audio-1.0', 'grok-image', 'grok-image-quality',
+    'lyria-pro', 'seed-audio-1.0', 'grok-image', 'grok-image-quality',
     'grok-video-1.5', 'gemini-omni-flash', 'hailuo-h3', 'hailuo-h3-max', 'h3-max-turbo',
     'upscale-video-topaz-starlight-2.5',
   ]) assert.ok(routing.includes(`\`${model}\``), `${model} routing missing`);
   for (const obsolete of [
     'seedance-2.0-byteplus', 'seedance-2.0-fast-byteplus', 'seedance-2.0-mini-byteplus',
-    'gpt-image-2', 'grok-video', 'midjourney-v7', 'mj-v8.1', 'happyhorse-1.0', 'kling-3.0-omni',
+    'gpt-image-2', 'grok-video', 'midjourney-v7', 'mj-v8.1', 'happyhorse-1.0', 'kling-3.0-omni', 'lyria-clip',
   ]) assert.ok(!routing.includes(`\`${obsolete}\``), `${obsolete} should not be routed`);
   assert.match(routing, /Route only to the newest live generation/);
   assert.match(routing, /generic GPT Image 2\.5 request to Sunburst/);
