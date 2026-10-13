@@ -7,7 +7,7 @@ description: >
   video with controlled replacements. The source video must remain attached.
 metadata:
   author: renoise
-  version: 0.1.2
+  version: 0.1.3
   category: video-production
   tags: [video, remake, replication, replacement, portable]
 ---
@@ -18,7 +18,7 @@ This workflow resolves replacement slots before final generation. The current ho
 
 ## Runtime Boundary
 
-Use only capabilities and references exposed by the current host. Do not emulate missing analysis/material/task operations. When the host gives you a shell, your own code (editing, compositing, motion graphics, music) is available alongside generation, as in director's Runtime Boundary; use it wherever it brings the remake closer to the reference. Before selecting a model or writing prompts, read `../model-routing/SKILL.md` and inspect live capabilities.
+Use only capabilities and references exposed by the current host. Do not emulate missing analysis/material/task operations. When you have a shell (the host's own or a cloud sandbox tool such as `sandbox_exec`), your own code (editing, compositing, motion graphics, music) is available alongside generation, as in director's Runtime Boundary; use it wherever it brings the remake closer to the reference. Before selecting a model or writing prompts, read `../model-routing/SKILL.md` and inspect live capabilities.
 
 Use the user's language for analysis, plans, approvals, and results. If retained or replacement content contains dialogue, voiceover, or narration, use the explicitly requested or safely inferable spoken language; clarify only when ambiguous, and keep every spoken line verbatim in that language.
 
@@ -38,6 +38,8 @@ The final prompt must state that the source video supplies timing, camera motion
 ## Phase 1 — Analyze and Build a Remake Plan
 
 Use the host's media-analysis capability in template/video mode on the authorized source. If that capability is unavailable, stop; do not request a local command or fall back to copied model code.
+
+That analysis watches and listens, so it carries content, dialogue, music and mood. When you also have a shell, inspect the source yourself to complement it: measure exact cut points, beats, durations and loudness, and look closely at frames of transitions, typography and grading. Use both; the analysis remains the required first step.
 
 The result should contain:
 
