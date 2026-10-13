@@ -18,7 +18,7 @@ This workflow resolves replacement slots before final generation. The current ho
 
 ## Runtime Boundary
 
-Use only capabilities and references exposed by the current host. Do not emulate missing analysis/material/task operations. When the host gives you a shell, your own code (editing, compositing, motion graphics, music) is available alongside generation, as in director's Runtime Boundary; use it wherever it brings the remake closer to the reference. Before selecting a model or writing prompts, read `../model-routing/SKILL.md` and inspect live capabilities.
+Use only capabilities and references exposed by the current host. Do not emulate missing analysis/material/task operations. When you have a shell (the host's own or a cloud sandbox tool such as `sandbox_exec`), your own code (editing, compositing, motion graphics, music) is available alongside generation, as in director's Runtime Boundary; use it wherever it brings the remake closer to the reference. Before selecting a model or writing prompts, read `../model-routing/SKILL.md` and inspect live capabilities.
 
 Use the user's language for analysis, plans, approvals, and results. If retained or replacement content contains dialogue, voiceover, or narration, use the explicitly requested or safely inferable spoken language; clarify only when ambiguous, and keep every spoken line verbatim in that language.
 
