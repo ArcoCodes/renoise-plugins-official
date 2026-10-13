@@ -116,6 +116,11 @@ Plugin maintainers can run `npm run validate:plugin` to execute the official plu
 
 ## Version & upgrading
 
+### 1.9.6
+
+- Music routes to Lyria 3 Pro (`lyria-pro`), which composes complete songs of up to about 3 minutes and replaces Lyria 3 Clip. The composer brief now states a target length (approximate; there is no duration parameter) and labels song sections.
+- Model routing refreshed against the live lineup: Nano Banana 2 Lite and Nano Banana Pro are no longer routed (fast drafts go to `grok-image`; peak-quality and brand work stays on GPT Image 2.5 Sunburst), and Wan 3.0 / Wan 3.0 Prime are routed for budget multimodal video with a single-shot prompt style.
+
 ### 1.9.5
 
 - A cloud sandbox tool the host exposes (such as a `sandbox_exec` MCP tool) counts as a shell, so chat-only hosts with one also edit with code. Video remakes may measure the source in a shell (cuts, beats, loudness, frames) to complement the required media analysis.
