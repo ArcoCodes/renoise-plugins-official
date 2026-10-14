@@ -25,7 +25,8 @@ test("npm package contains runtime dist, MCP config, skill, and notices without 
   const pack = JSON.parse(output)[0];
   const paths = new Set(pack.files.map(({ path }) => path));
   for (const required of [
-    ".mcp.json",
+    "mcp.json",
+    "plugin.json",
     "features/canvas/dist/server.mjs",
     "features/canvas/dist/widget.html",
     "features/canvas/dist/build-manifest.json",
@@ -37,12 +38,13 @@ test("npm package contains runtime dist, MCP config, skill, and notices without 
 });
 
 test("Codex can start the packaged whiteboard MCP from the plugin root", async () => {
-  const config = JSON.parse(readFileSync(".mcp.json", "utf8"));
+  const config = JSON.parse(readFileSync("mcp.json", "utf8"));
   const whiteboard = config.mcpServers["renoise-whiteboard"];
   assert.deepEqual(whiteboard, {
+    type: "stdio",
     command: "node",
     args: ["features/canvas/dist/server.mjs"],
-    cwd: ".",
+    cwd: "./",
   });
   assert.doesNotMatch(JSON.stringify(whiteboard), /\$\{pluginDir\}/);
 

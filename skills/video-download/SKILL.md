@@ -74,15 +74,8 @@ done
 
 After a successful download, the user may want to:
 
-1. **Analyze the video** — extract script, style, or rhythm:
-   ```bash
-   renoise analyze <path> --target video --language <user-language> --json
-   ```
-
-2. **Add to Material Pool** — for use as reference material in video generation:
-   ```bash
-   node ${CLAUDE_PLUGIN_ROOT}/skills/renoise-cli/scripts/material-ingest.mjs <path>
-   ```
+1. **Add it to Renoise** — upload it with the Renoise `upload_files` tool to use it as a reference in generation.
+2. **Analyze it** — once uploaded, extract script, style, or rhythm with the Renoise `analyze_media` tool.
 
 Suggest these options to the user after download completes.
 

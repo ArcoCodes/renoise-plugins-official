@@ -91,7 +91,7 @@ intended shots
 advertised role
 ```
 
-Do not require a directory scan, local upload script, or generated workspace file. Local CLI hosts may use the separate `renoise-cli` Skill for those operations.
+Do not require a directory scan, local upload script, or generated workspace file. Hosts with a shell may upload local files through their Renoise tools.
 
 ## Storyboard Grid
 

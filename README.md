@@ -11,8 +11,8 @@ AI video production skills by Renoise — creative direction, generation, analys
 | **Build Storyboard** (`storyboard-sheet`) | Portable script/novel adaptation into review sheets, shot lists, first frames, and video prompts |
 | `video-fission` | Portable controlled-variant experiments from one owner-authorized source video |
 | `video-remake` | Portable reference-video recreation with controlled character, product, brand, prop, or scene replacement |
-| `renoise-cli` | Local-only CLI execution for capabilities, media analysis, generation, uploads, tasks, and production helpers |
-| **Setup / Account** (`renoise-setup`) | Local-only CLI installation/update, secure login, and readiness checks |
+| `renoise-cli` | Native CLI for your own terminal, scripts, and CI, plus local production helpers (not a generation path in conversations) |
+| **Setup / Account** (`renoise-setup`) | Connect the Renoise tools (browser sign-in), optional CLI install/update, and readiness checks |
 | **Renoise Annotation Board** (`canvas`) | Local image/frame annotation board for snapshots and structured revision handoff |
 | `video-download` | Local-only downloader utility (yt-dlp + Douyin/TikTok fallback) |
 
@@ -34,7 +34,7 @@ claude plugin marketplace add ArcoCodes/renoise-plugins-official
 claude plugin install renoise@renoise-plugins-official
 ```
 
-3. Run the setup command to connect your Renoise account:
+3. Connect your Renoise account: run `/mcp`, choose `plugin:renoise:renoise`, and sign in in the browser. `/renoise:setup` walks through this and also sets up the Credits statusLine:
 
 ```
 /renoise:setup
@@ -42,7 +42,7 @@ claude plugin install renoise@renoise-plugins-official
 
 ### Claude Desktop
 
-In **Cowork**, open **Customize → Plugins → + → Add marketplace → Add from a repository**, enter `https://github.com/ArcoCodes/renoise-plugins-official`, then install **renoise**. Cowork handles local CLI installation and browser sign-in; no separate Terminal is required.
+In **Cowork**, open **Customize → Plugins → + → Add marketplace → Add from a repository**, enter `https://github.com/ArcoCodes/renoise-plugins-official`, then install **renoise**. Cowork asks you to sign in to Renoise in the browser the first time the Renoise tools are used; no separate Terminal is required.
 
 ### OpenClaw
 
@@ -60,11 +60,17 @@ codex plugin marketplace add ArcoCodes/renoise-plugins-official
 
 Restart the ChatGPT desktop app, open **Plugins**, select the **Renoise** marketplace, and install **renoise**. Codex Desktop is available on macOS and Windows; on Linux, use the same plugin through Codex CLI.
 
+### ChatGPT Directory package (maintainers)
+
+`npm run build:openai` builds the ChatGPT / Codex Directory upload from this plugin's own `plugin.json` and `mcp.json`: it keeps the portable skills and the one remote MCP server (pointed at its ChatGPT entry, `https://renoise.ai/api/public/mcp/chatgpt`), checks the listing limits, and writes `dist/renoise-openai-<version>.zip` for upload at platform.openai.com. Reviewer credentials go in the dashboard, never in the package.
+
+## How the plugin runs Renoise
+
+Every Renoise operation in a conversation (models, estimates, generation, uploads, media analysis, results) goes through the remote **Renoise MCP server** at `https://renoise.ai/api/public/mcp`, declared once in `mcp.json` for Claude Code, Codex, and the OpenAI directories. The same server backs the claude.ai and ChatGPT connectors, so every host sees the same tools, in-chat widgets, and approval rule for paid work. You sign in once with OAuth.
+
 ## Native Renoise CLI
 
-The native Go CLI is required only on local CLI hosts. It is their source of truth for authentication, media analysis, model capabilities, generation, uploads, tasks, and machine-readable output. Hosted Renoise Agent uses portable Skills plus its own typed capabilities and does not install or execute this CLI.
-
-When a local Renoise workflow finds a missing, outdated, or signed-out CLI, it automatically runs the **Setup / Account** flow and resumes the original request when ready. You can also select **Setup / Account** directly in Claude Desktop Cowork or Codex/ChatGPT Desktop, or run `/renoise:setup` in Claude Code. The Agent handles detection, installation, browser sign-in, and verification; the user only approves installation and authorizes Renoise in the browser. Setup detects macOS/Windows/Linux and x64/ARM64, compares the installed CLI contract/version with the latest release, and previews the archive and user-local target. After confirmation, the same path installs or updates the matching `.tar.gz`/`.zip`, verifies `checksums.txt` and required commands before replacement, and rolls back a failed replacement. The default targets are `~/.local/bin/renoise` on macOS/Linux and `%LOCALAPPDATA%\Renoise\bin\renoise.exe` on Windows. It never updates in the background; any binary replacement or PATH change requires approval, and PATH changes require a Desktop restart.
+The native Go CLI is optional: it is for your own terminal, scripts, and CI, the annotation board, the local helpers, and the Claude Code Credits statusLine. Conversations never generate through it. Hosted Renoise Agent uses portable Skills plus its own typed capabilities and does not install or execute this CLI. To install it, select **Setup / Account** in Claude Desktop Cowork or Codex/ChatGPT Desktop, or run `/renoise:setup` in Claude Code. The Agent handles detection, installation, browser sign-in, and verification; the user only approves installation and authorizes Renoise in the browser. Setup detects macOS/Windows/Linux and x64/ARM64, compares the installed CLI contract/version with the latest release, and previews the archive and user-local target. After confirmation, the same path installs or updates the matching `.tar.gz`/`.zip`, verifies `checksums.txt` and required commands before replacement, and rolls back a failed replacement. The default targets are `~/.local/bin/renoise` on macOS/Linux and `%LOCALAPPDATA%\Renoise\bin\renoise.exe` on Windows. It never updates in the background; any binary replacement or PATH change requires approval, and PATH changes require a Desktop restart.
 
 Manual downloads are listed in `https://download.renoise.ai/cli/latest.json`; verify the matching version directory's `checksums.txt` before extracting the binary.
 
@@ -115,6 +121,13 @@ Plugin maintainers can run `npm run validate:plugin` to execute the official plu
 | `RENOISE_WHITEBOARD_MAX_VIDEO_BYTES` | Optional whiteboard limit | Maximum imported MP4/WebM byte size. Defaults to 262144000 (250 MB); accepted range is 1 MB–2 GB. |
 
 ## Version & upgrading
+
+### 1.10.0
+
+- Conversations now run Renoise through the remote Renoise MCP server on every host (`mcp.json`), the same tools and approval rule as the claude.ai and ChatGPT connectors. Sign in once with OAuth (`/mcp` in Claude Code); the CLI is no longer needed to generate.
+- The annotation board uploads, estimates, and generates through the MCP tools, including automatic-duration source-video edits.
+- `renoise-cli` is now the terminal/scripts skill; its CLI generation walkthroughs are removed.
+- One manifest (`plugin.json`, Agent Plugins) replaces `.codex-plugin/plugin.json`, and one `mcp.json` replaces `.mcp.json`; the ChatGPT Directory upload is built from them (`npm run build:openai`).
 
 ### 1.9.6
 
