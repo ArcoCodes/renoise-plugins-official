@@ -9,3 +9,4 @@ features/canvas/build/.test-dist/
 features/canvas/test-results/
 features/canvas/playwright-report/
 /test-results/
+dist/

@@ -9,9 +9,9 @@ This command is a Claude Code wrapper, not the universal setup implementation.
 
 ## Step 1: Run Universal Setup
 
-Read `${CLAUDE_PLUGIN_ROOT}/skills/renoise-setup/SKILL.md` completely and follow it through authentication verification and the readiness report.
+Read `${CLAUDE_PLUGIN_ROOT}/skills/renoise-setup/SKILL.md` completely and follow it through the readiness report. Generation runs through the plugin's Renoise MCP server (setup §1). The Credits statusLine below reads the balance through the native CLI, so also complete setup §2 (install and authenticate the CLI).
 
-Do not ask the user to open a terminal or paste an API key into chat. The Agent runs `renoise auth login --web --json`, waits while the user authorizes in the browser, then continues automatically; the native CLI owns credentials, media analysis, uploads, and generation directly. If the CLI is unavailable and the user declines installation, generation is not ready; do not recreate its behavior in the plugin.
+Do not ask the user to open a terminal or paste an API key into chat. The Agent runs `renoise auth login --web --json`, waits while the user authorizes in the browser, then continues automatically. If the user declines the CLI, generation still works; only the statusLine is skipped.
 
 After universal setup, select the Claude statusLine runtime with `command -v bun 2>/dev/null || command -v node 2>/dev/null` and save its absolute path as `{RUNTIME_PATH}`. Do not continue to the Claude-specific steps until Node.js exists and authentication verifies.
 

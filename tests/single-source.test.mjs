@@ -20,6 +20,10 @@ const removed = [
   'skills/director/commercial/scenario-a-viral.md',
   'hooks/hooks.json',
   'hooks/session-start.sh',
+  'skills/renoise-cli/examples',
+  '.mcp.json',
+  '.codex-plugin/plugin.json',
+  'openai-plugin',
 ];
 
 test('skill manifest separates portable creative methods from local execution', () => {
@@ -113,21 +117,17 @@ test('portable skill files contain no local execution instructions', () => {
   }
 });
 
-test('local renoise-cli remains the only CLI execution skill', () => {
+test('conversations use the Renoise MCP tools; renoise-cli is for terminals, scripts, and local helpers', () => {
   for (const path of removed) assert.equal(existsSync(path), false, `${path} must not return`);
   const cli = readFileSync('skills/renoise-cli/SKILL.md', 'utf8');
   assert.match(cli, /^name: renoise-cli$/m);
   assert.match(cli, /local-only/i);
   assert.match(cli, /user-invocable: false/);
-  assert.match(cli, /renoise model --json/);
-  assert.match(cli, /renoise analyze/);
-  assert.match(cli, /renoise task create/);
-  assert.match(cli, /automatic-duration edit/);
-  assert.match(cli, /RENOISE_CLIENT_NAME=codex/);
-  assert.match(cli, /`first_frame` anchors the opening/);
-  assert.match(cli, /renoise upload/);
+  assert.match(cli, /every Renoise operation goes through the Renoise MCP tools/i);
+  assert.match(cli, /Never create a paid task from a conversation through `renoise task create`/);
+  assert.match(cli, /do not fall back to the CLI/i);
   assert.match(cli, /renoise-setup\/SKILL\.md/);
-  assert.doesNotMatch(cli, /Managed Agent Runtime|renoise_[a-z]/);
+  assert.doesNotMatch(cli, /## Cost Gate|--prompt-file|Managed Agent Runtime|renoise_[a-z]/);
   for (const helper of [
     'analyze-beats.py',
     'batch-generate.sh',
@@ -141,42 +141,33 @@ test('local renoise-cli remains the only CLI execution skill', () => {
   }
 });
 
-test('source-video edit guidance preserves the Seedance CLI trigger contract', () => {
-  const cli = readFileSync('skills/renoise-cli/SKILL.md', 'utf8');
+test('annotation-board source-video edits keep the Seedance edit contract on the MCP tools', () => {
   const canvas = readFileSync('skills/canvas/SKILL.md', 'utf8');
-  for (const instructions of [cli, canvas]) {
-    assert.match(instructions, /--duration -1/);
-    assert.match(instructions, /\[Edit the video as instructed above\]/);
-  }
-  assert.match(cli, /add, modify, remove, or edit the video/i);
-  assert.match(cli, /Do not append the edit trigger or use `--duration -1` for forward\/backward extension/i);
-  assert.match(cli, /extension[\s\S]{0,160}positive duration/i);
-  assert.match(canvas, /source-video edit trigger paired with `--duration -1`/i);
+  assert.match(canvas, /`duration: -1`, `ratio: "adaptive"`/);
+  assert.match(canvas, /`edit: true`/);
+  assert.match(canvas, /\[Edit the video as instructed above\]/);
+  assert.match(canvas, /Never estimate an automatic-duration edit with `-1`/);
+  assert.match(canvas, /source-video edit trigger paired with `duration: -1`/i);
+  assert.match(canvas, /`scope: "mask"`/);
+  assert.doesNotMatch(canvas, /renoise (?:task|upload)|--prompt-file|--materials/);
   assert.match(canvas, /do not append it to forward\/backward extension or ordinary reference generation prompts/i);
   assert.match(canvas, /Seedance 2\.5-only time adapter/i);
   assert.match(canvas, /floor\(sourceTimeMs \/ 1000\)/);
   assert.match(canvas, /Do not apply this normalization to any other image or video model/i);
 });
 
-test('local paid generation requires post-preview approval bound to the exact prompt and arguments', () => {
-  const cli = readFileSync('skills/renoise-cli/SKILL.md', 'utf8');
+test('annotation-board paid generation requires post-preview approval bound to the exact prompt and arguments', () => {
   const canvas = readFileSync('skills/canvas/SKILL.md', 'utf8');
   const director = readFileSync('skills/director/SKILL.md', 'utf8');
 
   assert.match(canvas, /Pressing \*\*Send annotation\*\* approves only the structured annotation intent/i);
-  assert.match(canvas, /Do not run `renoise task create` in the same turn that first presents the proposal/i);
+  assert.match(canvas, /Do not call `create_tasks` in the same turn that first presents the proposal/i);
   assert.match(canvas, /Any prompt, model, parameter, material, or price change invalidates the approval/i);
-
-  assert.match(cli, /`renoise task create` is a paid-operation boundary/i);
-  assert.match(cli, /This gate applies to every paid generation path, including annotation-board submissions/i);
-  assert.match(cli, /byte-for-byte the text later written to `--prompt-file`/i);
-  assert.match(cli, /show the revised proposal and obtain approval again/i);
+  assert.match(canvas, /follow the Renoise tools' approval rule for paid work/i);
 
   assert.match(director, /Approval and idempotency remain host-controlled/i);
   assert.match(director, /active host decides its approval boundary/i);
-  for (const instructions of [canvas, cli]) {
-    assert.match(instructions, /直接生成/);
-  }
+  assert.match(canvas, /直接生成/);
 });
 
 test('model routing keeps only useful specialists without replacing capabilities', () => {
@@ -205,7 +196,6 @@ test('model routing keeps only useful specialists without replacing capabilities
 
 test('prompt examples use canonical material ID tokens', () => {
   const promptCraft = readFileSync('skills/director/references/prompt-craft.md', 'utf8');
-  const cli = readFileSync('skills/renoise-cli/SKILL.md', 'utf8');
   const directorFiles = [
     promptCraft,
     readFileSync('skills/video-remake/SKILL.md', 'utf8'),
@@ -213,37 +203,37 @@ test('prompt examples use canonical material ID tokens', () => {
       .map((file) => readFileSync(`skills/director/commercial/${file}`, 'utf8')),
   ].join('\n');
   assert.match(promptCraft, /@material:101/);
-  assert.match(cli, /@material:<ID>/);
   assert.doesNotMatch(directorFiles, /@(?:Image|Video)\s*\d/i);
   assert.doesNotMatch(directorFiles, /@[\w-]+\.(?:png|jpe?g|webp|mp4|mov)\b/i);
 });
 
 test('package metadata is the manifest source of truth', () => {
   const pkg = readJSON('package.json');
-  const manifests = [
-    readJSON('.claude-plugin/plugin.json'),
-    readJSON('.codex-plugin/plugin.json'),
-    readJSON('openclaw.plugin.json'),
-  ];
-  assert.equal(manifests[0].version, pkg.version);
-  assert.equal(manifests[2].version, pkg.version);
-  const escapedVersion = pkg.version.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  assert.match(manifests[1].version, new RegExp(`^${escapedVersion}(?:\\+codex\\.[a-zA-Z0-9.-]+)?$`));
-  for (const manifest of manifests) assert.equal(manifest.description, pkg.description);
+  const portable = readJSON('plugin.json');
+  const manifests = [readJSON('.claude-plugin/plugin.json'), portable, readJSON('openclaw.plugin.json')];
+  for (const manifest of manifests) {
+    assert.equal(manifest.version, pkg.version);
+    assert.equal(manifest.description, pkg.description);
+  }
 
   const claudeMarketplacePlugin = readJSON('.claude-plugin/marketplace.json').plugins[0];
   assert.equal(claudeMarketplacePlugin.version, pkg.version);
   assert.equal(claudeMarketplacePlugin.description, pkg.description);
 
-  const codex = manifests[1];
-  assert.equal(codex.skills, './skills/');
-  assert.deepEqual(codex.interface.capabilities, ['Interactive', 'Read', 'Write']);
-  assert.ok(existsSync(codex.interface.composerIcon));
-  assert.ok(existsSync(codex.interface.logo));
-  assert.match(readFileSync(codex.interface.logo, 'utf8'), /<rect[^>]+fill="#2B2B2B"/);
+  // One listing for Codex, ChatGPT, and the OpenAI directories (root plugin.json, Agent Plugins).
+  const listing = portable.extensions['com.openai'].interface;
+  assert.deepEqual(listing.capabilities, ['Interactive', 'Read', 'Write']);
+  assert.ok(existsSync(listing.composerIcon));
+  assert.ok(existsSync(listing.logo));
+  assert.match(readFileSync(listing.logo, 'utf8'), /<rect[^>]+fill="#2B2B2B"/);
+
+  // One MCP config for every host: Claude Code reads it through its manifest, Codex and ChatGPT natively.
+  assert.equal(manifests[0].mcpServers, './mcp.json');
+  const servers = readJSON('mcp.json').mcpServers;
+  assert.deepEqual(servers.renoise, { type: 'streamable-http', url: 'https://renoise.ai/api/public/mcp' });
 
   const marketplace = readJSON('.agents/plugins/marketplace.json');
-  assert.equal(marketplace.plugins[0].name, codex.name);
+  assert.equal(marketplace.plugins[0].name, portable.name);
   assert.equal(marketplace.plugins[0].source.url, pkg.repository.url);
   assert.equal(marketplace.plugins[0].policy.authentication, 'ON_USE');
 });
@@ -318,6 +308,7 @@ test('setup keeps managed CLI current and still gates manual install', () => {
   assert.match(setup, /--install/);
   assert.match(setup, /renoise auth login --web --json/);
   assert.match(setup, /never ask them to open a terminal/);
+  assert.match(setup, /## 1\. Connect the Renoise Tools[\s\S]*https:\/\/renoise\.ai\/api\/public\/mcp[\s\S]*`get_account`[\s\S]*## 2\. Optional: the Native CLI/);
   assert.match(cli, /install-cli\.mjs" --ensure/);
   assert.match(installer, /--ensure/);
   assert.match(installer, /needsManagedUpdate/);

@@ -1,0 +1,17 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/mcp.schema.json",
+  "mcpServers": {
+    "renoise": {
+      "type": "streamable-http",
+      "url": "https://renoise.ai/api/public/mcp"
+    },
+    "renoise-whiteboard": {
+      "type": "stdio",
+      "command": "node",
+      "args": [
+        "features/canvas/dist/server.mjs"
+      ],
+      "cwd": "./"
+    }
+  }
+}

@@ -1,6 +1,6 @@
 {
   "name": "@renoise/plugin",
-  "version": "1.9.6",
+  "version": "1.10.0",
   "license": "Apache-2.0",
   "type": "module",
   "description": "AI video production skills — creative direction, generation, editing, and e-commerce content",
@@ -12,7 +12,8 @@
     "test:canvas": "npm run build && node --test tests/canvas/*.test.mjs",
     "test:browser": "npm run build && playwright test -c features/canvas/playwright.config.ts",
     "validate:plugin": "node features/canvas/build/validate-plugin.mjs",
-    "prepack": "npm run build"
+    "prepack": "npm run build",
+    "build:openai": "node scripts/build-openai-plugin.mjs"
   },
   "repository": {
     "type": "git",
@@ -26,7 +27,7 @@
   "files": [
     ".agents/",
     ".claude-plugin/",
-    ".codex-plugin/",
+    "plugin.json",
     "assets/",
     "openclaw.plugin.json",
     "index.mjs",
@@ -34,7 +35,7 @@
     "features/canvas/dist/",
     "skills/",
     "src/",
-    ".mcp.json",
+    "mcp.json",
     "THIRD_PARTY_NOTICES.md",
     "README.md"
   ],

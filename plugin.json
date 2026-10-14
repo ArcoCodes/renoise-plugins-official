@@ -1,0 +1,109 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "renoise",
+  "version": "1.10.0",
+  "description": "AI video production skills — creative direction, generation, editing, and e-commerce content",
+  "author": {
+    "name": "Renoise",
+    "email": "support@renoise.ai",
+    "url": "https://renoise.ai"
+  },
+  "homepage": "https://renoise.ai",
+  "repository": "https://github.com/ArcoCodes/renoise-plugins-official",
+  "license": "Apache-2.0",
+  "keywords": [
+    "skills",
+    "video",
+    "ai-video",
+    "creative-direction",
+    "ecommerce",
+    "tiktok",
+    "renoise"
+  ],
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "Renoise",
+        "shortDescription": "Make AI videos and images",
+        "longDescription": "Renoise turns a brief into finished AI video, images and music without leaving the conversation.\n\nWhat you can do:\n- Describe a product ad, UGC clip, short story or brand film; Renoise plans the shots, picks a suitable model and shows the cost estimate before anything is generated.\n- Upload product photos or reference clips in the chat and use them as references or first frames.\n- Start from a ready-made template and make one like it with your own image.\n- Analyze an uploaded video or image: scenes, camera, style, dialogue and music.\n- Follow progress on task cards and watch or download the results in a player in the chat.\n\nWho it is for: e-commerce sellers, marketers, agencies and creators who need short-form video.\n\nLimits: you need a Renoise account; you sign in with OAuth. Generation and analysis use the credits already in your Renoise account, and every generation is shown with its estimate before it is submitted. The plugin cannot buy credits, delete anything, or edit footage with a timeline; finished results stay in your Renoise library.",
+        "developerName": "Renoise",
+        "category": "Creativity",
+        "capabilities": [
+          "Interactive",
+          "Read",
+          "Write"
+        ],
+        "websiteURL": "https://renoise.ai",
+        "supportURL": "https://renoise.ai/docs",
+        "privacyPolicyURL": "https://renoise.ai/privacy",
+        "termsOfServiceURL": "https://renoise.ai/terms",
+        "defaultPrompt": [
+          "Make a 5-second video of a steaming cup of coffee on a wooden table at sunrise.",
+          "I want a product ad for my sneakers. Let me upload a photo first.",
+          "Show me Renoise templates I can start from."
+        ],
+        "brandColor": "#E64B22",
+        "composerIcon": "./assets/icon.svg",
+        "logo": "./assets/icon.svg"
+      },
+      "review": {
+        "test_cases": {
+          "positive": [
+            {
+              "description": "Check the account before generating. Works on any account.",
+              "prompt": "How many Renoise credits do I have left?",
+              "tools_triggered": "get_account",
+              "expected_behavior": "Reports the credit balance and the current plan of the test account. Reads only; nothing changes and no purchase link is shown."
+            },
+            {
+              "description": "Text-to-video from a short brief, with the estimate shown before submission.",
+              "prompt": "Make a 5-second video of a steaming cup of coffee on a wooden table at sunrise.",
+              "tools_triggered": "load_skill, list_models, estimate_cost, create_tasks, wait_tasks, show_result",
+              "expected_behavior": "Loads the director and model-routing skills, picks a video model, and states the plan with the estimate_cost total in one message. After the user approves create_tasks, a task card shows progress; wait_tasks polls until the video is done (usually a few minutes) and show_result plays it in the chat."
+            },
+            {
+              "description": "Product ad from an uploaded photo.",
+              "prompt": "I want a product ad for my sneakers. Let me upload a photo first.",
+              "tools_triggered": "request_upload, estimate_cost, create_tasks, wait_tasks, show_result",
+              "expected_behavior": "Shows an upload box. After the user uploads an image (any product photo works), ChatGPT uses its material ID as the reference image, states the plan and estimate, and on approval generates the ad and plays it with show_result."
+            },
+            {
+              "description": "Browse templates and make one like a template with the user's own image. The test account has sample images in its library.",
+              "prompt": "Show me Renoise templates I can start from.",
+              "tools_triggered": "open_studio, search_materials, create_from_template, wait_tasks",
+              "expected_behavior": "Opens the studio with a template gallery. After the user picks a template and an image from their library, create_from_template submits it (credits are charged on approval) and a task card follows its progress."
+            },
+            {
+              "description": "Analyze a video that is already in the library. The test account has a sample video named demo.mp4.",
+              "prompt": "Analyze my video demo.mp4 and describe its scenes, camera moves and music.",
+              "tools_triggered": "search_materials, analyze_media",
+              "expected_behavior": "Finds demo.mp4 with search_materials and returns a structured analysis: a scene-by-scene timeline with visuals and camera, overall style and mood, and the music. Uses a small amount of credits; nothing else changes."
+            }
+          ],
+          "negative": [
+            {
+              "description": "Buying credits or a subscription is out of scope: the plugin has no purchase tools and shows no purchase links.",
+              "prompt": "Buy 1,000 more Renoise credits for me with my saved card.",
+              "expected_behavior": "No tool is called that buys or charges anything. ChatGPT says it cannot buy credits here and that credits are managed in the user's Renoise account."
+            },
+            {
+              "description": "Deleting is out of scope: the plugin has no delete tools.",
+              "prompt": "Delete all the videos in my Renoise library.",
+              "expected_behavior": "No Renoise tool is called. ChatGPT says it cannot delete anything from the Renoise library."
+            },
+            {
+              "description": "A request unrelated to media generation should not trigger the plugin.",
+              "prompt": "Write a SQL query that returns the ten most recent orders.",
+              "expected_behavior": "No Renoise tool is called; ChatGPT answers directly."
+            }
+          ]
+        },
+        "commerce": false,
+        "commerce_description": "The plugin sells nothing and shows no purchase or upgrade links. Generation and analysis spend credits the user already has in their Renoise account; credits and plans are managed on renoise.ai."
+      },
+      "publication": {
+        "release_notes": "Generation, uploads and analysis now run through the remote Renoise MCP server on every host, with in-chat uploads, task cards and a result player."
+      }
+    }
+  }
+}
