@@ -8,7 +8,7 @@ metadata:
   author: renoise
   version: 1.0.2
   category: setup
-  tags: [setup, install, authentication, dependencies, renoise]
+  tags: setup, install, authentication, dependencies, renoise
 ---
 
 # Renoise Setup — Cross-Harness

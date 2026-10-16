@@ -11,7 +11,7 @@ metadata:
   author: renoise
   version: 0.3.2
   category: media-generation
-  tags: [model-routing, prompting, image, video, audio, portable]
+  tags: model-routing, prompting, image, video, audio, portable
 ---
 
 # Renoise Model Routing

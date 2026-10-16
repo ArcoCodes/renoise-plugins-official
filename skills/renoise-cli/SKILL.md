@@ -13,7 +13,7 @@ metadata:
   author: renoise
   version: 0.9.0
   category: video-production
-  tags: [cli, scripts, local-helpers]
+  tags: cli, scripts, local-helpers
 ---
 
 # Renoise CLI — terminals, scripts, and local helpers
