@@ -25,7 +25,7 @@ AI video production skills by Renoise — creative direction, generation, analys
 1. Add the marketplace:
 
 ```bash
-claude plugin marketplace add ArcoCodes/renoise-plugins-official
+claude plugin marketplace add renoise-ai/renoise-plugins-official
 ```
 
 2. Install the plugin:
@@ -42,7 +42,7 @@ claude plugin install renoise@renoise-plugins-official
 
 ### Claude Desktop
 
-In **Cowork**, open **Customize → Plugins → + → Add marketplace → Add from a repository**, enter `https://github.com/ArcoCodes/renoise-plugins-official`, then install **renoise**. Cowork asks you to sign in to Renoise in the browser the first time the Renoise tools are used; no separate Terminal is required.
+In **Cowork**, open **Customize → Plugins → + → Add marketplace → Add from a repository**, enter `https://github.com/renoise-ai/renoise-plugins-official`, then install **renoise**. Cowork asks you to sign in to Renoise in the browser the first time the Renoise tools are used; no separate Terminal is required.
 
 ### OpenClaw
 
@@ -55,7 +55,7 @@ openclaw plugins install @renoise/plugin
 Add the repository marketplace with the native Codex plugin command:
 
 ```bash
-codex plugin marketplace add ArcoCodes/renoise-plugins-official
+codex plugin marketplace add renoise-ai/renoise-plugins-official
 ```
 
 Restart the ChatGPT desktop app, open **Plugins**, select the **Renoise** marketplace, and install **renoise**. Codex Desktop is available on macOS and Windows; on Linux, use the same plugin through Codex CLI.
@@ -84,7 +84,7 @@ The canonical `skills/` tree is also a dependency-free `@renoise/skills` package
 
 ```json
 {
-  "@renoise/skills": "github:ArcoCodes/renoise-plugins-official#<commit>&path:/skills"
+  "@renoise/skills": "github:renoise-ai/renoise-plugins-official#<commit>&path:/skills"
 }
 ```
 
@@ -208,7 +208,7 @@ Plugin maintainers can run `npm run validate:plugin` to execute the official plu
 >   claude plugin uninstall video-maker@renoise-plugins-official   # only if you have this leftover
 >   claude plugin uninstall renoise@renoise-plugins-official 2>/dev/null; claude plugin install renoise@renoise-plugins-official
 >   ```
-> - **Codex** — remove the old `video-maker` marketplace/install, add `ArcoCodes/renoise-plugins-official` as shown above, install `renoise`, and restart the ChatGPT desktop app or Codex CLI.
+> - **Codex** — remove the old `video-maker` marketplace/install, add `renoise-ai/renoise-plugins-official` as shown above, install `renoise`, and restart the ChatGPT desktop app or Codex CLI.
 > - **OpenClaw** — reinstall with `openclaw plugins install @renoise/plugin`.
 >
 > After migrating, slash commands move from `/video-maker:*` to `/renoise:*`.
@@ -225,8 +225,8 @@ Plugin maintainers can run `npm run validate:plugin` to execute the official plu
 
 Hit a bug or have feedback on the experience, generation quality, or cross-shot consistency? Open an issue — the repo ships guided forms:
 
-- 💬 **[Experience feedback](https://github.com/ArcoCodes/renoise-plugins-official/issues/new?template=feedback.yml)** — usage experience, generation quality, consistency, workflow suggestions.
-- 🐞 **[Bug report](https://github.com/ArcoCodes/renoise-plugins-official/issues/new?template=bug_report.yml)** — reproducible defects.
+- 💬 **[Experience feedback](https://github.com/renoise-ai/renoise-plugins-official/issues/new?template=feedback.yml)** — usage experience, generation quality, consistency, workflow suggestions.
+- 🐞 **[Bug report](https://github.com/renoise-ai/renoise-plugins-official/issues/new?template=bug_report.yml)** — reproducible defects.
 
 When it involves a generation, include the **Task ID** (`renoise task get <id>`) and an output link/screenshot — that helps us most. Account / credits / API-key matters go to https://www.renoise.ai/developer, not the issue tracker.
 

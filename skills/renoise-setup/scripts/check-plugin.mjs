@@ -11,7 +11,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { compareVersions } from './install-cli.mjs';
 
-const REPO = 'ArcoCodes/renoise-plugins-official';
+const REPO = 'renoise-ai/renoise-plugins-official';
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
 
 function localVersion() {

@@ -6,7 +6,7 @@
   "description": "Standalone Renoise media-production skills",
   "repository": {
     "type": "git",
-    "url": "https://github.com/ArcoCodes/renoise-plugins-official.git",
+    "url": "https://github.com/renoise-ai/renoise-plugins-official.git",
     "directory": "skills"
   },
   "files": [
