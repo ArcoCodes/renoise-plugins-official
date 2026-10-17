@@ -9,7 +9,7 @@ metadata:
   author: renoise
   version: 0.2.2
   category: video-production
-  tags: [video, fission, variants, experimentation, portable]
+  tags: video, fission, variants, experimentation, portable
 ---
 
 # Video Fission

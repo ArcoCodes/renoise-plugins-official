@@ -8,7 +8,7 @@ metadata:
   author: renoise
   version: 0.4.1
   category: video-production
-  tags: [storyboard, short-drama, adaptation, image-generation, video-generation, portable]
+  tags: storyboard, short-drama, adaptation, image-generation, video-generation, portable
 ---
 
 # Storyboard Sheet / Short Drama Board

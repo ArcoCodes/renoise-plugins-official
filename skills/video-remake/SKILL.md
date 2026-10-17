@@ -9,7 +9,7 @@ metadata:
   author: renoise
   version: 0.1.3
   category: video-production
-  tags: [video, remake, replication, replacement, portable]
+  tags: video, remake, replication, replacement, portable
 ---
 
 # Reference Video Remake / 复刻视频 / 剪同款
